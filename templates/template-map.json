@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "templates": {
+    "folderCover": {
+      "sourceWorkbook": "기록물이관신청서 자동화_v20(기록물종류변세분화).xlsb",
+      "sourceSheet": "표지(서식)",
+      "outputTemplate": "templates/management/기록물철표지.xlsx",
+      "copyBlock": "A1:F42",
+      "fields": {
+        "finalTitle": "C4",
+        "subtitle": "C5",
+        "yearRetention": "C7",
+        "institutionName": "C9",
+        "internalId": "C3"
+      },
+      "notes": "원본 시트를 그대로 복사하고 값만 주입. 물리적 서류철 구멍 위치를 보존한다."
+    },
+    "indexList": {
+      "sourceWorkbook": "기록물이관신청서 자동화_v20(기록물종류변세분화).xlsb",
+      "sourceSheet": "색인목록(서식)",
+      "outputTemplate": "templates/management/색인목록.xlsx",
+      "headerBlock": "A1:L5",
+      "dataTemplateRow": 6,
+      "fields": {
+        "folderGroupTitle": "A2",
+        "productionYearText": "G4",
+        "documentRows": {
+          "seq": "A",
+          "registrationDate": "B",
+          "documentNo": "D",
+          "documentTitle": "E",
+          "senderOrg": "F",
+          "receiverOrg": "H",
+          "startPage": "I",
+          "electronicFlag": "J",
+          "note": "K"
+        }
+      }
+    },
+    "managementNumberSticker": {
+      "sourceWorkbook": "기록물관리대장 자동화_v19(리디자인).xlsb",
+      "sourceRoutine": "Nav_New_Create_Sticker",
+      "outputTemplate": "templates/management/관리번호스티커.xlsx",
+      "layout": {
+        "labelsPerRow": 5,
+        "valueColumns": ["A","C","E","G","I"],
+        "valueColumnWidth": 16.4,
+        "gapColumns": ["B","D","F","H"],
+        "gapColumnWidth": 1.25,
+        "rowHeightPoints": 59,
+        "font": "맑은 고딕",
+        "fontSize": 15,
+        "shrinkToFit": true,
+        "page": {
+          "orientation": "portrait",
+          "topMarginCm": 1.07,
+          "bottomMarginCm": 1.07,
+          "leftMarginCm": 0.48,
+          "rightMarginCm": 0,
+          "zoom": 100
+        }
+      }
+    },
+    "preservationBoxLabel": {
+      "sourceWorkbook": "기록물관리대장 자동화_v19(리디자인).xlsb",
+      "sourceSheet": "상자라벨(서식)",
+      "outputTemplate": "templates/management/보존상자라벨.xlsx",
+      "singleLabelBlock": "A2:D13",
+      "labelsPerPage": 3,
+      "horizontalStrideColumns": 4,
+      "verticalStrideRows": 14,
+      "fieldsRelativeToLabel": {
+        "boxNo": "C2",
+        "retentionPeriod": "C3",
+        "productionYear": "C4",
+        "institutionName": "C5",
+        "itemEndYear": ["C6","C7","C8","C9","C10","C11","C12","C13"],
+        "itemTitle": ["D6","D7","D8","D9","D10","D11","D12","D13"]
+      }
+    }
+  }
+}
