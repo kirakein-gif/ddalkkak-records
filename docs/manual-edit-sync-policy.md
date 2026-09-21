@@ -187,3 +187,25 @@ _handoff current 값 자동동기화
 
 단, 원래 웹 생성값과 원본문서 추적정보도 함께 보존하여
 무엇이 수정되었는지 확인할 수 있게 한다.
+
+
+## 구현 상태 — v2 시제품
+
+`기록물이관신청서_v2_수기수정동기화.xlsx`에 다음을 구현했다.
+
+- 표시시트 각 기록물철에 안정 식별자 rowId 부여
+- handoff의 current 업무값을 표시시트에서 수식으로 조회
+- original 업무값은 웹 최초 생성값으로 정적 보존
+- userModified 자동판정
+- rowPresent 자동판정
+- validationState 자동판정
+- 상단 총 기록물철 수·문서수·쪽수도 표시목록 기준 수식화
+
+검증:
+- 표시시트의 기록물철 제목을 수기로 변경했을 때 handoff currentTitle이 즉시 변경됨
+- userModified가 FALSE → TRUE로 변경됨
+- originalTitle은 유지됨
+- validationState는 정상 수정이면 OK 유지
+
+현재 시제품에서는 handoff 구조 확인을 위해 시트 탭이 노출될 수 있다.
+최종 웹 생성본에서는 이 시트를 숨김 처리하는 것을 배포 기준으로 한다.
