@@ -127,3 +127,35 @@ _handoff 메타영역에 schemaVersion, generatedAt, generatorVersion, transferP
 - 두 프로그램의 접점 = 이관신청서.xlsx 내부의 구조화된 _handoff 데이터
 
 이 구조를 기본 연계규격으로 삼는다.
+
+## 색인 재생성을 위한 문서단위 연계정보
+
+관리단계에서 철제목 권차가 최종 재번호되면 기록물철 표지뿐 아니라 색인도 같은 최종 철 기준으로 다시 생성해야 한다.
+따라서 권 단위 `_handoff`만으로는 부족하고, 각 권에 포함된 원본문서의 색인정보도 함께 넘겨야 한다.
+
+표시시트는 늘리지 않고 기술용 숨김시트를 하나 추가한다.
+
+```text
+기록물이관신청서.xlsx
+├─ 이관신청서
+├─ _handoff       # 기록물철 1행 = 1권
+└─ _handoff_docs  # 원본문서 1행 = 1건
+```
+
+`_handoff_docs` 권장 필드:
+- transferPackageId
+- rowId (상위 기록물철 식별자)
+- docSeq
+- documentNo
+- registrationDate
+- documentTitle
+- approvalType
+- senderReceiver
+- pageCount
+- startPage
+- sourceRowRef
+
+관리프로그램은 `rowId`로 `_handoff`와 `_handoff_docs`를 연결한다.
+최종 철제목 재번호 후 색인 템플릿을 생성할 때 문서단위 값을 사용한다.
+
+기존 사용자 경험은 변하지 않는다. 두 시트는 모두 숨김 기술시트이며 결재 첨부물에서 사용자가 볼 필요가 없다.
