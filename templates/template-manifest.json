@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "templates": {
+    "managementOutput": {
+      "path": "templates/management/관리출력양식_원본.xlsx",
+      "sourceSheet": "양식",
+      "policy": "원본 Excel 규격 고정. 프로그램은 값만 치환.",
+      "contains": [
+        "기록물철 표지",
+        "색인",
+        "관리번호 스티커",
+        "보존상자 라벨"
+      ],
+      "status": "원본 XLSB의 양식 시트를 Microsoft Excel 자체 Copy 방식으로 1회 추출"
+    },
+    "standardLedger": {
+      "school": "templates/standard-ledger/기록물관리대장_학교.xlsx",
+      "direct": "templates/standard-ledger/기록물관리대장_직속.xlsx",
+      "archive": "templates/standard-ledger/기록물관리대장_기록관.xlsx"
+    }
+  }
+}
