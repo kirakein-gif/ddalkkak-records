@@ -1,0 +1,34 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local build/dependency files
+node_modules/
+dist/
+.tmp/
+temp/
+
+# Never commit local/private records data
+private/
+data/
+local/
+samples/raw/
+**/~$*
+*.csv
+*.xls
+*.xlsx
+*.xlsm
+*.xlsb
+
+# Explicitly managed, reviewed assets
+!templates/**/*.xlsx
+!samples/anonymized/**/*.xlsx
+!samples/anonymized/**/*.csv
+
+# Environment/secrets
+.env
+.env.*
+*.key
+*.pem
