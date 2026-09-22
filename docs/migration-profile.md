@@ -53,3 +53,24 @@
 ```
 
 이 구조는 확정본이 아니며 실제 지역별 자료를 비교하면서 확장한다.
+
+
+## 헤더 서명 기반 마이그레이션 프로필
+
+같은 지역/기관 서식은 매년 헤더 구성이 반복되므로 헤더 정규화 결과로 서명(signature)을 만들고 확정 매핑을 재사용한다.
+
+프로필 권장 구조:
+- version
+- name
+- signature
+- targetType (school/direct/archive)
+- sourceSheetHint
+- headers
+- mapping[{header,en}]
+- defaults.keepOrg
+- defaults.creatOrg
+- normalization.retention
+- normalization.disclosure
+- normalization.type
+
+프로필은 실제 기록물 행 데이터를 저장하지 않는다. 헤더 매핑과 기관 공통 설정만 저장한다.
