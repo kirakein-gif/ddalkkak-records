@@ -1,0 +1,146 @@
+name: Clean records Excel templates
+
+on:
+  push:
+    paths:
+      - ".github/workflows/clean-records-templates.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Remove stale external workbook links
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          import os
+          import zipfile
+
+          root = Path("templates")
+          targets = [
+              root / "표지(서식).xlsx",
+              root / "색인목록(서식).xlsx",
+              root / "관리번호스티커(서식).xlsx",
+              root / "상자라벨(서식).xlsx",
+          ]
+
+          def clean_xml(data: bytes, name: str) -> bytes:
+              text = data.decode("utf-8")
+
+              if name == "[Content_Types].xml":
+                  text = re.sub(
+                      r'<Override\b[^>]*PartName="/xl/externalLinks/[^"]+"[^>]*/>',
+                      "",
+                      text,
+                      flags=re.I,
+                  )
+
+              elif name == "xl/workbook.xml":
+                  text = re.sub(
+                      r'<externalReferences\b[^>]*>.*?</externalReferences>',
+                      "",
+                      text,
+                      flags=re.I | re.S,
+                  )
+                  text = re.sub(
+                      r'<externalReferences\b[^>]*/>',
+                      "",
+                      text,
+                      flags=re.I,
+                  )
+
+              elif name == "xl/_rels/workbook.xml.rels":
+                  text = re.sub(
+                      r'<Relationship\b(?=[^>]*(?:Type="[^"]*/externalLink"|Target="externalLinks/[^"]+"))[^>]*/>',
+                      "",
+                      text,
+                      flags=re.I,
+                  )
+
+              elif name.startswith("xl/worksheets/") and name.endswith(".xml"):
+                  # 외부 통합문서를 참조하는 수식은 제거하고 캐시된 값(v)은 남긴다.
+                  text = re.sub(
+                      r'<f\b[^>]*>[^<]*\[[0-9]+\][^<]*</f>',
+                      "",
+                      text,
+                      flags=re.I,
+                  )
+
+              return text.encode("utf-8")
+
+          for path in targets:
+              if not path.exists():
+                  raise SystemExit(f"missing template: {path}")
+
+              with zipfile.ZipFile(path, "r") as zin:
+                  infos = zin.infolist()
+                  names = {i.filename for i in infos}
+                  external = sorted(n for n in names if n.startswith("xl/externalLinks/"))
+
+                  if not external:
+                      print(f"{path.name}: no external links; unchanged")
+                      continue
+
+                  tmp = path.with_suffix(".cleaning.xlsx")
+                  with zipfile.ZipFile(tmp, "w") as zout:
+                      for info in infos:
+                          name = info.filename
+                          if name.startswith("xl/externalLinks/"):
+                              continue
+
+                          data = zin.read(name)
+                          if name in {
+                              "[Content_Types].xml",
+                              "xl/workbook.xml",
+                              "xl/_rels/workbook.xml.rels",
+                          } or (name.startswith("xl/worksheets/") and name.endswith(".xml")):
+                              data = clean_xml(data, name)
+
+                          zout.writestr(info, data)
+
+              with zipfile.ZipFile(tmp, "r") as test:
+                  bad = test.testzip()
+                  if bad:
+                      raise SystemExit(f"{path.name}: ZIP validation failed at {bad}")
+                  cleaned_names = set(test.namelist())
+                  if any(n.startswith("xl/externalLinks/") for n in cleaned_names):
+                      raise SystemExit(f"{path.name}: externalLinks still present")
+                  if "xl/printerSettings/printerSettings1.bin" not in cleaned_names:
+                      raise SystemExit(f"{path.name}: printer settings unexpectedly removed")
+
+              os.replace(tmp, path)
+              print(f"{path.name}: removed {len(external)} external-link package part(s); printer settings preserved")
+
+          # 최종 전체 검사
+          for path in targets:
+              with zipfile.ZipFile(path, "r") as z:
+                  if z.testzip():
+                      raise SystemExit(f"{path.name}: final ZIP validation failed")
+                  names = set(z.namelist())
+                  if any(n.startswith("xl/externalLinks/") for n in names):
+                      raise SystemExit(f"{path.name}: stale external link remained")
+                  if "xl/printerSettings/printerSettings1.bin" not in names:
+                      raise SystemExit(f"{path.name}: printer settings missing")
+              print(f"{path.name}: OK")
+          PY
+
+      - name: Commit cleaned templates
+        shell: bash
+        run: |
+          if git diff --quiet -- templates; then
+            echo "No template changes needed."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add templates
+          git commit -m "Clean stale external links from Excel templates"
+          git push
