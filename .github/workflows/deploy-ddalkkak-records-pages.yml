@@ -1,11 +1,6 @@
-name: Deploy migration test to GitHub Pages
+name: Deploy migration test to GitHub Pages (manual legacy)
 
 on:
-  push:
-    branches: ["main"]
-    paths:
-      - "site-src/**"
-      - ".github/workflows/deploy-ddalkkak-records-pages.yml"
   workflow_dispatch:
 
 permissions:
@@ -13,66 +8,8 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  info:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Rebuild migration HTML
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p _site/migration
-          cat site-src/migration-v0.5.part*.b64 \
-            | tr -d '\n\r ' \
-            | base64 --decode \
-            | gzip --decompress \
-            > _site/migration/index.html
-          test "$(wc -c < _site/migration/index.html)" -gt 70000
-          grep -q "v0.5 · 매핑 편집기" _site/migration/index.html
-
-          cat > _site/index.html <<'HTML'
-          <!doctype html>
-          <html lang="ko">
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width,initial-scale=1">
-            <title>딸깍 기록물관리</title>
-            <style>
-              body{font-family:"Malgun Gothic",sans-serif;background:#f4f7fb;color:#1f2937;margin:0}
-              main{max-width:760px;margin:70px auto;padding:24px}
-              .card{background:#fff;border:1px solid #dfe5ec;border-radius:16px;padding:28px;box-shadow:0 8px 30px rgba(16,24,40,.06)}
-              h1{margin:0 0 10px;font-size:26px}
-              p{color:#667085;line-height:1.7}
-              a{display:inline-block;margin-top:14px;padding:12px 18px;border-radius:10px;background:#316bd6;color:#fff;text-decoration:none;font-weight:700}
-            </style>
-          </head>
-          <body><main><div class="card">
-            <h1>딸깍 기록물관리</h1>
-            <p>현재 GitHub Pages에서 실제 화면 테스트를 진행하고 있습니다.</p>
-            <a href="./migration/">기록물관리대장 마이그레이션 테스트 열기</a>
-          </div></main></body>
-          </html>
-          HTML
-          touch _site/.nojekyll
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: "_site"
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - run: echo "Automatic Pages deployment now uses the repository Pages build. This legacy workflow is manual-only."
