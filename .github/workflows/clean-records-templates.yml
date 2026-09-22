@@ -2,6 +2,9 @@ name: Clean records Excel templates
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/clean-records-templates.yml"
 
 permissions:
   contents: write
@@ -50,6 +53,13 @@ jobs:
                   )
                   text = re.sub(
                       r'<externalReferences\b[^>]*/>',
+                      "",
+                      text,
+                      flags=re.I,
+                  )
+                  # 레거시 자동화에서 따라온 깨진/외부 통합문서 이름 정의 제거.
+                  text = re.sub(
+                      r'<definedName\b[^>]*>(?:#REF!|[^<]*\[[0-9]+\][^<]*)</definedName>',
                       "",
                       text,
                       flags=re.I,
