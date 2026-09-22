@@ -1,10 +1,10 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "templates": {
     "folderCover": {
       "sourceWorkbook": "기록물이관신청서 자동화_v20(기록물종류변세분화).xlsb",
       "sourceSheet": "표지(서식)",
-      "outputTemplate": "templates/management/기록물철표지.xlsx",
+      "outputTemplate": "templates/표지(서식).xlsx",
       "copyBlock": "A1:F42",
       "fields": {
         "finalTitle": "C4",
@@ -18,7 +18,7 @@
     "indexList": {
       "sourceWorkbook": "기록물이관신청서 자동화_v20(기록물종류변세분화).xlsb",
       "sourceSheet": "색인목록(서식)",
-      "outputTemplate": "templates/management/색인목록.xlsx",
+      "outputTemplate": "templates/색인목록(서식).xlsx",
       "headerBlock": "A1:L5",
       "dataTemplateRow": 6,
       "fields": {
@@ -40,12 +40,23 @@
     "managementNumberSticker": {
       "sourceWorkbook": "기록물관리대장 자동화_v19(리디자인).xlsb",
       "sourceRoutine": "Nav_New_Create_Sticker",
-      "outputTemplate": "templates/management/관리번호스티커.xlsx",
+      "outputTemplate": "templates/관리번호스티커(서식).xlsx",
       "layout": {
         "labelsPerRow": 5,
-        "valueColumns": ["A","C","E","G","I"],
+        "valueColumns": [
+          "A",
+          "C",
+          "E",
+          "G",
+          "I"
+        ],
         "valueColumnWidth": 16.4,
-        "gapColumns": ["B","D","F","H"],
+        "gapColumns": [
+          "B",
+          "D",
+          "F",
+          "H"
+        ],
         "gapColumnWidth": 1.25,
         "rowHeightPoints": 59,
         "font": "맑은 고딕",
@@ -64,7 +75,7 @@
     "preservationBoxLabel": {
       "sourceWorkbook": "기록물관리대장 자동화_v19(리디자인).xlsb",
       "sourceSheet": "상자라벨(서식)",
-      "outputTemplate": "templates/management/보존상자라벨.xlsx",
+      "outputTemplate": "templates/상자라벨(서식).xlsx",
       "singleLabelBlock": "A2:D13",
       "labelsPerPage": 3,
       "horizontalStrideColumns": 4,
@@ -74,9 +85,33 @@
         "retentionPeriod": "C3",
         "productionYear": "C4",
         "institutionName": "C5",
-        "itemEndYear": ["C6","C7","C8","C9","C10","C11","C12","C13"],
-        "itemTitle": ["D6","D7","D8","D9","D10","D11","D12","D13"]
+        "itemEndYear": [
+          "C6",
+          "C7",
+          "C8",
+          "C9",
+          "C10",
+          "C11",
+          "C12",
+          "C13"
+        ],
+        "itemTitle": [
+          "D6",
+          "D7",
+          "D8",
+          "D9",
+          "D10",
+          "D11",
+          "D12",
+          "D13"
+        ]
       }
     }
-  }
+  },
+  "standardLedgerTemplates": {
+    "school": "templates/기록물관리대장 서식(학교).xlsx",
+    "direct": "templates/기록물관리대장 서식(직속).xlsx",
+    "archive": "templates/기록물관리대장 서식(기록관).xlsx"
+  },
+  "templatePolicy": "출력 시 새 워크북을 설계하지 않고 해당 원본 템플릿 파일을 복제한 뒤 지정 셀/행에 데이터만 주입한다."
 }
