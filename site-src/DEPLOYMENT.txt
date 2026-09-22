@@ -1,0 +1,6 @@
+Ddalkkak Records migration test deployment
+
+Source build: migration v0.5 mapping editor
+Deployment: GitHub Pages via .github/workflows/deploy-ddalkkak-records-pages.yml
+
+The browser app reads selected Excel files locally. The current test build loads SheetJS and ExcelJS from jsDelivr and downloads canonical templates from this public GitHub repository. Do not use sensitive production records until the deployment and privacy behavior have been verified.
