@@ -27,7 +27,9 @@ h1{font-size:20px;margin:0 0 10px}.muted{color:#667085;font-size:13px;line-heigh
     for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
     if(!('DecompressionStream' in window))throw new Error('최신 Edge 또는 Chrome을 사용해주세요.');
     const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
-    const page=await new Response(stream).text();
+    let page=await new Response(stream).text();
+    page=page.replace('function renderTaskList(){','function selectTask(t){selectedTask=t;renderTaskList();renderBinding()}\\nfunction renderTaskList(){');
+    page=page.replace('onclick="selectedTask=${JSON.stringify(t)};renderTaskList();renderBinding()"','data-task="${esc(t)}" onclick="selectTask(this.dataset.task)"');
     if(!page.includes('딸깍 기록물이관신청서 자동화'))throw new Error('배포 파일 검증에 실패했습니다.');
     document.open();document.write(page);document.close();
   }catch(e){
