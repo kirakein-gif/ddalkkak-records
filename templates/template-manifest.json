@@ -1,22 +1,34 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
+  "templateRoot": "templates",
+  "policy": "GitHub templates 폴더의 Excel 파일을 공식 출력 원본으로 사용한다. 프로그램은 템플릿의 구조/인쇄설정/서식을 재디자인하지 않고 데이터만 주입한다.",
   "templates": {
-    "managementOutput": {
-      "path": "templates/management/관리출력양식_원본.xlsx",
-      "sourceSheet": "양식",
-      "policy": "원본 Excel 규격 고정. 프로그램은 값만 치환.",
-      "contains": [
-        "기록물철 표지",
-        "색인",
-        "관리번호 스티커",
-        "보존상자 라벨"
-      ],
-      "status": "원본 XLSB의 양식 시트를 Microsoft Excel 자체 Copy 방식으로 1회 추출"
+    "cover": {
+      "path": "templates/표지(서식).xlsx",
+      "role": "기록물철 표지",
+      "source": "기록물이관신청서 자동화 원본"
+    },
+    "index": {
+      "path": "templates/색인목록(서식).xlsx",
+      "role": "기록물철 색인목록",
+      "source": "기록물이관신청서 자동화 원본"
+    },
+    "managementNumberSticker": {
+      "path": "templates/관리번호스티커(서식).xlsx",
+      "role": "관리번호 스티커",
+      "source": "기록물관리대장 자동화 원본",
+      "strictFormat": true
+    },
+    "preservationBoxLabel": {
+      "path": "templates/상자라벨(서식).xlsx",
+      "role": "보존상자 라벨",
+      "source": "기록물관리대장 자동화 원본",
+      "strictFormat": true
     },
     "standardLedger": {
-      "school": "templates/standard-ledger/기록물관리대장_학교.xlsx",
-      "direct": "templates/standard-ledger/기록물관리대장_직속.xlsx",
-      "archive": "templates/standard-ledger/기록물관리대장_기록관.xlsx"
+      "school": "templates/기록물관리대장 서식(학교).xlsx",
+      "direct": "templates/기록물관리대장 서식(직속).xlsx",
+      "archive": "templates/기록물관리대장 서식(기록관).xlsx"
     }
   }
 }
