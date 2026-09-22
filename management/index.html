@@ -16,7 +16,7 @@ h1{font-size:20px;margin:0 0 10px}.muted{color:#667085;font-size:13px;line-heigh
 (async()=>{
   const state=document.getElementById('state');
   try{
-    const urls=["../site-src/management-v0.6.2.b64"];
+    const urls=["../site-src/management-v0.6.2.b64","../site-src/management-v0.6.2.part02.b64","../site-src/management-v0.6.2.part03.b64"];
     const chunks=await Promise.all(urls.map(async u=>{
       const r=await fetch(u,{cache:'no-store'});
       if(!r.ok) throw new Error(u+' · HTTP '+r.status);
