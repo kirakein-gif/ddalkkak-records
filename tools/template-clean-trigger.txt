@@ -1,0 +1,1 @@
+Run one-time cleanup of canonical Excel templates. 2026-09-22
