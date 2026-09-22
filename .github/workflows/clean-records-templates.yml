@@ -1,9 +1,10 @@
 name: Clean records Excel templates
 
 on:
-  push:
+  workflow_dispatch:
+  pull_request:
     paths:
-      - ".github/workflows/clean-records-templates.yml"
+      - "tools/template-clean-trigger.txt"
 
 permissions:
   contents: write
@@ -12,8 +13,10 @@ jobs:
   clean:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout PR branch
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Remove stale external workbook links
         shell: bash
@@ -143,4 +146,4 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add templates
           git commit -m "Clean stale external links from Excel templates"
-          git push
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
