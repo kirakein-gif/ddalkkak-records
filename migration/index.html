@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>딸깍 기록물관리대장 마이그레이션 로딩</title>
+<style>
+body{font-family:"Malgun Gothic",Arial,sans-serif;background:#f4f7fb;color:#1f2937;margin:0;display:grid;place-items:center;min-height:100vh}
+.box{background:#fff;border:1px solid #dfe5ec;border-radius:16px;padding:28px 32px;text-align:center;box-shadow:0 8px 30px rgba(16,24,40,.06)}
+h1{font-size:20px;margin:0 0 10px}.muted{color:#667085;font-size:13px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="box"><h1>딸깍 마이그레이션을 여는 중입니다.</h1><div id="state" class="muted">배포된 v0.5 화면을 불러오고 있습니다.</div></div>
+<script>
+(async()=>{
+  const state=document.getElementById('state');
+  try{
+    const base='../site-src/migration-v0.5.part';
+    const urls=[1,2,3,4].map(n=>base+String(n).padStart(2,'0')+'.b64');
+    const parts=await Promise.all(urls.map(async u=>{
+      const r=await fetch(u,{cache:'no-store'});
+      if(!r.ok)throw new Error(u+' · HTTP '+r.status);
+      return (await r.text()).replace(/\s+/g,'');
+    }));
+    const b64=parts.join('');
+    const bin=atob(b64);
+    const bytes=new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+    if(!('DecompressionStream' in window))throw new Error('이 브라우저는 압축 해제를 지원하지 않습니다. 최신 Edge 또는 Chrome을 사용해주세요.');
+    const ds=new DecompressionStream('gzip');
+    const stream=new Blob([bytes]).stream().pipeThrough(ds);
+    const html=await new Response(stream).text();
+    if(!html.includes('v0.5 · 매핑 편집기'))throw new Error('배포 파일 검증에 실패했습니다.');
+    document.open();document.write(html);document.close();
+  }catch(e){
+    state.innerHTML='<b>화면을 불러오지 못했습니다.</b><br>'+String(e.message||e)+'<br><br>잠시 후 새로고침해주세요.';
+  }
+})();
+</script>
+</body>
+</html>
