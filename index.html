@@ -3,52 +3,246 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>딸깍 기록물관리 통합 테스트</title>
+<title>딸깍 기록물관리 · Beta Test Center</title>
 <style>
-:root{--bg:#f4f7fb;--card:#fff;--line:#dfe5ec;--ink:#1f2937;--muted:#667085;--blue:#316bd6}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Malgun Gothic",Arial,sans-serif}
-.wrap{max-width:1120px;margin:0 auto;padding:54px 22px 80px}
-.hero{margin-bottom:26px}.eyebrow{display:inline-flex;padding:6px 10px;border-radius:999px;background:#eef4ff;color:#316bd6;font-size:12px;font-weight:800}
-h1{margin:14px 0 8px;font-size:32px;letter-spacing:-1px}.hero p{margin:0;color:var(--muted);line-height:1.7}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.card{display:flex;flex-direction:column;min-height:270px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;text-decoration:none;color:inherit;box-shadow:0 8px 24px rgba(16,24,40,.05);transition:.15s}
-.card:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(16,24,40,.09);border-color:#b9c8df}
-.icon{width:52px;height:52px;border-radius:15px;display:grid;place-items:center;font-size:25px;margin-bottom:18px}
-.transfer .icon{background:#fff4e5}.management .icon{background:#eaf7f2}.migration .icon{background:#f2edff}
-.num{font-size:11px;color:#98a2b3;font-weight:800;letter-spacing:.5px}
-h2{font-size:21px;margin:6px 0 8px}.desc{font-size:13px;color:var(--muted);line-height:1.65;flex:1}
-.tags{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}.tag{font-size:10px;padding:5px 7px;border-radius:7px;background:#f2f4f7;color:#475467;font-weight:700}
-.go{font-size:13px;font-weight:900;color:var(--blue)}
-.note{margin-top:20px;padding:12px 14px;border:1px solid var(--line);background:#fff;border-radius:12px;color:var(--muted);font-size:12px;line-height:1.65}
-@media(max-width:850px){.grid{grid-template-columns:1fr}.card{min-height:auto}}
+:root{
+  --bg:#f5f7fb;--card:#fff;--line:#dde4ee;--ink:#172033;--muted:#667085;
+  --blue:#2563eb;--bluebg:#eef4ff;--green:#18735b;--greenbg:#eaf7f2;
+  --amber:#9a6700;--amberbg:#fff7df;--purple:#6941c6;--purplebg:#f4f0ff;
+  --red:#b42318;--redbg:#fff1f0
+}
+*{box-sizing:border-box}
+html{font-size:16px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Malgun Gothic","Noto Sans KR",Arial,sans-serif;font-size:14px;line-height:1.65;letter-spacing:-.15px}
+a{color:inherit}
+.top{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+.topin{max-width:1220px;margin:auto;min-height:68px;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{display:flex;align-items:center;gap:11px}
+.logo{width:38px;height:38px;border-radius:12px;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:19px;font-weight:900}
+.brand strong{display:block;font-size:17px;line-height:1.2}
+.brand span{display:block;color:var(--muted);font-size:11.5px;margin-top:3px}
+.status{display:flex;align-items:center;gap:7px;border:1px solid #b9d8c9;background:#f2fbf7;color:#176448;border-radius:999px;padding:6px 10px;font-size:11px;font-weight:800}
+.dot{width:7px;height:7px;border-radius:50%;background:#25a06f}
+.wrap{max-width:1220px;margin:auto;padding:34px 24px 82px}
+.hero{display:grid;grid-template-columns:1.5fr .9fr;gap:18px;align-items:stretch;margin-bottom:20px}
+.hero-main,.hero-side{background:#fff;border:1px solid var(--line);border-radius:18px;padding:26px;box-shadow:0 5px 20px rgba(16,24,40,.04)}
+.eyebrow{display:inline-flex;padding:5px 9px;border-radius:999px;background:var(--bluebg);color:var(--blue);font-size:11px;font-weight:900}
+h1{font-size:31px;letter-spacing:-1px;line-height:1.25;margin:12px 0 10px}
+.hero p{margin:0;color:var(--muted);font-size:14px;max-width:760px}
+.hero-side h3{font-size:14px;margin:0 0 10px}
+.hero-side ul{margin:0;padding-left:19px;color:#475467;font-size:12.5px}
+.hero-side li{margin:5px 0}
+.flow{background:#fff;border:1px solid var(--line);border-radius:15px;padding:17px;margin-bottom:20px}
+.flow-title{font-size:12px;font-weight:900;margin-bottom:11px}
+.flowline{display:flex;align-items:stretch;gap:7px;overflow-x:auto;padding-bottom:2px}
+.flowitem{min-width:160px;flex:1;border:1px solid var(--line);background:#fbfcfe;border-radius:11px;padding:10px 12px}
+.flowitem b{display:block;font-size:12px;margin-bottom:3px}
+.flowitem span{font-size:10.5px;color:var(--muted)}
+.arrow{display:flex;align-items:center;color:#98a2b3;font-weight:900}
+.section-title{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:28px 0 12px}
+.section-title h2{margin:0;font-size:19px;letter-spacing:-.4px}
+.section-title p{margin:0;color:var(--muted);font-size:11.5px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.card{background:#fff;border:1px solid var(--line);border-radius:17px;padding:20px;box-shadow:0 5px 18px rgba(16,24,40,.04);display:flex;flex-direction:column;min-height:405px}
+.card.primary{border:2px solid #b7c9ef;box-shadow:0 7px 24px rgba(37,99,235,.08)}
+.cardhead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.icon{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-size:22px}
+.transfer .icon{background:#fff4e7}.management .icon{background:var(--greenbg)}.migration .icon{background:var(--purplebg)}
+.chips{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.chip{border-radius:999px;padding:4px 7px;font-size:9.5px;font-weight:900}
+.beta{background:var(--bluebg);color:var(--blue)}.core{background:var(--greenbg);color:var(--green)}.verify{background:var(--amberbg);color:var(--amber)}
+.ver{font-size:10.5px;color:#98a2b3;font-weight:900;letter-spacing:.35px;margin-top:15px}
+.card h3{font-size:20px;margin:4px 0 7px}
+.desc{color:var(--muted);font-size:12.5px;min-height:62px}
+.scope{border-top:1px solid #edf0f4;margin-top:13px;padding-top:12px}
+.scope b{display:block;font-size:11.5px;margin-bottom:6px}
+.scope ul{margin:0;padding-left:18px;color:#475467;font-size:11.5px}
+.scope li{margin:3px 0}
+.testbox{margin-top:12px;border:1px solid #e7ebf1;background:#fafbfc;border-radius:10px;padding:10px}
+.testbox strong{font-size:11px}
+.check{display:flex;align-items:flex-start;gap:7px;margin-top:7px;font-size:10.8px;color:#475467;cursor:pointer}
+.check input{margin-top:3px;accent-color:var(--blue)}
+.cardfoot{margin-top:auto;padding-top:15px}
+.open{display:flex;align-items:center;justify-content:center;min-height:42px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:900;background:var(--blue);color:#fff}
+.management .open{background:#19745a}.migration .open{background:#6941c6}
+.small{font-size:10px;color:#98a2b3;text-align:center;margin-top:7px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:15px;padding:18px 20px;margin-top:14px}
+.panel h3{font-size:14px;margin:0 0 10px}
+.teststeps{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.tstep{border:1px solid var(--line);border-radius:10px;padding:11px;background:#fbfcfe}
+.tstep .n{font-size:9.5px;color:var(--blue);font-weight:900}
+.tstep b{display:block;font-size:11.5px;margin:3px 0}
+.tstep span{font-size:10.5px;color:var(--muted)}
+.limits{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.limit{padding:11px 12px;border-radius:10px;border:1px solid #f0dfb6;background:#fffaf0;font-size:11px;color:#72520a}
+.limit b{display:block;margin-bottom:3px;color:#805d0d}
+.privacy{border-left:4px solid var(--blue);background:#f8fbff;padding:13px 15px;border-radius:9px;margin-top:14px;color:#475467;font-size:11.5px}
+.privacy b{color:var(--ink)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+.actionbtn{border:1px solid var(--line);background:#fff;border-radius:9px;min-height:36px;padding:7px 11px;font-size:11px;font-weight:800;cursor:pointer;color:#344054}
+.actionbtn:hover{border-color:#aebbd0;background:#fafcff}
+.footer{margin-top:26px;color:#98a2b3;font-size:10.5px;text-align:center}
+@media(max-width:980px){.hero{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.card{min-height:auto}.teststeps,.limits{grid-template-columns:1fr}.topin,.wrap{padding-left:16px;padding-right:16px}.flowline{min-width:720px}.flow{overflow-x:auto}}
 </style>
 </head>
-<body><main class="wrap">
+<body>
+<header class="top">
+  <div class="topin">
+    <div class="brand">
+      <div class="logo">딸</div>
+      <div><strong>딸깍 기록물관리</strong><span>Beta Test Center · 실제 파일 검증 단계</span></div>
+    </div>
+    <div class="status"><span class="dot"></span> 2026-09-23 Beta</div>
+  </div>
+</header>
+
+<main class="wrap">
   <section class="hero">
-    <span class="eyebrow">Ddalkkak Records · 통합 테스트</span>
-    <h1>딸깍 기록물관리</h1>
-    <p>기록물 이관부터 관리, 과거 대장 마이그레이션까지 기능별 화면을 실제 웹에서 테스트합니다.</p>
+    <div class="hero-main">
+      <span class="eyebrow">실제 파일 베타테스트</span>
+      <h1>이제 실제 업무 파일로<br>기록물관리 흐름을 검증합니다.</h1>
+      <p>새 기록물은 <b>이관신청서 → 기록물대장관리</b>로 이어서 검증하고, 기존 지역별 대장은 <b>마이그레이션</b>에서 표준 구조 변환을 검증합니다. 현재는 기능 완성 선언 단계가 아니라 실제 자료에서 예외를 찾고 안정화하는 단계입니다.</p>
+    </div>
+    <div class="hero-side">
+      <h3>이번 베타의 기준</h3>
+      <ul>
+        <li>원본 파일을 덮어쓰지 않습니다.</li>
+        <li>실제 업무 파일의 <b>복사본</b>으로 먼저 검증합니다.</li>
+        <li>생성된 Excel은 반드시 Microsoft Excel에서 다시 열어봅니다.</li>
+        <li>이관 출력은 바로 관리 프로그램 입력으로 이어서 확인합니다.</li>
+        <li>화면보다 <b>데이터 정확성·출력 보존·연계</b>를 우선 검증합니다.</li>
+      </ul>
+    </div>
   </section>
+
+  <section class="flow">
+    <div class="flow-title">신규 기록물 업무 흐름</div>
+    <div class="flowline">
+      <div class="flowitem"><b>① 문서등록대장</b><span>K-에듀파인 원본</span></div><div class="arrow">→</div>
+      <div class="flowitem"><b>② 유형분류·편철</b><span>이관신청서 Beta</span></div><div class="arrow">→</div>
+      <div class="flowitem"><b>③ 이관신청서 Excel</b><span>_handoff / _handoff_docs 포함</span></div><div class="arrow">→</div>
+      <div class="flowitem"><b>④ 기록물대장관리</b><span>상자·관리번호 자동화</span></div><div class="arrow">→</div>
+      <div class="flowitem"><b>⑤ 최종 출력물</b><span>표지·색인·스티커·라벨</span></div>
+    </div>
+  </section>
+
+  <div class="section-title">
+    <div><h2>Beta 모듈</h2><p>현재 실제 파일 검증에 사용할 버전</p></div>
+    <p>체크 상태는 이 브라우저에만 저장됩니다.</p>
+  </div>
+
   <section class="grid">
-    <a class="card transfer" href="./transfer/">
-      <div class="icon">📤</div><div class="num">01 · TRANSFER</div><h2>이관신청서</h2>
-      <div class="desc">이관 대상 기록을 검토하고 이관신청서 작성 흐름을 확인합니다.</div>
-      <div class="tags"><span class="tag">이관 검토</span><span class="tag">편철</span><span class="tag">신청서</span></div>
-      <div class="go">테스트 화면 열기 →</div>
-    </a>
-    <a class="card management" href="./management/">
-      <div class="icon">🗃️</div><div class="num">02 · MANAGEMENT</div><h2>기록물대장관리</h2>
-      <div class="desc">이관받은 기록의 상자배정, 관리번호 부여와 표지·색인·스티커·상자라벨 출력을 테스트합니다.</div>
-      <div class="tags"><span class="tag">상자배정</span><span class="tag">관리번호</span><span class="tag">출력</span></div>
-      <div class="go">테스트 화면 열기 →</div>
-    </a>
-    <a class="card migration" href="./migration/">
-      <div class="icon">🔄</div><div class="num">03 · MIGRATION</div><h2>대장 마이그레이션</h2>
-      <div class="desc">지역별·기관별 기존 기록물관리대장을 표준 구조로 매핑하고 변환합니다.</div>
-      <div class="tags"><span class="tag">자동매핑</span><span class="tag">드래그 편집</span><span class="tag">프로필</span></div>
-      <div class="go">테스트 화면 열기 →</div>
-    </a>
+    <article class="card transfer">
+      <div class="cardhead"><div class="icon">📤</div><div class="chips"><span class="chip beta">BETA</span><span class="chip verify">통합검증</span></div></div>
+      <div class="ver">TRANSFER · v0.2</div>
+      <h3>기록물이관신청서</h3>
+      <div class="desc">문서등록대장을 읽어 기록유형을 분류하고, 일반문서는 100쪽 기준으로 편철한 뒤 관리연계 데이터가 포함된 이관 Excel을 생성합니다.</div>
+      <div class="scope"><b>현재 베타 범위</b><ul>
+        <li>Excel/CSV 문서등록대장 업로드</li><li>비전자 검증 · 유형분류 · 사용자 보정</li><li>자동편철 · 제외/복원 · 순서/분권 보정</li><li>이관 Excel + _handoff + _handoff_docs 생성</li>
+      </ul></div>
+      <div class="testbox"><strong>실제 파일에서 확인</strong>
+        <label class="check"><input type="checkbox" data-test="transfer-read">원본 열과 문서 건수가 정확히 읽힌다.</label>
+        <label class="check"><input type="checkbox" data-test="transfer-bind">유형분류와 100쪽 편철 결과가 합리적이다.</label>
+        <label class="check"><input type="checkbox" data-test="transfer-xlsx">생성 Excel이 오류 없이 열린다.</label>
+        <label class="check"><input type="checkbox" data-test="transfer-handoff">생성 파일을 관리 모듈이 정상 인식한다.</label>
+      </div>
+      <div class="cardfoot"><a class="open" href="./transfer/">이관신청서 Beta 열기 →</a><div class="small">결재용 표시서식은 베타 중 추가 검증</div></div>
+    </article>
+
+    <article class="card management primary">
+      <div class="cardhead"><div class="icon">🗃️</div><div class="chips"><span class="chip core">핵심 BETA</span><span class="chip verify">실파일 우선</span></div></div>
+      <div class="ver">MANAGEMENT · v0.6.2</div>
+      <h3>기록물대장관리</h3>
+      <div class="desc">승인된 이관자료를 다시 편철하지 않고 그대로 받아 보존상자를 자동배정하고 관리번호를 부여한 뒤 원본 Excel 출력양식에 결과를 주입합니다.</div>
+      <div class="scope"><b>현재 베타 범위</b><ul>
+        <li>이관신청서 여러 파일 취합 · _handoff 읽기</li><li>기관별 프로필 · 상자 자동제외 규칙</li><li>1000쪽/8권/보존기간 기준 상자배정</li><li>관리번호 부여 · 표지/색인/스티커/상자라벨</li>
+      </ul></div>
+      <div class="testbox"><strong>이번 베타의 최우선 검증</strong>
+        <label class="check"><input type="checkbox" data-test="management-read">실제 이관 Excel을 누락 없이 읽는다.</label>
+        <label class="check"><input type="checkbox" data-test="management-box">상자배정/제외 결과가 실제 업무기준과 맞는다.</label>
+        <label class="check"><input type="checkbox" data-test="management-no">기존번호 보존과 신규 관리번호 부여가 맞다.</label>
+        <label class="check"><input type="checkbox" data-test="management-output">4종 Excel 출력·인쇄미리보기가 정상이다.</label>
+      </div>
+      <div class="cardfoot"><a class="open" href="./management/">기록물대장관리 Beta 열기 →</a><div class="small">현재 기록물관리 베타테스트의 중심 모듈</div></div>
+    </article>
+
+    <article class="card migration">
+      <div class="cardhead"><div class="icon">🔄</div><div class="chips"><span class="chip beta">BETA</span><span class="chip verify">지역별 검증</span></div></div>
+      <div class="ver">MIGRATION · v0.5</div>
+      <h3>기존 대장 마이그레이션</h3>
+      <div class="desc">지역·기관마다 다른 과거 기록물관리대장을 하나의 표준 내부 구조로 맞춥니다. 없는 값은 추정하지 않고 공란과 출처 상태를 남깁니다.</div>
+      <div class="scope"><b>현재 베타 범위</b><ul>
+        <li>헤더/시트 자동탐지 · 자동매핑</li><li>원본열 다중 재사용 · 나누기/자르기/합치기</li><li>앞 3건 실시간 변환 미리보기</li><li>매핑·변환규칙 프로필 저장/재사용</li>
+      </ul></div>
+      <div class="testbox"><strong>지역별 실제 대장에서 확인</strong>
+        <label class="check"><input type="checkbox" data-test="migration-read">헤더와 기관 메타정보를 정확히 찾는다.</label>
+        <label class="check"><input type="checkbox" data-test="migration-map">자동매핑이 과도한 추정을 하지 않는다.</label>
+        <label class="check"><input type="checkbox" data-test="migration-raw">미사용 원본열과 기존 관리번호가 보존된다.</label>
+        <label class="check"><input type="checkbox" data-test="migration-output">변환 Excel이 복구경고 없이 열린다.</label>
+      </div>
+      <div class="cardfoot"><a class="open" href="./migration/">마이그레이션 Beta 열기 →</a><div class="small">과거 지역 대장 표준화 전용</div></div>
+    </article>
   </section>
-  <div class="note">현재는 실제 화면 검증용 테스트 페이지입니다. 민감한 실제 기록물은 기능과 개인정보 처리 방식을 충분히 확인한 뒤 사용하세요.</div>
-</main></body>
+
+  <section class="panel">
+    <h3>권장 실파일 테스트 순서</h3>
+    <div class="teststeps">
+      <div class="tstep"><div class="n">STEP 01</div><b>원본 복사본 준비</b><span>실제 업무파일은 원본을 보존하고 테스트용 복사본으로 시작합니다.</span></div>
+      <div class="tstep"><div class="n">STEP 02</div><b>입력 정확성 확인</b><span>건수, 기관, 제목, 연도, 보존기간, 쪽수가 원본과 일치하는지 봅니다.</span></div>
+      <div class="tstep"><div class="n">STEP 03</div><b>자동화 결과 확인</b><span>유형·편철 또는 상자배정·관리번호가 업무기준에 맞는지 확인합니다.</span></div>
+      <div class="tstep"><div class="n">STEP 04</div><b>Excel 재열기</b><span>다운로드한 모든 결과물을 Microsoft Excel에서 열어 복구경고 여부를 확인합니다.</span></div>
+      <div class="tstep"><div class="n">STEP 05</div><b>모듈 연계</b><span>이관신청서에서 만든 파일을 기록물대장관리에 그대로 넣어 데이터 연결을 확인합니다.</span></div>
+      <div class="tstep"><div class="n">STEP 06</div><b>출력 미리보기</b><span>표지·색인·관리번호 스티커·상자라벨은 인쇄미리보기까지 확인합니다.</span></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h3>이번 Beta에서 아직 확정하지 않는 항목</h3>
+    <div class="limits">
+      <div class="limit"><b>표준 기록물관리대장 최종출력</b>학교/직속/기록관 표준대장 출력은 필드 의미가 완전히 확정될 때까지 후순위입니다.</div>
+      <div class="limit"><b>출력물 미세 위치조정</b>표지·색인의 실물 출력 위치와 여백은 프린터/서류철 실검증 후 마지막에 조정합니다.</div>
+      <div class="limit"><b>이관신청서 결재 표시양식</b>현재 핵심은 분류·편철·관리연계입니다. 결재첨부용 표시양식은 실제 사용 검증 후 고정합니다.</div>
+      <div class="limit"><b>마이그레이션 지역별 예외</b>헤더 3단 구조, 특수표현 등은 실제 지역 파일에서 발견되는 사례만 보강합니다. 없는 값은 추정하지 않습니다.</div>
+    </div>
+    <div class="privacy"><b>테스트 자료 주의</b> · 현재 도구는 정적 웹페이지에서 선택한 파일을 브라우저가 읽는 방식입니다. 다만 베타 초기에는 개인정보가 포함된 유일본보다 <b>복사본</b>으로 검증하고, 생성 결과의 정확성을 확인한 뒤 실제 업무에 적용하는 것을 권장합니다.</div>
+    <div class="actions">
+      <button class="actionbtn" type="button" onclick="copyStatus()">현재 체크상태 복사</button>
+      <button class="actionbtn" type="button" onclick="resetStatus()">체크상태 초기화</button>
+    </div>
+  </section>
+
+  <div class="footer">Ddalkkak Records Beta · 실제 파일 검증 결과를 기준으로 다음 버전을 안정화합니다.</div>
+</main>
+
+<script>
+const TEST_KEY='ddalkkak_records_beta_checks_v1';
+function loadChecks(){
+  let saved={};try{saved=JSON.parse(localStorage.getItem(TEST_KEY)||'{}')}catch(e){}
+  document.querySelectorAll('[data-test]').forEach(el=>{
+    el.checked=!!saved[el.dataset.test];
+    el.addEventListener('change',saveChecks);
+  });
+}
+function saveChecks(){
+  const o={};document.querySelectorAll('[data-test]').forEach(el=>o[el.dataset.test]=el.checked);
+  localStorage.setItem(TEST_KEY,JSON.stringify(o));
+}
+function resetStatus(){
+  if(!confirm('이 브라우저에 저장된 베타 체크상태를 초기화할까요?'))return;
+  localStorage.removeItem(TEST_KEY);document.querySelectorAll('[data-test]').forEach(el=>el.checked=false);
+}
+async function copyStatus(){
+  const names={
+    'transfer-read':'이관: 원본 읽기','transfer-bind':'이관: 유형/편철','transfer-xlsx':'이관: Excel 열기','transfer-handoff':'이관→관리 연계',
+    'management-read':'관리: 이관자료 읽기','management-box':'관리: 상자배정','management-no':'관리: 관리번호','management-output':'관리: 4종 출력',
+    'migration-read':'마이그레이션: 헤더/기관','migration-map':'마이그레이션: 자동매핑','migration-raw':'마이그레이션: 원본보존','migration-output':'마이그레이션: Excel 열기'
+  };
+  const lines=['[딸깍 기록물관리 Beta 체크]',''];
+  document.querySelectorAll('[data-test]').forEach(el=>lines.push((el.checked?'✓ ':'□ ')+(names[el.dataset.test]||el.dataset.test)));
+  const txt=lines.join('\n');
+  try{await navigator.clipboard.writeText(txt);alert('현재 체크상태를 클립보드에 복사했습니다.')}catch(e){prompt('아래 내용을 복사해주세요.',txt)}
+}
+loadChecks();
+</script>
+</body>
 </html>
