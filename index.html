@@ -168,16 +168,16 @@ h1{font-size:31px;letter-spacing:-1px;line-height:1.25;margin:12px 0 10px}
 
     <article class="card migration">
       <div class="cardhead"><div class="icon">🔄</div><div class="chips"><span class="chip beta">BETA</span><span class="chip verify">지역별 검증</span></div></div>
-      <div class="ver">MIGRATION · v0.5</div>
+      <div class="ver">MIGRATION · v0.6.1</div>
       <h3>기존 대장 마이그레이션</h3>
-      <div class="desc">지역·기관마다 다른 과거 기록물관리대장을 하나의 표준 내부 구조로 맞춥니다. 없는 값은 추정하지 않고 공란과 출처 상태를 남깁니다.</div>
+      <div class="desc">지역·기관마다 다른 과거 기록물관리대장을 표준양식의 단위과제·보존기간·기록유형 기준으로 검증하고 정규화합니다. 기존 관리번호·상자·위치·철제목은 역사값으로 보존합니다.</div>
       <div class="scope"><b>현재 베타 범위</b><ul>
-        <li>헤더/시트 자동탐지 · 자동매핑</li><li>원본열 다중 재사용 · 나누기/자르기/합치기</li><li>앞 3건 실시간 변환 미리보기</li><li>매핑·변환규칙 프로필 저장/재사용</li>
+        <li>.xls/.xlsx · 숨김/다중시트 분석·통합</li><li>학교단위과제·유효성검사 기반 표준검증</li><li>비표준 보존기간·유형계층·만료연도 정규화</li><li>원본값·보정근거·파일/시트/행 추적</li>
       </ul></div>
       <div class="testbox"><strong>지역별 실제 대장에서 확인</strong>
-        <label class="check"><input type="checkbox" data-test="migration-read">헤더와 기관 메타정보를 정확히 찾는다.</label>
-        <label class="check"><input type="checkbox" data-test="migration-map">자동매핑이 과도한 추정을 하지 않는다.</label>
-        <label class="check"><input type="checkbox" data-test="migration-raw">미사용 원본열과 기존 관리번호가 보존된다.</label>
+        <label class="check"><input type="checkbox" data-test="migration-read">.xls/.xlsx와 숨김·다중시트를 누락 없이 읽는다.</label>
+        <label class="check"><input type="checkbox" data-test="migration-map">6·7·8년 등 비표준값이 표준근거로 보정되거나 검토필요로 차단된다.</label>
+        <label class="check"><input type="checkbox" data-test="migration-raw">기존 관리번호·상자번호·위치정보·철제목이 보존된다.</label>
         <label class="check"><input type="checkbox" data-test="migration-output">변환 Excel이 복구경고 없이 열린다.</label>
       </div>
       <div class="cardfoot"><a class="open" href="./migration/">마이그레이션 Beta 열기 →</a><div class="small">과거 지역 대장 표준화 전용</div></div>
