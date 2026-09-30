@@ -226,14 +226,31 @@ async function parseLedger(file){
  const buf=await file.arrayBuffer(),wb=XLSX.read(buf,{type:'array'});let found=[];
  for(const sn of wb.SheetNames){
   const matrix=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,defval:''});
-  let codeRow=-1,mngCol=-1,instCol=-1;
-  for(let r=0;r<Math.min(matrix.length,15);r++){for(let c=0;c<matrix[r].length;c++){const v=String(matrix[r][c]).trim();if(v==='mngNo'||v==='관리번호'){codeRow=r;mngCol=c}if(v==='keepOrgNm'||v==='creatOrgNm'||v==='기관명'||v==='보존기관명'){if(instCol<0)instCol=c}}}
+  let codeRow=-1,mngCol=-1,instCol=-1,boxCol=-1;
+  for(let r=0;r<Math.min(matrix.length,15);r++){
+   for(let c=0;c<matrix[r].length;c++){
+    const v=String(matrix[r][c]).trim();
+    if(v==='mngNo'||v==='관리번호'){codeRow=r;mngCol=c}
+    if(v==='keepOrgNm'||v==='creatOrgNm'||v==='기관명'||v==='보존기관명'){if(instCol<0)instCol=c}
+    if(v==='excelPresvBoxNm'||v==='보존상자번호'||v==='상자번호'||v==='보존상자'){if(boxCol<0)boxCol=c}
+   }
+  }
   if(mngCol<0)continue;
-  for(let r=codeRow+1;r<matrix.length;r++){const no=String(matrix[r][mngCol]||'').trim();if(!no)continue;found.push({no,inst:instCol>=0?String(matrix[r][instCol]||'').trim():''})}
+  for(let r=codeRow+1;r<matrix.length;r++){
+   const no=String(matrix[r][mngCol]||'').trim();if(!no)continue;
+   found.push({no,inst:instCol>=0?String(matrix[r][instCol]||'').trim():'',box:boxCol>=0?String(matrix[r][boxCol]||'').trim():''})
+  }
  }
  const groups={};
- for(const x of found){const m=x.no.match(/^(.*?)-(\d+)$/);if(!m)continue;const prefix=m[1],num=Number(m[2]);const inst=x.inst||'__UNKNOWN__';if(!groups[inst]||groups[inst].max<num)groups[inst]={prefix,max:num,count:0};groups[inst].count++}
- ledgerInfo=groups;document.getElementById('ledgerState').innerHTML=`<span class="badge ok">읽기 완료</span> 관리번호 ${found.length.toLocaleString()}건 분석`;finalReady=false
+ for(const x of found){
+  const inst=x.inst||'__UNKNOWN__';
+  if(!groups[inst])groups[inst]={prefix:'',max:10000,count:0,boxMax:{}};
+  const g=groups[inst],mm=x.no.match(/^(.*?)-(\d+)$/);
+  if(mm){const num=Number(mm[2]);if(!g.prefix)g.prefix=mm[1];if(num>g.max){g.max=num;g.prefix=mm[1]}g.count++}
+  const bm=String(x.box||'').match(/^(.*?)-0*(\d+)$/);
+  if(bm){const pref=bm[1],seq=Number(bm[2]);g.boxMax[pref]=Math.max(Number(g.boxMax[pref]||0),seq)}
+ }
+ ledgerInfo=groups;document.getElementById('ledgerState').innerHTML=`<span class="badge ok">읽기 완료</span> 관리번호 ${found.length.toLocaleString()}건 · 기존 상자번호도 이어서 사용`;finalReady=false
 }
 document.getElementById('ledgerFile').addEventListener('change',e=>{if(e.target.files[0])parseLedger(e.target.files[0]).catch(err=>alert('기존 대장 읽기 오류: '+err.message))});
 document.getElementById('profileFile').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const x=JSON.parse(await f.text());profiles=x.profiles||x;saveProfiles();alert('기관 프로필을 불러왔습니다.')}catch(err){alert('프로필 JSON을 읽지 못했습니다.')}});
@@ -264,9 +281,10 @@ function assignBoxes(){
  const groups={};records.forEach(r=>r.boxNo='');
  insts().forEach(inst=>{
   const arr=records.filter(r=>r.institution===inst&&!r.boxExcluded).sort(boxCompare);
-  const state={},nextSeq={};
+  const state={},nextSeq={},existingBoxMax=(findLedgerInfo(inst)?.boxMax||{});
   for(const r of arr){
    const pages=Math.max(0,Number(r.sheetCount)||0),pref=boxPrefix(r),key=pref+'|'+r.retention;
+   if(nextSeq[pref]===undefined)nextSeq[pref]=Number(existingBoxMax[pref]||0);
    if(!state[key]){
     const seq=(nextSeq[pref]||0)+1;nextSeq[pref]=seq;
     state[key]={seq,pages:0,count:0,ret:r.retention};
