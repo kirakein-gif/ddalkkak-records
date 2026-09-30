@@ -30,7 +30,7 @@ h1{font-size:20px;margin:0 0 10px}.muted{color:#667085;font-size:13px;line-heigh
     let page=await new Response(stream).text();
     if(!page.includes('딸깍 기록물이관신청서 자동화'))throw new Error('배포 파일 검증에 실패했습니다.');
 
-    const runtimePatch=\`
+    const runtimePatch=`
 <style>
 .dd-drag-handle{cursor:grab!important;user-select:none;font-weight:900;color:#667085}
 .dd-dragging{opacity:.45!important}
@@ -107,7 +107,7 @@ h1{font-size:20px;margin:0 0 10px}.muted{color:#667085;font-size:13px;line-heigh
   };
   if(document.getElementById('taskList')){renderTaskList();renderBinding();}
 })();
-<\/script>\`;
+<\/script>`;
     page=page.replace('</body>',runtimePatch+'</body>');
     document.open();document.write(page);document.close();
   }catch(e){
