@@ -1,0 +1,30 @@
+name: Extract management source
+on:
+  push:
+    paths:
+      - '.github/workflows/extract-management-source.yml'
+permissions:
+  contents: write
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract compressed management HTML
+        shell: python
+        run: |
+          import base64, gzip, pathlib
+          parts=[
+            pathlib.Path('site-src/management-v0.6.2.b64').read_text().strip(),
+            pathlib.Path('site-src/management-v0.6.2.part02.b64').read_text().strip(),
+            pathlib.Path('site-src/management-v0.6.2.part03.b64').read_text().strip(),
+          ]
+          html=gzip.decompress(base64.b64decode(''.join(parts))).decode('utf-8')
+          pathlib.Path('site-src/management-v0.6.2.source.html').write_text(html, encoding='utf-8')
+      - name: Commit extracted source
+        run: |
+          git config user.name "ddalkkak-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add site-src/management-v0.6.2.source.html
+          git commit -m "chore: extract management source" || exit 0
+          git push
