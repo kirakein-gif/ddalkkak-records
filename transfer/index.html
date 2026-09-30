@@ -41,7 +41,7 @@ h1{font-size:20px;margin:0 0 10px}.muted{color:#667085;font-size:13px;line-heigh
   renderTaskList=function(){
     var q=(document.getElementById('taskQ')&&document.getElementById('taskQ').value||'').toLowerCase();
     var ts=tasks().filter(function(t){return String(t).toLowerCase().includes(q);});
-    if(!selectedTask||!tasks().includes(selectedTask)||(ts.length&&!ts.includes(selectedTask)))selectedTask=ts[0]||'';
+    if(!ts.includes(selectedTask))selectedTask=ts[0]||'';
     var list=document.getElementById('taskList');if(!list)return;
     list.innerHTML=ts.map(function(t){
       var a=taskDocs(t).filter(function(d){return !d.excluded;});
