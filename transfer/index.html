@@ -38,6 +38,36 @@ h1{font-size:20px;margin:0 0 10px}.muted{color:#667085;font-size:13px;line-heigh
 </style>
 <script>
 (function(){
+  classify=function(title){
+    var s=String(title||'').trim(),compact=s.replace(/\s/g,'');
+    if(/동의서|계획|구입|촬영계획|사진촬영/.test(compact))return ['문서류','일반문서','종이','자동확정','특수기록 신호 없음'];
+    if(/(배치도면|설계도면|평면도|배치도|도면)$/.test(compact))return ['문서류','도면','종이','확인 필요','도면 제목 신호'];
+    if(/(대장)$/.test(compact)&&!/과제카드/.test(compact))return ['문서류','대장','종이','확인 필요','대장 제목 신호'];
+    if(/(^|[^과제])카드$/.test(compact)&&!/과제카드/.test(compact))return ['문서류','카드','종이','확인 필요','카드 제목 신호'];
+    if(/(사진자료|사진기록|행사사진|졸업식사진)$/.test(compact))return ['시청각류','사진','사진','확인 필요','사진자료 제목 신호'];
+    if(/(영상기록|동영상|영상자료)$/.test(compact))return ['시청각류','영상','디지털파일','확인 필요','영상 제목 신호'];
+    if(/(음성기록|녹음파일|음성자료)$/.test(compact))return ['시청각류','음성','디지털파일','확인 필요','음성 제목 신호'];
+    return ['문서류','일반문서','종이','자동확정','특수기록 신호 없음'];
+  };
+  taskDocs=function(t){
+    return docs.filter(function(d){return d.taskCard===t;}).sort(function(a,b){
+      var ao=Number(a.order),bo=Number(b.order),am=Number.isFinite(ao),bm=Number.isFinite(bo);
+      if(am&&bm)return ao-bo;
+      return String(a.date||'').localeCompare(String(b.date||''))||Number(a.id)-Number(b.id);
+    });
+  };
+  disclosureOf=function(vol){
+    var ds=[...new Set(vol.map(function(d){return d.disclosure;}).filter(Boolean))];
+    if(!ds.length)return '';
+    if(ds.length===1)return ds[0];
+    return '부분공개';
+  };
+  restrictionsOf=function(vol){
+    return [...new Set(vol.map(function(d){return d.restriction;}).filter(Boolean))].sort(function(a,b){
+      var an=Number((String(a).match(/\d+/)||['999'])[0]),bn=Number((String(b).match(/\d+/)||['999'])[0]);
+      return an-bn||String(a).localeCompare(String(b),'ko');
+    }).join(', ');
+  };
   renderTaskList=function(){
     var q=(document.getElementById('taskQ')&&document.getElementById('taskQ').value||'').toLowerCase();
     var ts=tasks().filter(function(t){return String(t).toLowerCase().includes(q);});
