@@ -248,25 +248,67 @@ function applyAllAutoExclusions(){records.forEach(r=>{const why=autoReason(r);r.
 const retentionRank={'3년':1,'5년':2,'10년':3,'30년':5,'준영구':6,'영구':7};
 function boxPrefix(r){return ['30년','준영구','영구'].includes(r.retention)?r.retention:String(r.yearFrom||'연도미상')}
 function volNo(title){const m=String(title).match(/\((?:\d+)-0*(\d+)\)/);return m?Number(m[1]):0}
+function baseBoxCompare(a,b){
+ return (retentionRank[a.retention]||4)-(retentionRank[b.retention]||4)
+   || String(a.unitTask).localeCompare(String(b.unitTask),'ko')
+   || volNo(a.title)-volNo(b.title)
+   || a._order-b._order
+}
+function boxCompare(a,b){
+ const rr=(retentionRank[a.retention]||4)-(retentionRank[b.retention]||4);
+ if(rr)return rr;
+ if(a.retention===b.retention && Number.isFinite(a._manualBoxOrder) && Number.isFinite(b._manualBoxOrder))return a._manualBoxOrder-b._manualBoxOrder;
+ return String(a.unitTask).localeCompare(String(b.unitTask),'ko')||volNo(a.title)-volNo(b.title)||a._order-b._order
+}
 function assignBoxes(){
  const groups={};records.forEach(r=>r.boxNo='');
  insts().forEach(inst=>{
-  const arr=records.filter(r=>r.institution===inst&&!r.boxExcluded).sort((a,b)=>(retentionRank[a.retention]||4)-(retentionRank[b.retention]||4)||String(a.unitTask).localeCompare(String(b.unitTask),'ko')||volNo(a.title)-volNo(b.title)||a._order-b._order);
-  const state={};
-  for(const r of arr){const pref=boxPrefix(r),key=pref+'|'+r.retention;if(!state[key])state[key]={seq:1,pages:0,count:0,ret:r.retention};let s=state[key];if(r.manualSplit||s.ret!==r.retention||s.count>=8||(s.pages>0&&s.pages+r.sheetCount>1000)){s.seq++;s.pages=0;s.count=0;s.ret=r.retention}r.boxNo=`${pref}-${String(s.seq).padStart(2,'0')}`;s.pages+=r.sheetCount;s.count++}
+  const arr=records.filter(r=>r.institution===inst&&!r.boxExcluded).sort(boxCompare);
+  const state={},nextSeq={};
+  for(const r of arr){
+   const pages=Math.max(0,Number(r.sheetCount)||0),pref=boxPrefix(r),key=pref+'|'+r.retention;
+   if(!state[key]){
+    const seq=(nextSeq[pref]||0)+1;nextSeq[pref]=seq;
+    state[key]={seq,pages:0,count:0,ret:r.retention};
+   }
+   let s=state[key];
+   if((r.manualSplit&&s.count>0)||s.count>=8||(s.count>0&&s.pages+pages>1000)){
+    const seq=(nextSeq[pref]||0)+1;nextSeq[pref]=seq;
+    s=state[key]={seq,pages:0,count:0,ret:r.retention};
+   }
+   r.boxNo=`${pref}-${String(s.seq).padStart(2,'0')}`;
+   s.pages+=pages;s.count++;
+  }
  });boxConfirmed=false;finalReady=false
+}
+let boxDragIdx=null;
+function boxDragStart(idx,e){boxDragIdx=idx;if(e&&e.dataTransfer){e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',String(idx))}}
+function boxDragOver(e){if(e){e.preventDefault();if(e.dataTransfer)e.dataTransfer.dropEffect='move'}}
+function boxDrop(targetIdx,e){
+ if(e)e.preventDefault();
+ const src=records.find(x=>x._idx===boxDragIdx),target=records.find(x=>x._idx===targetIdx);boxDragIdx=null;
+ if(!src||!target||src===target)return;
+ if(src.institution!==target.institution||src.retention!==target.retention){alert('순서 변경은 같은 기관·같은 보존기간 안에서만 가능합니다.');return}
+ const group=records.filter(r=>r.institution===src.institution&&r.retention===src.retention&&!r.boxExcluded).sort(boxCompare);
+ const from=group.indexOf(src),to=group.indexOf(target);if(from<0||to<0)return;
+ const moved=group.splice(from,1)[0];group.splice(to,0,moved);group.forEach((r,i)=>r._manualBoxOrder=i);
+ assignBoxes();renderBoxesAll()
 }
 function toggleExclude(idx){const r=records.find(x=>x._idx===idx);if(!r)return;r.boxExcluded=!r.boxExcluded;r.boxExcludeOrigin=r.boxExcluded?'manual':'override';assignBoxes();renderBoxesAll()}
 function splitHere(idx){const r=records.find(x=>x._idx===idx);if(!r)return;r.manualSplit=!r.manualSplit;assignBoxes();renderBoxesAll()}
-function resetEdits(){records.forEach(r=>{r.manualSplit=false;r.boxExcludeOrigin='';const why=autoReason(r);r.autoExcludeReason=why;r.boxExcluded=!!why;r.boxExcludeOrigin=why?'auto':''});assignBoxes();renderBoxesAll()}
+function resetEdits(){records.forEach(r=>{r.manualSplit=false;delete r._manualBoxOrder;r.boxExcludeOrigin='';const why=autoReason(r);r.autoExcludeReason=why;r.boxExcluded=!!why;r.boxExcludeOrigin=why?'auto':''});assignBoxes();renderBoxesAll()}
 function summaryHtml(vals){return vals.map(x=>`<div class="stat"><div class="k">${x[0]}</div><div class="v">${x[1]}<span class="u">${x[2]||''}</span></div></div>`).join('')}
 function renderBoxesAll(){applyAllAutoExclusions();assignBoxes();const excluded=records.filter(r=>r.boxExcluded).length,boxes=new Set(records.filter(r=>!r.boxExcluded).map(r=>r.institution+'|'+r.boxNo)).size,mods=records.filter(r=>r.userModified).length;document.getElementById('summary2').innerHTML=summaryHtml([['기관',insts().length,'개'],['기록물철',records.length,'권'],['상자 배정',records.length-excluded,'권'],['상자 제외',excluded,'권'],['보존상자',boxes,'개'],['수기수정',mods,'권']]);renderInstList();renderRuleInfo();renderBoxes();setFoot('상자 자동배정을 검토하고 필요하면 기관 설정이나 개별 제외/분할을 조정하세요.')}
-function renderInstList(){document.getElementById('instList').innerHTML=insts().map(i=>{const a=records.filter(r=>r.institution===i),ex=a.filter(r=>r.boxExcluded).length;return `<div class="inst ${i===selectedInst?'on':''}" onclick="selectedInst=${JSON.stringify(i)};renderBoxesAll()"><b>${esc(i)}</b><div class="meta">${a.length}권 · 상자제외 ${ex}권<br>관리번호 접두어 ${esc(profile(i).prefix)}</div></div>`}).join('')}
+function renderInstList(){
+ const root=document.getElementById('instList');
+ root.innerHTML=insts().map(i=>{const a=records.filter(r=>r.institution===i),ex=a.filter(r=>r.boxExcluded).length;return `<div class="inst ${i===selectedInst?'on':''}" data-inst="${esc(i)}"><b>${esc(i)}</b><div class="meta">${a.length}권 · 상자제외 ${ex}권<br>관리번호 접두어 ${esc(profile(i).prefix)}</div></div>`}).join('');
+ root.querySelectorAll('.inst').forEach(el=>el.addEventListener('click',()=>{selectedInst=el.dataset.inst||'';renderBoxesAll()}))
+}
 function renderRuleInfo(){const p=profile(selectedInst);document.getElementById('ruleInfo').innerHTML=`<div class="formrow"><label>최대 권수</label><b>8권</b></div><div class="formrow"><label>최대 쪽수</label><b>1,000쪽</b></div><div class="formrow"><label>동일 보존기간</label><b>필수</b></div><div class="formrow"><label>제외규칙</label><b>${(p.formRules||[]).length+(p.titleRules||[]).length}개</b></div><button class="btn" style="width:100%" onclick="openProfile()">기관별 설정 편집</button>`}
 function renderBoxes(){const recs=records.filter(r=>r.institution===selectedInst),map={};recs.filter(r=>!r.boxExcluded).forEach(r=>(map[r.boxNo]??=[]).push(r));let h='';Object.entries(map).forEach(([b,a])=>{const pg=a.reduce((s,r)=>s+r.sheetCount,0);h+=`<div class="box"><div class="boxh"><div><div class="boxname">${esc(b)}</div><div class="boxmeta">${esc(a[0].retention)} · ${a.length}권 · ${pg.toLocaleString()}쪽</div></div>${a.length>8||pg>1000?'<span class="badge bad">기준초과</span>':'<span class="badge ok">자동배정</span>'}</div>`;a.forEach((r,i)=>{h+=`<div class="rec"><div>${i+1}</div><div class="title">${esc(r.title)}${r.userModified?'<div><span class="badge warn">수기수정</span></div>':''}</div><div>${r.sheetCount}쪽</div><div>${esc(r.retention)}</div><div><button class="btn" onclick="splitHere(${r._idx})">${r.manualSplit?'분할취소':'여기서 새 상자'}</button> <button class="btn" onclick="toggleExclude(${r._idx})">제외</button></div></div>`});h+='</div>'});const ex=recs.filter(r=>r.boxExcluded);if(ex.length){h+=`<div class="box"><div class="boxh"><div><div class="boxname">상자 제외</div><div class="boxmeta">관리대장에는 남고 상자에만 넣지 않음</div></div></div>`;ex.forEach(r=>h+=`<div class="rec excluded"><div>—</div><div class="title">${esc(r.title)}<div class="muted">${esc(r.autoExcludeReason||'사용자 제외')}</div></div><div>${r.sheetCount}쪽</div><div>${esc(r.retention)}</div><div><button class="btn" onclick="toggleExclude(${r._idx})">복원</button></div></div>`);h+='</div>'}document.getElementById('boxes').innerHTML=h||'<div class="notice">선택 기관에 기록물이 없습니다.</div>'}
 
 function parseTitle(t){const m=String(t).match(/^(.*?)\s*\(\s*\d+\s*-\s*0*\d+\s*\)(.*)$/);return m?{base:m[1].trim(),tail:m[2]}:null}
-function renumberTitles(){insts().forEach(inst=>{const by={};records.filter(r=>r.institution===inst).forEach(r=>(by[r.unitTask||'__NO_TASK__']??=[]).push(r));Object.values(by).forEach(arr=>{arr.sort((a,b)=>(retentionRank[a.retention]||4)-(retentionRank[b.retention]||4)||String(a.boxNo).localeCompare(String(b.boxNo),'ko')||a._order-b._order);const total=arr.length,pad=total>=10?2:1;arr.forEach((r,i)=>{const p=parseTitle(r.title);r.originalTitle=r.originalTitle||r.title;if(p)r.finalTitle=`${p.base} (${total}-${String(i+1).padStart(pad,'0')})${p.tail}`;else r.finalTitle=r.title;r.titlePatternMissing=!p})})})}
+function renumberTitles(){insts().forEach(inst=>{const by={};records.filter(r=>r.institution===inst).forEach(r=>(by[r.unitTask||'__NO_TASK__']??=[]).push(r));Object.values(by).forEach(arr=>{arr.sort((a,b)=>(retentionRank[a.retention]||4)-(retentionRank[b.retention]||4)||String(a.boxNo).localeCompare(String(b.boxNo),'ko')||a._order-b._order);const total=arr.length,pad=String(total).length;arr.forEach((r,i)=>{const p=parseTitle(r.title);r.originalTitle=r.originalTitle||r.title;if(p)r.finalTitle=`${p.base} (${total}-${String(i+1).padStart(pad,'0')})${p.tail}`;else r.finalTitle=r.title;r.titlePatternMissing=!p})})})}
 function findLedgerInfo(inst){if(ledgerInfo[inst])return ledgerInfo[inst];const keys=Object.keys(ledgerInfo);if(keys.length===1&&keys[0]==='__UNKNOWN__')return ledgerInfo[keys[0]];return null}
 function assignManagementNos(){insts().forEach(inst=>{const p=profile(inst),li=findLedgerInfo(inst);let max=li?li.max:10000;const pref=li?.prefix||p.prefix||shortPrefix(inst);records.filter(r=>r.institution===inst).sort((a,b)=>a._order-b._order).forEach(r=>{max++;r.managementNo=`${pref}-${String(max).padStart(5,'0')}`})})}
 function recalcFinal(){renumberTitles();assignManagementNos();finalReady=true;renderFinal()}
