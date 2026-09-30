@@ -31,6 +31,7 @@ h1{font-size:20px;margin:0 0 10px}.muted{color:#667085;font-size:13px;line-heigh
     if(!page.includes('딸깍 기록물이관신청서 자동화'))throw new Error('배포 파일 검증에 실패했습니다.');
 
     const runtimePatch=`
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"><\/script>
 <style>
 .dd-drag-handle{cursor:grab!important;user-select:none;font-weight:900;color:#667085}
 .dd-dragging{opacity:.45!important}
@@ -82,28 +83,45 @@ h1{font-size:20px;margin:0 0 10px}.muted{color:#667085;font-size:13px;line-heigh
     var first=(vol[0]&&vol[0].title)||task,extra=Math.max(0,vol.length-1),idx=total>=10?String(vol._index).padStart(String(total).length,'0'):String(vol._index);
     return task+' ('+total+'-'+idx+'): '+first+(extra?' 외 '+extra+'건':'');
   };
-  downloadTransfer=function(){
+  downloadTransfer=async function(){
     rebuildFolders(false);
     var inst=document.getElementById('institution').value.trim(),dep=document.getElementById('department').value.trim(),ty=Number(document.getElementById('transferYear').value)||new Date().getFullYear();
     if(!inst){alert('생산기관명을 입력해주세요.');go(4);return;}
-    var wb=XLSX.utils.book_new(),rows=[['기록물 이관신청서'],['생산기관',inst,'','','처리부서',dep,'','','이관연도',ty],[],['순번','시작연도','종료연도','기록물철 제목','표준 단위과제','보존기간','기록유형','세부유형','매체유형','수량(권)','공개구분','비공개호수','문서수','쪽수','비고']];
-    folders.forEach(function(f,i){rows.push([i+1,f.yearFrom,f.yearTo,f.title,f.unitTask,f.retention,f.recordType,f.detailType,f.mediaType,1,f.disclosure,f.restrictionNos,f.documentCount,Number(f.sheetCount)||0,'']);});
-    var ws=XLSX.utils.aoa_to_sheet(rows);
-    ws['!merges']=[XLSX.utils.decode_range('A1:O1'),XLSX.utils.decode_range('B2:D2'),XLSX.utils.decode_range('F2:H2'),XLSX.utils.decode_range('J2:O2')];
-    ws['!cols']=[{wch:7},{wch:10},{wch:10},{wch:48},{wch:25},{wch:10},{wch:11},{wch:11},{wch:12},{wch:9},{wch:11},{wch:14},{wch:8},{wch:8},{wch:18}];
-    ws['!rows']=[{hpt:30},{hpt:24},{hpt:8},{hpt:30}];
-    XLSX.utils.book_append_sheet(wb,ws,'이관신청서');
-    var idx=[['철순번','기록물철 제목','문서순번','문서번호','등록일자','문서제목','결재유형','수신(발신)자','쪽수','원본행']];
-    folders.forEach(function(f,fi){f.docs.forEach(function(d,di){idx.push([fi+1,f.title,di+1,d.documentNo,d.date,d.title,d.approvalType,d.senderReceiver,Number(d.pages)||0,d.sourceRow]);});});
-    var iws=XLSX.utils.aoa_to_sheet(idx);iws['!cols']=[{wch:8},{wch:42},{wch:8},{wch:18},{wch:12},{wch:50},{wch:14},{wch:24},{wch:8},{wch:9}];XLSX.utils.book_append_sheet(wb,iws,'세부색인');
-    var hand=[['schemaVersion','transferPackageId','rowId','currentInstitutionName','currentTransferDepartmentName','currentYearFrom','currentYearTo','currentTitle','currentUnitTask','currentRetentionPeriod','currentRecordType','currentDetailType','currentMediaType','currentSheetCount','currentDocumentCount','currentDisclosure','currentRestrictionNos','userModified','validationState']];
-    folders.forEach(function(f){hand.push(['2.1',packageId,f.rowId,inst,dep,f.yearFrom,f.yearTo,f.title,f.unitTask,f.retention,f.recordType,f.detailType,f.mediaType,Number(f.sheetCount)||0,Number(f.documentCount)||0,f.disclosure,f.restrictionNos,true,'OK']);});
-    addSheet(wb,'_handoff',hand);
-    var hd=[['schemaVersion','transferPackageId','rowId','docSeq','documentNo','registrationDate','documentTitle','approvalType','senderReceiver','pageCount','startPage','endPage','electronicNonElectronic','sourceTaskCard','sourceTaskName','sourceRowRef']];
-    folders.forEach(function(f){var p=1;f.docs.forEach(function(d,i){var n=Number(d.pages)||0;hd.push(['2.1',packageId,f.rowId,i+1,d.documentNo,d.date,d.title,d.approvalType,d.senderReceiver,n,p,p+n-1,d.nonElectronic||'비전자',d.taskCard,d.taskName,d.sourceRow]);p+=n;});});
-    addSheet(wb,'_handoff_docs',hd);wb.Workbook={Sheets:[{Hidden:0},{Hidden:0},{Hidden:1},{Hidden:1}]};
-    XLSX.writeFile(wb,'기록물이관신청서_'+inst+'_'+ty+'.xlsx');
-    var foot=document.getElementById('foot');if(foot)foot.textContent=folders.length+'권 이관신청서를 생성했습니다. 서식·세부색인·관리연계 데이터가 함께 포함됩니다.';
+    if(!window.ExcelJS){alert('이관신청서 서식 라이브러리를 불러오지 못했습니다. 새로고침 후 다시 시도해주세요.');return;}
+    var totalDocs=folders.reduce(function(a,f){return a+(Number(f.documentCount)||0);},0);
+    var totalPages=folders.reduce(function(a,f){return a+(Number(f.sheetCount)||0);},0);
+    var book=new ExcelJS.Workbook();book.creator='딸깍';book.created=new Date();book.calcProperties.fullCalcOnLoad=true;
+    var ws=book.addWorksheet('이관신청서',{pageSetup:{paperSize:9,orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0,margins:{left:.25,right:.25,top:.35,bottom:.35,header:.15,footer:.15}}});
+    ws.views=[{state:'frozen',ySplit:12}];
+    [6,45,12,12,23,11,12,12,12,10,12,13,9,9,18,12].forEach(function(w,i){ws.getColumn(i+1).width=w;});ws.getColumn(16).hidden=true;
+    function m(a,b){ws.mergeCells(a+':'+b)}
+    function br(cell){cell.border={top:{style:'thin',color:{argb:'FFD9E2EC'}},left:{style:'thin',color:{argb:'FFD9E2EC'}},bottom:{style:'thin',color:{argb:'FFD9E2EC'}},right:{style:'thin',color:{argb:'FFD9E2EC'}}};}
+    function fill(cell,color){cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:color}}}
+    m('A1','O2');var t=ws.getCell('A1');t.value='기 록 물  이 관 신 청 서';t.font={name:'맑은 고딕',size:22,bold:true,color:{argb:'FFFFFFFF'}};t.alignment={horizontal:'center',vertical:'middle'};fill(t,'FF203A53');ws.getRow(1).height=27;ws.getRow(2).height=27;
+    m('A4','O4');var sub=ws.getCell('A4');sub.value='아래와 같이 비전자 기록물을 이관하고자 합니다.';sub.font={name:'맑은 고딕',size:12,bold:true};sub.alignment={horizontal:'center',vertical:'middle'};ws.getRow(4).height=24;
+    var info=[
+      ['A6','B6','기관명','C6','E6',inst,false],['F6','G6','이관연도','H6','J6',ty,false],['K6','L6','작성일','M6','O6',new Date().toISOString().slice(0,10),false],
+      ['A7','B7','처리부서','C7','E7',dep||'입력 필요',!dep],['F7','G7','작성자(인계자)','H7','J7','입력 필요',true],['K7','L7','학교 기록물관리자','M7','O7','입력 필요',true],
+      ['A8','B8','이관 기록물철','C8','E8',folders.length,false],['F8','G8','이관 문서수','H8','J8',totalDocs,false],['K8','L8','총 쪽수','M8','O8',totalPages,false]
+    ];
+    info.forEach(function(x){m(x[0],x[1]);m(x[3],x[4]);var lc=ws.getCell(x[0]),vc=ws.getCell(x[3]);lc.value=x[2];vc.value=x[5];lc.font={name:'맑은 고딕',size:10,bold:true,color:{argb:'FF334155'}};vc.font={name:'맑은 고딕',size:10,bold:!!x[6],color:{argb:x[6]?'FF8A6500':'FF334155'}};lc.alignment=vc.alignment={horizontal:'center',vertical:'middle'};fill(lc,'FFDCEAF7');if(x[6])fill(vc,'FFFFF2CC');});
+    for(var r0=6;r0<=8;r0++){ws.getRow(r0).height=21;for(var c0=1;c0<=15;c0++)br(ws.getCell(r0,c0));}
+    m('A10','O10');var note=ws.getCell('A10');note.value='※ 노란색 입력칸과 목록의 업무값은 결재 전 수정할 수 있습니다. 수정값은 연계데이터에 자동 반영되고 최초 생성값도 별도로 보존됩니다.';note.font={name:'맑은 고딕',size:9,color:{argb:'FF8A6500'}};note.alignment={vertical:'middle'};fill(note,'FFFFF7E1');ws.getRow(10).height=21;
+    var heads=['순번','기록물철 제목','생산연도(시작)','생산연도(끝)','단위과제','보존기간','기록유형','세부유형','매체유형','수량(권)','공개구분','비공개호수','문서수','쪽수','비고'];
+    heads.forEach(function(h,i){var cell=ws.getCell(12,i+1);cell.value=h;cell.font={name:'맑은 고딕',size:9,bold:true,color:{argb:'FFFFFFFF'}};cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};fill(cell,'FF347DB8');br(cell);});ws.getRow(12).height=29;
+    folders.forEach(function(f,i){var rr=13+i,vals=[i+1,f.title,f.yearFrom,f.yearTo,f.unitTask,f.retention,f.recordType,f.detailType,f.mediaType,1,f.disclosure,f.restrictionNos,Number(f.documentCount)||0,Number(f.sheetCount)||0,''];vals.forEach(function(v,j){var cell=ws.getCell(rr,j+1);cell.value=v;cell.font={name:'맑은 고딕',size:9,color:{argb:'FF475569'}};cell.alignment={horizontal:j===1?'left':'center',vertical:'middle',wrapText:true};br(cell);if(j===10&&String(v)!=='공개'){fill(cell,'FFFCE4D6');cell.font={name:'맑은 고딕',size:9,color:{argb:'FFC00000'}};}});ws.getCell(rr,16).value=f.rowId;ws.getRow(rr).height=34;});
+    var last=Math.max(13,12+folders.length);ws.pageSetup.printArea='A1:O'+last;ws.pageSetup.printTitlesRow='1:12';ws.autoFilter={from:'A12',to:'O'+last};
+
+    var hs=book.addWorksheet('_handoff');hs.state='veryHidden';
+    var hh=['schemaVersion','transferPackageId','rowId','currentInstitutionName','currentTransferDepartmentName','currentYearFrom','currentYearTo','currentTitle','currentUnitTask','currentRetentionPeriod','currentRecordType','currentDetailType','currentMediaType','currentSheetCount','currentDocumentCount','currentDisclosure','currentRestrictionNos','originalTitle','originalSheetCount','userModified','validationState'];
+    hh.forEach(function(h,i){hs.getCell(1,i+1).value=h;});
+    function fv(formula,result){return {formula:formula,result:result}}
+    folders.forEach(function(f,i){var hr=2+i,vr=13+i;var vals=['2.1',packageId,f.rowId,fv("='이관신청서'!$C$6",inst),fv("='이관신청서'!$C$7",dep||'입력 필요'),fv("='이관신청서'!$C$"+vr,f.yearFrom),fv("='이관신청서'!$D$"+vr,f.yearTo),fv("='이관신청서'!$B$"+vr,f.title),fv("='이관신청서'!$E$"+vr,f.unitTask),fv("='이관신청서'!$F$"+vr,f.retention),fv("='이관신청서'!$G$"+vr,f.recordType),fv("='이관신청서'!$H$"+vr,f.detailType),fv("='이관신청서'!$I$"+vr,f.mediaType),fv("='이관신청서'!$N$"+vr,Number(f.sheetCount)||0),fv("='이관신청서'!$M$"+vr,Number(f.documentCount)||0),fv("='이관신청서'!$K$"+vr,f.disclosure),fv("='이관신청서'!$L$"+vr,f.restrictionNos),f.title,Number(f.sheetCount)||0,fv('=OR(H'+hr+'<>R'+hr+',N'+hr+'<>S'+hr+')',false),'OK'];vals.forEach(function(v,j){hs.getCell(hr,j+1).value=v;});});
+    var ds=book.addWorksheet('_handoff_docs');ds.state='veryHidden';
+    var dh=['schemaVersion','transferPackageId','rowId','docSeq','documentNo','registrationDate','documentTitle','approvalType','senderReceiver','pageCount','startPage','endPage','electronicNonElectronic','sourceTaskCard','sourceTaskName','sourceRowRef'];dh.forEach(function(h,i){ds.getCell(1,i+1).value=h;});
+    var dr=2;folders.forEach(function(f){var pg=1;(f.docs||[]).forEach(function(d,i){var n=Number(d.pages)||0,row=['2.1',packageId,f.rowId,i+1,d.documentNo,d.date,d.title,d.approvalType,d.senderReceiver,n,pg,pg+n-1,d.nonElectronic||'비전자',d.taskCard,d.taskName,d.sourceRow];row.forEach(function(v,j){ds.getCell(dr,j+1).value=v;});dr++;pg+=n;});});
+    var buf=await book.xlsx.writeBuffer(),blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='기록물이관신청서_'+inst+'_'+ty+'.xlsx';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},500);
+    var foot=document.getElementById('foot');if(foot)foot.textContent=folders.length+'권 이관신청서를 생성했습니다. 결재용 서식과 숨김 연계데이터가 함께 포함됩니다.';
   };
   if(document.getElementById('taskList')){renderTaskList();renderBinding();}
 })();
