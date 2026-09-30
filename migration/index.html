@@ -28,7 +28,59 @@ h1{font-size:20px;margin:0 0 10px}.muted{color:#667085;font-size:13px;line-heigh
     for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
     if(!('DecompressionStream' in window))throw new Error('최신 Edge 또는 Chrome을 사용해주세요.');
     const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
-    const html=await new Response(stream).text();
+    let html=await new Response(stream).text();
+
+    const ddalkkakReadableCss=`
+:root{--bg:#f5f7fb!important;--card:#fff!important;--line:#dfe5ef!important;--ink:#172033!important;--muted:#667085!important;--blue:#2563eb!important;--bluebg:#eef4ff!important;--purple:#2563eb!important;--purplebg:#eef4ff!important}
+html{font-size:16px!important}
+body{font-family:"Malgun Gothic","Noto Sans KR",Arial,sans-serif!important;font-size:16px!important;line-height:1.62!important;letter-spacing:-.18px!important;background:var(--bg)!important;color:var(--ink)!important}
+button,input,select,textarea{font-family:inherit!important;font-size:14px!important}
+.top,.topbar,.header{background:#fff!important;border-bottom:1px solid var(--line)!important}
+.topin,.top-inner,.header-inner{max-width:1480px!important;margin:auto!important;padding:16px 26px!important;min-height:74px!important}
+.brand h1,h1.app-title{font-size:22px!important;line-height:1.25!important;letter-spacing:-.55px!important}
+.brand .sub,.sub,.subtitle{font-size:13.5px!important;line-height:1.55!important;color:var(--muted)!important}
+.wrap,.app{max-width:1480px!important;margin:0 auto!important;padding:24px 26px 92px!important}
+.steps,.tabs{gap:9px!important;margin-bottom:18px!important}
+.step,.tab{min-height:48px!important;padding:12px 14px!important;border-radius:11px!important;font-size:14px!important;font-weight:800!important}
+.step.on,.tab.active,.tabs .tab.active{background:var(--blue)!important;color:#fff!important;border-color:var(--blue)!important}
+.flow,.flowgrid{gap:9px!important;margin-bottom:16px!important}
+.flowitem{min-height:52px!important;padding:12px 11px!important;font-size:12.5px!important;line-height:1.45!important;border-radius:10px!important}
+.flowitem b{font-size:13.5px!important}
+.card{border-radius:15px!important;border:1px solid var(--line)!important;box-shadow:0 3px 12px rgba(16,24,40,.045)!important}
+.head,.cardhead{padding:16px 18px!important}
+.head h2,.cardhead h2,.section h2{font-size:17px!important;line-height:1.35!important}
+.body,.cardbody,.section{padding:18px!important}
+.btn,.linkbtn{min-height:42px!important;padding:10px 15px!important;border-radius:9px!important;font-size:14px!important;font-weight:800!important}
+.badge,.proto,.pill{font-size:11.5px!important;min-height:24px!important;padding:5px 9px!important}
+.drop{padding:34px 28px!important;border-radius:14px!important}
+.drop strong{font-size:18px!important}
+.drop p{font-size:13.5px!important;line-height:1.7!important}
+.type,.choice,.option-card{padding:17px!important;border-radius:12px!important}
+.type b,.choice b,.option-card b{font-size:15px!important}
+.type p,.choice p,.option-card p{font-size:13px!important;line-height:1.6!important}
+.notice,.warnbox,.badbox,.info-box{padding:14px 16px!important;border-radius:11px!important;font-size:13.5px!important;line-height:1.65!important}
+.policy{padding:14px!important;border-radius:11px!important}
+.policy b{font-size:14px!important}
+.policy span,.policy p{font-size:12.5px!important;line-height:1.6!important}
+.toolbar{gap:9px!important;padding:12px 14px!important}
+.search,input[type=text],input[type=number],select,textarea{min-height:42px!important;padding:10px 12px!important;font-size:14px!important;border-radius:9px!important}
+table{font-size:13.5px!important}
+th{font-size:13px!important;padding:12px 11px!important}
+td{padding:11px!important;line-height:1.55!important}
+.meta,.muted,.note,.foot{font-size:12.5px!important;line-height:1.6!important}
+.mapping-help{font-size:13px!important}
+.targethead .ko{font-size:14px!important}
+.targethead .en,.targethead .colno{font-size:11px!important}
+.sourcecard .sh{font-size:13px!important}
+.sourcecard .sv{font-size:11.5px!important;line-height:1.5!important}
+.map-sample-val{font-size:11.5px!important}
+.editor-row label{font-size:12.5px!important}
+.editor-row input,.editor-row select{font-size:13.5px!important;min-height:42px!important}
+.footer{padding:13px 26px!important}
+.footerin{min-height:46px!important}
+@media(max-width:1000px){.wrap,.app{padding-left:16px!important;padding-right:16px!important}.topin,.top-inner,.header-inner{padding-left:16px!important;padding-right:16px!important}.step,.tab{font-size:13px!important}}
+`;
+    html=html.replace('</head>','<style id="ddalkkak-readable-ui">'+ddalkkakReadableCss+'</style></head>');
     if(!html.includes('v0.6.1 · 표준기준 검증'))throw new Error('배포 파일 검증에 실패했습니다.');
     document.open();document.write(html);document.close();
   }catch(e){
