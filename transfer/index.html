@@ -29,6 +29,86 @@ h1{font-size:20px;margin:0 0 10px}.muted{color:#667085;font-size:13px;line-heigh
     const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
     let page=await new Response(stream).text();
     if(!page.includes('딸깍 기록물이관신청서 자동화'))throw new Error('배포 파일 검증에 실패했습니다.');
+
+    const runtimePatch=\`
+<style>
+.dd-drag-handle{cursor:grab!important;user-select:none;font-weight:900;color:#667085}
+.dd-dragging{opacity:.45!important}
+</style>
+<script>
+(function(){
+  renderTaskList=function(){
+    var q=(document.getElementById('taskQ')&&document.getElementById('taskQ').value||'').toLowerCase();
+    var ts=tasks().filter(function(t){return String(t).toLowerCase().includes(q);});
+    if(!selectedTask||!tasks().includes(selectedTask)||(ts.length&&!ts.includes(selectedTask)))selectedTask=ts[0]||'';
+    var list=document.getElementById('taskList');if(!list)return;
+    list.innerHTML=ts.map(function(t){
+      var a=taskDocs(t).filter(function(d){return !d.excluded;});
+      var p=a.reduce(function(n,d){return n+(Number(d.pages)||0);},0);
+      return '<div class="taskitem '+(t===selectedTask?'on':'')+'" data-task="'+esc(t)+'"><b>'+esc(t)+'</b><span>'+a.length+'건 · '+volumesFor(t).length+'권 · '+p+'쪽</span></div>';
+    }).join('');
+    list.querySelectorAll('.taskitem').forEach(function(el){el.addEventListener('click',function(){selectedTask=el.dataset.task||'';renderTaskList();renderBinding();});});
+  };
+  function reorder(task,ids){
+    var m=new Map(ids.map(function(id,i){return [Number(id),i];}));
+    taskDocs(task).forEach(function(d,i){d.order=m.has(Number(d.id))?m.get(Number(d.id)):ids.length+i;});
+  }
+  moveDoc=function(id,dir){
+    var d=docs.find(function(x){return Number(x.id)===Number(id);});if(!d)return;
+    var a=taskDocs(d.taskCard).filter(function(x){return !x.excluded;});
+    var i=a.findIndex(function(x){return Number(x.id)===Number(id);}),j=i+Number(dir);
+    if(i<0||j<0||j>=a.length)return;var x=a[i];a[i]=a[j];a[j]=x;reorder(d.taskCard,a.map(function(x){return x.id;}));renderBinding();renderTaskList();
+  };
+  var dragId=null;
+  function dragify(){
+    document.querySelectorAll('#bindWork .docrow').forEach(function(r){
+      var b=r.querySelector('button[onclick*="moveDoc("]');if(!b)return;
+      var m=(b.getAttribute('onclick')||'').match(/moveDoc\\((\\d+)/);if(!m)return;
+      var id=Number(m[1]);r.draggable=true;r.dataset.docid=id;
+      if(r.firstElementChild){r.firstElementChild.classList.add('dd-drag-handle');r.firstElementChild.title='드래그해서 순서 이동';}
+      r.ondragstart=function(){dragId=id;r.classList.add('dd-dragging');};
+      r.ondragend=function(){dragId=null;r.classList.remove('dd-dragging');};
+      r.ondragover=function(e){e.preventDefault();};
+      r.ondrop=function(e){e.preventDefault();var tid=Number(r.dataset.docid);if(!dragId||dragId===tid)return;
+        var from=docs.find(function(x){return Number(x.id)===Number(dragId);}),to=docs.find(function(x){return Number(x.id)===tid;});
+        if(!from||!to||from.taskCard!==to.taskCard)return;
+        var a=taskDocs(from.taskCard).filter(function(x){return !x.excluded;}),fi=a.findIndex(function(x){return Number(x.id)===Number(dragId);}),ti=a.findIndex(function(x){return Number(x.id)===tid;});
+        if(fi<0||ti<0)return;var mv=a.splice(fi,1)[0];a.splice(ti,0,mv);reorder(from.taskCard,a.map(function(x){return x.id;}));renderBinding();renderTaskList();
+      };
+    });
+  }
+  var rb=renderBinding;renderBinding=function(){rb();dragify();};
+  folderTitle=function(task,vol,total){
+    var first=(vol[0]&&vol[0].title)||task,extra=Math.max(0,vol.length-1),idx=total>=10?String(vol._index).padStart(String(total).length,'0'):String(vol._index);
+    return task+' ('+total+'-'+idx+'): '+first+(extra?' 외 '+extra+'건':'');
+  };
+  downloadTransfer=function(){
+    rebuildFolders(false);
+    var inst=document.getElementById('institution').value.trim(),dep=document.getElementById('department').value.trim(),ty=Number(document.getElementById('transferYear').value)||new Date().getFullYear();
+    if(!inst){alert('생산기관명을 입력해주세요.');go(4);return;}
+    var wb=XLSX.utils.book_new(),rows=[['기록물 이관신청서'],['생산기관',inst,'','','처리부서',dep,'','','이관연도',ty],[],['순번','시작연도','종료연도','기록물철 제목','표준 단위과제','보존기간','기록유형','세부유형','매체유형','수량(권)','공개구분','비공개호수','문서수','쪽수','비고']];
+    folders.forEach(function(f,i){rows.push([i+1,f.yearFrom,f.yearTo,f.title,f.unitTask,f.retention,f.recordType,f.detailType,f.mediaType,1,f.disclosure,f.restrictionNos,f.documentCount,Number(f.sheetCount)||0,'']);});
+    var ws=XLSX.utils.aoa_to_sheet(rows);
+    ws['!merges']=[XLSX.utils.decode_range('A1:O1'),XLSX.utils.decode_range('B2:D2'),XLSX.utils.decode_range('F2:H2'),XLSX.utils.decode_range('J2:O2')];
+    ws['!cols']=[{wch:7},{wch:10},{wch:10},{wch:48},{wch:25},{wch:10},{wch:11},{wch:11},{wch:12},{wch:9},{wch:11},{wch:14},{wch:8},{wch:8},{wch:18}];
+    ws['!rows']=[{hpt:30},{hpt:24},{hpt:8},{hpt:30}];
+    XLSX.utils.book_append_sheet(wb,ws,'이관신청서');
+    var idx=[['철순번','기록물철 제목','문서순번','문서번호','등록일자','문서제목','결재유형','수신(발신)자','쪽수','원본행']];
+    folders.forEach(function(f,fi){f.docs.forEach(function(d,di){idx.push([fi+1,f.title,di+1,d.documentNo,d.date,d.title,d.approvalType,d.senderReceiver,Number(d.pages)||0,d.sourceRow]);});});
+    var iws=XLSX.utils.aoa_to_sheet(idx);iws['!cols']=[{wch:8},{wch:42},{wch:8},{wch:18},{wch:12},{wch:50},{wch:14},{wch:24},{wch:8},{wch:9}];XLSX.utils.book_append_sheet(wb,iws,'세부색인');
+    var hand=[['schemaVersion','transferPackageId','rowId','currentInstitutionName','currentTransferDepartmentName','currentYearFrom','currentYearTo','currentTitle','currentUnitTask','currentRetentionPeriod','currentRecordType','currentDetailType','currentMediaType','currentSheetCount','currentDocumentCount','currentDisclosure','currentRestrictionNos','userModified','validationState']];
+    folders.forEach(function(f){hand.push(['2.1',packageId,f.rowId,inst,dep,f.yearFrom,f.yearTo,f.title,f.unitTask,f.retention,f.recordType,f.detailType,f.mediaType,Number(f.sheetCount)||0,Number(f.documentCount)||0,f.disclosure,f.restrictionNos,true,'OK']);});
+    addSheet(wb,'_handoff',hand);
+    var hd=[['schemaVersion','transferPackageId','rowId','docSeq','documentNo','registrationDate','documentTitle','approvalType','senderReceiver','pageCount','startPage','endPage','electronicNonElectronic','sourceTaskCard','sourceTaskName','sourceRowRef']];
+    folders.forEach(function(f){var p=1;f.docs.forEach(function(d,i){var n=Number(d.pages)||0;hd.push(['2.1',packageId,f.rowId,i+1,d.documentNo,d.date,d.title,d.approvalType,d.senderReceiver,n,p,p+n-1,d.nonElectronic||'비전자',d.taskCard,d.taskName,d.sourceRow]);p+=n;});});
+    addSheet(wb,'_handoff_docs',hd);wb.Workbook={Sheets:[{Hidden:0},{Hidden:0},{Hidden:1},{Hidden:1}]};
+    XLSX.writeFile(wb,'기록물이관신청서_'+inst+'_'+ty+'.xlsx');
+    var foot=document.getElementById('foot');if(foot)foot.textContent=folders.length+'권 이관신청서를 생성했습니다. 서식·세부색인·관리연계 데이터가 함께 포함됩니다.';
+  };
+  if(document.getElementById('taskList')){renderTaskList();renderBinding();}
+})();
+<\/script>\`;
+    page=page.replace('</body>',runtimePatch+'</body>');
     document.open();document.write(page);document.close();
   }catch(e){
     state.innerHTML='<b>화면을 불러오지 못했습니다.</b><br>'+String(e.message||e)+'<br><br>잠시 후 새로고침해주세요.';
