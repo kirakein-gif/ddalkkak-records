@@ -157,6 +157,8 @@ function normalizeHandoff(row,fileName,idx){
   documentCount:Number(get('currentDocumentCount','documentCount','문서수'))||1,
   disclosure:get('currentDisclosure','disclosure','공개구분')||'',
   restrictionNos:get('currentRestrictionNos','restrictionNos','비공개호수')||'',
+  handoverUser:get('currentHandoverUser','handoverUser','인계자','작성자')||'',
+  recordsManager:get('currentRecordsManager','recordsManager','인수자','학교 기록물관리자')||'',
   userModified:boolish(get('userModified','userAdjusted')),
   validationState:get('validationState')||'OK',
   sourceFile:fileName
