@@ -1,0 +1,160 @@
+name: Patch transfer v0.3 feedback
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-transfer-v03-feedback.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply transfer feedback
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          p=Path('site-src/transfer-v0.3.source.html')
+          c=p.read_text(encoding='utf-8')
+
+          def must(old,new,label):
+              global c
+              if old not in c:
+                  raise SystemExit(f'anchor not found: {label}')
+              c=c.replace(old,new,1)
+
+          must(
+          "#p3 .summary{margin:6px 0 9px}#p4 .card{margin-bottom:9px}",
+          """#p3 .summary{margin:6px 0 9px}
+          #taskSelect{width:100%;min-height:38px;padding:8px 9px;border:1px solid #cfd6df;border-radius:9px;background:#fff;font:inherit;font-size:12.5px}
+          .bindgrid>div:first-child .toolbar{display:grid;grid-template-columns:1fr;gap:6px}
+          .vol{margin-bottom:5px!important;overflow:hidden}.volhead{display:none!important}
+          .docrow{grid-template-columns:64px 82px minmax(0,1fr) 74px 218px!important;min-height:46px!important;padding:6px 9px!important}
+          .doclead{display:flex;align-items:center;gap:6px;white-space:nowrap}
+          .voltag{display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:24px;padding:0 6px;border-radius:7px;background:var(--blue);color:#fff;font-size:11.5px;font-weight:900}
+          .volmeta{font-size:10.5px;color:#667085;font-weight:700}
+          .docrow.volfirst{background:#fbfdff;border-top:1px solid #dbe6f5}
+          #p4 .card{margin-bottom:9px}""",
+          'compact css')
+          must("#p4 .body{padding-top:10px;padding-bottom:10px}#p4 .finalgrid{gap:9px}",
+               "#p4 .body{padding-top:10px;padding-bottom:10px}#p4 .finalgrid{grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}",
+               'final grid')
+          must("@media(max-width:950px){.bindgrid{grid-template-columns:1fr}",
+               "@media(max-width:950px){#p4 .finalgrid{grid-template-columns:1fr}.bindgrid{grid-template-columns:1fr}",
+               'mobile grid')
+
+          must(
+          '<section id="p3" class="panel"><div class="notice">일반문서는 같은 과제카드 안에서 등록일 순으로 최대 <b>100쪽</b>까지 자동편철합니다. 일반문서가 아닌 기록은 <b>1문서 = 1권</b>으로 편철합니다. 제외·순서이동·수동 분권 후 결과가 즉시 다시 계산됩니다.</div><div id="bindSummary"></div><div class="bindgrid"><div><div class="toolbar"><input id="taskQ" placeholder="과제카드 검색" oninput="renderTaskList()"></div><div id="taskList" class="tasks"></div></div><div id="bindWork"></div></div></section>',
+          '<section id="p3" class="panel"><div class="notice">일반문서는 같은 과제카드 안에서 등록일 순으로 최대 <b>100쪽</b>까지 자동편철합니다. 일반문서가 아닌 기록은 <b>1문서 = 1권</b>으로 편철합니다. 제외·순서이동·수동 분권 후 결과가 즉시 다시 계산됩니다.</div><div id="bindSummary"></div><div class="bindgrid"><div><div class="toolbar"><input id="taskQ" placeholder="과제카드 검색" oninput="renderTaskList()"><select id="taskSelect" onchange="selectTaskFromDropdown(this.value)"><option value="">과제카드 전체</option></select></div><div id="taskList" class="tasks"></div></div><div id="bindWork"></div></div></section>',
+          'binding filter ui')
+
+          must(
+          '<section id="p4" class="panel"><div class="card"><div class="head"><h2>이관 기본정보</h2><span class="badge warn">기관정보 확인</span></div><div class="body"><div class="finalgrid"><div class="field"><label>생산기관명</label><input id="institution" placeholder="예: 천안버들유치원"></div><div class="field"><label>내부 처리부서</label><input id="department" placeholder="예: 행정실"></div><div class="field"><label>이관연도</label><input id="transferYear" type="number"></div></div></div></div><div class="card"><div class="head"><div><h2>최종 기록물철 확인</h2><div class="sub">철제목은 여기에서 직접 수정할 수 있습니다. rowId는 제목과 별도로 유지됩니다.</div></div><button class="btn" onclick="rebuildFolders(true)">편철결과 다시 계산</button></div><div class="body">',
+          '<section id="p4" class="panel"><div class="card"><div class="head"><h2>이관 기본정보</h2><span class="badge warn">기관정보 확인</span></div><div class="body"><div class="finalgrid"><div class="field"><label>생산기관명</label><input id="institution" placeholder="예: 천안버들유치원"></div><div class="field"><label>내부 처리부서</label><input id="department" placeholder="예: 행정실"></div><div class="field"><label>작성자(인계자)</label><input id="handoverUser" placeholder="예: 홍길동"></div><div class="field"><label>학교 기록물관리자</label><input id="recordsManager" placeholder="예: 김담당"></div><div class="field"><label>이관연도</label><input id="transferYear" type="number"></div></div></div></div><div class="card"><div class="head"><div><h2>최종 기록물철 확인</h2><div class="sub">이전 단계에서 수정한 편철결과가 자동 반영됩니다. 철제목은 여기에서 직접 수정할 수 있습니다.</div></div></div><div class="body">',
+          'final info ui')
+
+          old_task="function taskDocs(t){return docs.filter(d=>d.taskCard===t).sort((a,b)=>{const am=Number.isFinite(Number(a.order)),bm=Number.isFinite(Number(b.order));if(am&&bm)return Number(a.order)-Number(b.order);if(am!==bm)return am?-1:1;return String(a.date||'').localeCompare(String(b.date||''))||a.id-b.id})}"
+          new_task="""function titleVolumeSeq(title){const m=String(title||'').match(/\\((\\d+)\\s*-\\s*0*(\\d+)\\)/);return m?{total:Number(m[1]),index:Number(m[2])}:null}
+          function refreshBindTaskSelect(){const s=$('taskSelect');if(!s)return;const ts=tasks(),cur=selectedTask;s.innerHTML='<option value="">과제카드 전체</option>';ts.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;s.appendChild(o)});if(ts.includes(cur))s.value=cur}
+          function selectTaskFromDropdown(v){if(v)selectedTask=v;renderTaskList();renderBinding()}
+          function taskDocs(t){return docs.filter(d=>d.taskCard===t).sort((a,b)=>{const am=Number.isFinite(Number(a.order)),bm=Number.isFinite(Number(b.order));if(am&&bm)return Number(a.order)-Number(b.order);if(am!==bm)return am?-1:1;const dc=String(a.date||'').localeCompare(String(b.date||''));if(dc)return dc;const av=titleVolumeSeq(a.title),bv=titleVolumeSeq(b.title);if(av&&bv&&av.total===bv.total&&av.index!==bv.index)return av.index-bv.index;return a.id-b.id})}"""
+          must(old_task,new_task,'task ordering')
+
+          old_list=re.search(r"function renderTaskList\(\)\{.*?\}\nfunction moveDoc",c,re.S)
+          if not old_list: raise SystemExit('renderTaskList not found')
+          new_list="""function renderTaskList(){const q=($('taskQ')?.value||'').toLowerCase(),ts=tasks().filter(t=>t.toLowerCase().includes(q));if(!ts.includes(selectedTask))selectedTask=ts[0]||'';refreshBindTaskSelect();$('taskList').innerHTML=ts.map(t=>`<div class="taskitem ${t===selectedTask?'on':''}" data-task="${esc(t)}"><b>${esc(t)}</b><span>${taskDocs(t).filter(d=>!d.excluded).length}건 · ${volumesFor(t).length}권 · ${taskDocs(t).filter(d=>!d.excluded).reduce((a,d)=>a+d.pages,0)}쪽</span></div>`).join('');$('taskList').querySelectorAll('.taskitem').forEach(el=>el.addEventListener('click',()=>{selectedTask=el.dataset.task||'';renderTaskList();renderBinding()}));if($('taskSelect')&&tasks().includes(selectedTask))$('taskSelect').value=selectedTask}
+          function moveDoc"""
+          c=c[:old_list.start()]+new_list+c[old_list.end():]
+
+          rb=re.search(r"function renderBinding\(\)\{.*?\}\nfunction folderTitle",c,re.S)
+          if not rb: raise SystemExit('renderBinding not found')
+          new_rb="""function renderBinding(){
+            if(!$('bindWork'))return;
+            const allVols=tasks().reduce((n,t)=>n+volumesFor(t).length,0),active=docs.filter(d=>!d.excluded);
+            $('bindSummary').innerHTML='<div class="summary">'
+              +'<div class="stat"><div class="k">과제카드</div><div class="v">'+tasks().length+'</div></div>'
+              +'<div class="stat"><div class="k">대상문서</div><div class="v">'+active.length+'</div></div>'
+              +'<div class="stat"><div class="k">편철권</div><div class="v">'+allVols+'</div></div>'
+              +'<div class="stat"><div class="k">총 쪽수</div><div class="v">'+active.reduce((a,d)=>a+d.pages,0)+'</div></div>'
+              +'<div class="stat"><div class="k">제외</div><div class="v">'+docs.filter(d=>d.excluded).length+'</div></div></div>';
+            if(!selectedTask){$('bindWork').innerHTML='';return}
+            const vols=volumesFor(selectedTask),all=taskDocs(selectedTask);let body='';
+            vols.forEach((v,vi)=>{
+              const vp=v.reduce((a,d)=>a+d.pages,0);body+='<div class="vol">';
+              v.forEach((d,di)=>{
+                body+='<div class="docrow '+(di===0?'volfirst ':'')+(d.excluded?'ex ':'')+(d.manualSplit?'splitline':'')+'" draggable="true" ondragstart="dragDocStart('+d.id+',event)" ondragend="dragDocEnd(event)" ondragover="event.preventDefault()" ondrop="dragDocDrop('+d.id+',event)">'
+                  +'<div class="doclead">'+(di===0?'<span class="voltag">'+(vi+1)+'권</span>':'')+'<span class="draghandle">⋮⋮</span></div>'
+                  +'<div class="dt">'+esc(d.date)+'</div>'
+                  +'<div class="ttl"><b>'+esc(d.title)+'</b><div class="muted">'+esc(d.documentNo)+' · '+esc(d.detailType)+(di===0?' · <span class="volmeta">'+v.length+'문서 · '+vp+'쪽</span>':'')+'</div></div>'
+                  +'<div><b>'+d.pages+'</b>쪽</div>'
+                  +'<div class="actions"><button class="btn sm" onclick="moveDoc('+d.id+',-1)">↑</button><button class="btn sm" onclick="moveDoc('+d.id+',1)">↓</button><button class="btn sm" onclick="toggleSplit('+d.id+')">'+(d.manualSplit?'분권해제':'여기서 분권')+'</button><button class="btn sm red" onclick="toggleExclude('+d.id+')">제외</button></div></div>';
+              });body+='</div>';
+            });
+            const excluded=all.filter(d=>d.excluded);
+            if(excluded.length){
+              body+='<div class="vol"><div class="docrow volfirst ex"><div class="doclead"><span class="voltag" style="background:#98a2b3">제외</span></div><div class="dt">—</div><div class="ttl"><b>이관 제외 '+excluded.length+'건</b></div><div>—</div><div></div></div>';
+              excluded.forEach(d=>{body+='<div class="docrow ex"><div class="doclead"><span class="draghandle">×</span></div><div class="dt">'+esc(d.date)+'</div><div class="ttl">'+esc(d.title)+'</div><div>'+d.pages+'쪽</div><div class="actions"><button class="btn sm" onclick="toggleExclude('+d.id+')">복원</button></div></div>'});
+              body+='</div>';
+            }
+            $('bindWork').innerHTML=body;
+          }
+          function folderTitle"""
+          c=c[:rb.start()]+new_rb+c[rb.end():]
+
+          must("const inst=$('institution').value.trim(),dep=$('department').value.trim(),ty=Number($('transferYear').value)||new Date().getFullYear();",
+               "const inst=$('institution').value.trim(),dep=$('department').value.trim(),handover=$('handoverUser').value.trim(),manager=$('recordsManager').value.trim(),ty=Number($('transferYear').value)||new Date().getFullYear();",
+               'download inputs')
+          must("if(!inst){alert('생산기관명을 입력해주세요.');go(4);return}",
+               "if(!inst){alert('생산기관명을 입력해주세요.');go(4);return}if(!handover||!manager){alert('작성자(인계자)와 학교 기록물관리자를 입력해주세요.');go(4);return}",
+               'user validation')
+
+          must("[6,42,11,11,21,10,11,11,11,9,11,12,8,8,16,10].forEach((w,i)=>ws.getColumn(i+1).width=w);ws.getColumn(16).hidden=true;",
+               "[6,46,12,22,10,11,9,16,8,8,14,10].forEach((w,i)=>ws.getColumn(i+1).width=w);ws.getColumn(12).hidden=true;",
+               'print columns')
+          c=c.replace("merge('A1','O2')","merge('A1','K2')").replace("merge('A4','O4')","merge('A4','K4')")
+          must("const info=[['A6','B6','기관명','C6','E6',inst,false],['F6','G6','이관연도','H6','J6',ty,false],['K6','L6','작성일','M6','O6',new Date().toISOString().slice(0,10),false],['A7','B7','처리부서','C7','E7',dep||'입력 필요',!dep],['F7','G7','작성자(인계자)','H7','J7','입력 필요',true],['K7','L7','학교 기록물관리자','M7','O7','입력 필요',true],['A8','B8','이관 기록물철','C8','E8',folders.length,false],['F8','G8','이관 문서수','H8','J8',totalDocs,false],['K8','L8','총 쪽수','M8','O8',totalPages,false]];",
+               "const info=[['A6','B6','기관명','C6','E6',inst],['F6','G6','이관연도','H6','K6',ty],['A7','B7','처리부서','C7','E7',dep],['F7','G7','작성자(인계자)','H7','K7',handover],['A8','B8','학교 기록물관리자','C8','E8',manager],['F8','G8','이관 규모','H8','K8',folders.length+'권 · '+totalDocs+'문서 · '+totalPages+'쪽']];",
+               'print info')
+          must("info.forEach(x=>{merge(x[0],x[1]);merge(x[3],x[4]);const lc=ws.getCell(x[0]),vc=ws.getCell(x[3]);lc.value=x[2];vc.value=x[5];lc.font={name:'맑은 고딕',size:9.5,bold:true,color:{argb:'FF000000'}};vc.font={name:'맑은 고딕',size:9.5,bold:!!x[6],color:{argb:'FF000000'}};lc.alignment=vc.alignment={horizontal:'center',vertical:'middle'};fill(lc,'FFDCEAF7');if(x[6])fill(vc,'FFFFF2CC')});",
+               "info.forEach(x=>{merge(x[0],x[1]);merge(x[3],x[4]);const lc=ws.getCell(x[0]),vc=ws.getCell(x[3]);lc.value=x[2];vc.value=x[5];lc.font={name:'맑은 고딕',size:10.5,bold:true,color:{argb:'FF000000'}};vc.font={name:'맑은 고딕',size:10.5,bold:true,color:{argb:'FF000000'}};lc.alignment=vc.alignment={horizontal:'center',vertical:'middle'};fill(lc,'FFDCEAF7')});",
+               'print info font')
+          must("for(let r=6;r<=8;r++){ws.getRow(r).height=20;for(let c=1;c<=15;c++)border(ws.getCell(r,c))}",
+               "for(let r=6;r<=8;r++){ws.getRow(r).height=22;for(let cc=1;cc<=11;cc++)border(ws.getCell(r,cc))}",
+               'info border')
+
+          c=re.sub(r"\s*merge\('A10','O10'\);cell=ws\.getCell\('A10'\).*?ws\.getRow\(10\)\.height=19;\n", "\n", c, count=1, flags=re.S)
+          must("const heads=['순번','기록물철 제목','생산연도(시작)','생산연도(끝)','단위과제','보존기간','기록유형','세부유형','매체유형','수량(권)','공개구분','비공개호수','문서수','쪽수','비고'];",
+               "const heads=['순번','기록물철 제목','생산연도','단위과제','보존기간','기록유형','수량(권)','공개구분','문서수','쪽수','비고'];",
+               'print headers')
+          must("heads.forEach((h,i)=>{const c=ws.getCell(12,i+1);c.value=h;c.font={name:'맑은 고딕',size:8.5,bold:true,color:{argb:'FFFFFFFF'}};c.alignment={horizontal:'center',vertical:'middle',wrapText:true};fill(c,'FF347DB8');border(c)});ws.getRow(12).height=28;",
+               "heads.forEach((h,i)=>{const hc=ws.getCell(10,i+1);hc.value=h;hc.font={name:'맑은 고딕',size:10,bold:true,color:{argb:'FFFFFFFF'}};hc.alignment={horizontal:'center',vertical:'middle',wrapText:true};fill(hc,'FF347DB8');border(hc)});ws.getRow(10).height=30;",
+               'header row')
+          old_rows=re.search(r"folders\.forEach\(\(f,i\)=>\{const r=13\+i,vals=\[.*?ws\.getRow\(r\)\.height=32\}\);",c,re.S)
+          if not old_rows: raise SystemExit('print data rows not found')
+          new_rows="""folders.forEach((f,i)=>{const r=11+i,yearText=f.yearFrom===f.yearTo?String(f.yearFrom):f.yearFrom+'~'+f.yearTo,openText=f.restrictionNos?(f.disclosure+'('+f.restrictionNos+')'):f.disclosure,vals=[i+1,f.title,yearText,f.unitTask,f.retention,f.recordType,1,openText,Number(f.documentCount)||0,Number(f.sheetCount)||0,''];vals.forEach((v,j)=>{const dc=ws.getCell(r,j+1);dc.value=v;dc.font={name:'맑은 고딕',size:10.5,bold:j===1,color:{argb:'FF000000'}};dc.alignment={horizontal:j===1?'left':'center',vertical:'middle',wrapText:true};border(dc);if(j===7&&String(f.disclosure)!=='공개'){fill(dc,'FFFCE4D6');dc.font={name:'맑은 고딕',size:10.5,bold:true,color:{argb:'FFC00000'}}}});ws.getCell(r,12).value=f.rowId;ws.getRow(r).height=34});"""
+          c=c[:old_rows.start()]+new_rows+c[old_rows.end():]
+          must("const last=Math.max(13,12+folders.length);ws.pageSetup.printArea='A1:O'+last;ws.pageSetup.printTitlesRow='1:12';ws.pageSetup.horizontalCentered=true;ws.autoFilter={from:'A12',to:'O'+last};",
+               "const last=Math.max(11,10+folders.length);ws.pageSetup.printArea='A1:K'+last;ws.pageSetup.printTitlesRow='1:10';ws.pageSetup.horizontalCentered=true;ws.autoFilter={from:'A10',to:'K'+last};",
+               'print area')
+
+          must("const hh=['schemaVersion','transferPackageId','rowId','currentInstitutionName','currentTransferDepartmentName','currentYearFrom','currentYearTo','currentTitle','currentUnitTask','currentRetentionPeriod','currentRecordType','currentDetailType','currentMediaType','currentSheetCount','currentDocumentCount','currentDisclosure','currentRestrictionNos','originalInstitutionName','originalDepartmentName','originalYearFrom','originalYearTo','originalTitle','originalUnitTask','originalRetentionPeriod','originalRecordType','originalDetailType','originalMediaType','originalSheetCount','originalDocumentCount','originalDisclosure','originalRestrictionNos','userModified','validationState'];",
+               "const hh=['schemaVersion','transferPackageId','rowId','currentInstitutionName','currentTransferDepartmentName','currentYearFrom','currentYearTo','currentTitle','currentUnitTask','currentRetentionPeriod','currentRecordType','currentDetailType','currentMediaType','currentSheetCount','currentDocumentCount','currentDisclosure','currentRestrictionNos','originalInstitutionName','originalDepartmentName','originalYearFrom','originalYearTo','originalTitle','originalUnitTask','originalRetentionPeriod','originalRecordType','originalDetailType','originalMediaType','originalSheetCount','originalDocumentCount','originalDisclosure','originalRestrictionNos','userModified','validationState','currentHandoverUser','currentRecordsManager'];",
+               'handoff fields')
+          hand=re.search(r"folders\.forEach\(\(f,i\)=>\{const hr=2\+i,vr=13\+i,vals=\[.*?hs\.getCell\(hr,j\+1\)\.value=v\)\}\);",c,re.S)
+          if not hand: raise SystemExit('handoff rows not found')
+          new_hand="""folders.forEach((f,i)=>{const hr=2+i,vr=11+i,vals=['2.1',packageId,f.rowId,fv("='이관신청서'!$C$6",inst),fv("='이관신청서'!$C$7",dep),f.yearFrom,f.yearTo,fv("='이관신청서'!$B$"+vr,f.title),fv("='이관신청서'!$D$"+vr,f.unitTask),fv("='이관신청서'!$E$"+vr,f.retention),fv("='이관신청서'!$F$"+vr,f.recordType),f.detailType,f.mediaType,fv("='이관신청서'!$J$"+vr,Number(f.sheetCount)||0),fv("='이관신청서'!$I$"+vr,Number(f.documentCount)||0),f.disclosure,f.restrictionNos,inst,dep,f.yearFrom,f.yearTo,f.title,f.unitTask,f.retention,f.recordType,f.detailType,f.mediaType,Number(f.sheetCount)||0,Number(f.documentCount)||0,f.disclosure,f.restrictionNos,fv('=OR(D'+hr+'<>R'+hr+',E'+hr+'<>S'+hr+',H'+hr+'<>V'+hr+',I'+hr+'<>W'+hr+',J'+hr+'<>X'+hr+',K'+hr+'<>Y'+hr+',N'+hr+'<>AB'+hr+',O'+hr+'<>AC'+hr+')',false),'OK',fv("='이관신청서'!$H$7",handover),fv("='이관신청서'!$C$8",manager)];vals.forEach((v,j)=>hs.getCell(hr,j+1).value=v)});"""
+          c=c[:hand.start()]+new_hand+c[hand.end():]
+
+          p.write_text(c,encoding='utf-8')
+          js=c[c.rfind('<script>')+8:c.rfind('</script>')]
+          Path('/tmp/transfer.js').write_text(js,encoding='utf-8')
+      - name: Syntax check
+        run: node --check /tmp/transfer.js
+      - name: Commit patched transfer
+        run: |
+          git config user.name "ddalkkak-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add site-src/transfer-v0.3.source.html
+          git commit -m "feat: refine transfer feedback 2026-10-01" || exit 0
+          git push
