@@ -519,7 +519,7 @@ async function buildIndexTemplate(){
  const newSd=replaceRows(doc,rows);setMergeRefs(doc,merges);
  start=1;
  records.forEach(r=>{const docs=docsBy.get(r.packageId+'|'+r.rowId)||[],count=Math.max(1,docs.length),hrow=n=>ensureRow(doc,newSd,start+n-1);setText(doc,hrow(2),'A',r.finalTitle||'');setText(doc,hrow(4),'G',yearText(r));for(let i=0;i<count;i++){const row=ensureRow(doc,newSd,start+5+i,src.get(6));for(const c of ['A','B','C','D','E','F','G','H','I','J','K','L'])clearAt(doc,newSd,start+5+i,c);const d=docs[i];if(d){const isReceipt=String(d.approvalType||'').includes('접수');setNumber(doc,row,'A',Number(d.docSeq)||i+1);setText(doc,row,'B',d.registrationDate||'');setText(doc,row,'D',d.documentNo||'');setText(doc,row,'E',d.documentTitle||'');setText(doc,row,'F',isReceipt?(d.senderReceiver||''):'');setText(doc,row,'H',isReceipt?'':(d.senderReceiver||''));if(d.startPage!==''&&d.startPage!=null)setNumber(doc,row,'I',d.startPage);setText(doc,row,'J',d.electronicNonElectronic||'');setText(doc,row,'K','')}}start=start+4+count+1});
- setDimension(doc,`A1:L${lastEnd}`);setRowBreaks(doc,breaks);return {buffer:await finishPatchedZip(zip,doc,`$A$1:$J${lastEnd}`),filename:'색인목록_완성.xlsx'};
+ setDimension(doc,`A1:L${lastEnd}`);setRowBreaks(doc,breaks);return {buffer:await finishPatchedZip(zip,doc,`$A$1:$J$${lastEnd}`),filename:'색인목록_완성.xlsx'};
 }
 async function buildStickerTemplate(){
  const zip=await fetchTemplateZip('sticker'),doc=await sheetDocFromZip(zip),sd=direct(doc.documentElement,'sheetData');while(sd.firstChild)sd.removeChild(sd.firstChild);const rows=Math.max(1,Math.ceil(records.length/5)),cols=['A','C','E','G','I'];
