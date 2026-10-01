@@ -11,12 +11,12 @@ h1{font-size:20px;margin:0 0 10px}.muted{color:#667085;font-size:13px;line-heigh
 </style>
 </head>
 <body>
-<div class="box"><h1>딸깍 기록물이관신청서 자동화</h1><div id="state" class="muted">통합 Beta 화면을 불러오고 있습니다.</div></div>
+<div class="box"><h1>딸깍 기록물이관신청서 자동화</h1><div id="state" class="muted">통합 Beta v0.3 화면을 불러오고 있습니다.</div></div>
 <script>
 (async()=>{
   const state=document.getElementById('state');
   try{
-    const urls=["../site-src/transfer-v0.2.part01.b64","../site-src/transfer-v0.2.part02.b64"];
+    const urls=["../site-src/transfer-v0.3.part01.b64","../site-src/transfer-v0.3.part02.b64"];
     const chunks=await Promise.all(urls.map(async u=>{
       const r=await fetch(u,{cache:'no-store'});
       if(!r.ok) throw new Error(u+' · HTTP '+r.status);
@@ -24,185 +24,16 @@ h1{font-size:20px;margin:0 0 10px}.muted{color:#667085;font-size:13px;line-heigh
     }));
     const bin=atob(chunks.join(''));
     const bytes=new Uint8Array(bin.length);
-    for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
-    if(!('DecompressionStream' in window))throw new Error('최신 Edge 또는 Chrome을 사용해주세요.');
+    for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+    if(!('DecompressionStream' in window)) throw new Error('최신 Edge 또는 Chrome을 사용해주세요.');
     const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
-    let page=await new Response(stream).text();
-    if(!page.includes('딸깍 기록물이관신청서 자동화'))throw new Error('배포 파일 검증에 실패했습니다.');
-
-    const runtimePatch=`
-<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"><\/script>
-<style>
-:root{--bg:#f5f7fb!important;--card:#fff!important;--line:#dfe5ef!important;--ink:#172033!important;--muted:#667085!important;--blue:#2563eb!important;--bluebg:#eef4ff!important;--green:#17795b!important;--greenbg:#eaf7f2!important;--warn:#966400!important;--warnbg:#fff4d6!important;--red:#b42318!important;--redbg:#fff0ef!important}
-html{font-size:16px!important}
-body{background:var(--bg)!important;color:var(--ink)!important;font-family:"Malgun Gothic","Noto Sans KR",Arial,sans-serif!important;font-size:16px!important;line-height:1.62!important;letter-spacing:-.18px!important}
-button,input,select,textarea{font-family:inherit!important;font-size:14px!important}
-.top,.topbar,.header{background:#fff!important;border-bottom:1px solid var(--line)!important;box-shadow:0 1px 0 rgba(16,24,40,.02)!important}
-.top-inner,.topin,.header-inner{max-width:1480px!important;margin:auto!important;padding:16px 26px!important;min-height:74px!important}
-.brand h1,h1.app-title{font-size:22px!important;line-height:1.25!important;letter-spacing:-.55px!important}
-.brand p,.brand .sub,.sub,.subtitle{font-size:13.5px!important;line-height:1.55!important;color:var(--muted)!important}
-.app,.wrap{max-width:1480px!important;margin:0 auto!important;padding:24px 26px 92px!important}
-.steps,.tabs{gap:9px!important;margin-bottom:18px!important}
-.step,.tab{min-height:48px!important;padding:12px 14px!important;border-radius:11px!important;font-size:14px!important;font-weight:800!important}
-.step.on,.tab.active,.tabs .tab.active{background:var(--blue)!important;color:#fff!important;border-color:var(--blue)!important}
-.card{background:#fff!important;border:1px solid var(--line)!important;border-radius:15px!important;box-shadow:0 3px 12px rgba(16,24,40,.045)!important}
-.head,.cardhead{padding:16px 18px!important}
-.head h2,.cardhead h2,.section h2{font-size:18px!important;line-height:1.35!important}
-.body,.cardbody,.section{padding:18px!important}
-.drop{padding:34px 28px!important;border-radius:14px!important}
-.drop strong{font-size:18px!important}
-.drop p{font-size:13.5px!important;line-height:1.7!important}
-.btn,.linkbtn{min-height:42px!important;padding:10px 15px!important;border-radius:9px!important;font-size:14px!important;font-weight:800!important}
-.badge,.proto,.pill{font-size:11.5px!important;min-height:24px!important;padding:5px 9px!important}
-.summary,.kpis{gap:11px!important;margin:16px 0 18px!important}
-.stat,.kpi{padding:16px!important;border-radius:12px!important}
-.stat .k,.kpi .label,.k{font-size:12px!important}
-.stat .v,.kpi .num,.v{font-size:27px!important;line-height:1.1!important}
-.stat .u,.kpi .unit,.u{font-size:12px!important}
-.taskitem{padding:13px 14px!important;min-height:58px!important}
-.taskitem b{font-size:14.5px!important}
-.taskitem span{font-size:12.5px!important;line-height:1.5!important}
-.docrow{font-size:13.5px!important;line-height:1.5!important;min-height:52px!important;padding-top:10px!important;padding-bottom:10px!important}
-.vol,.volcard,.volume{font-size:13px!important}
-.vol b,.volcard b,.volume b{font-size:14px!important}
-.toolbar{gap:9px!important;padding:12px 14px!important}
-.search,input[type=text],input[type=number],select,textarea{min-height:42px!important;padding:10px 12px!important;font-size:14px!important;border-radius:9px!important}
-table{font-size:13.5px!important}
-th{font-size:13px!important;padding:12px 11px!important}
-td{padding:11px!important;line-height:1.55!important}
-.notice,.warnbox,.badbox,.alert{padding:14px 16px!important;border-radius:11px!important;font-size:13.5px!important;line-height:1.65!important}
-.filebox{padding:16px!important}.filebox h3{font-size:14.5px!important}.filebox p{font-size:12.8px!important;line-height:1.6!important}
-.meta,.muted,.note,.foot{font-size:12.5px!important;line-height:1.6!important}
-.footer{padding:13px 26px!important}.footerin{min-height:46px!important}
-.dd-drag-handle{cursor:grab!important;user-select:none;font-weight:900;color:#667085}
-.dd-dragging{opacity:.45!important}
-@media(max-width:1000px){.app,.wrap{padding-left:16px!important;padding-right:16px!important}.top-inner,.topin,.header-inner{padding-left:16px!important;padding-right:16px!important}.step,.tab{font-size:13px!important}}
-</style>
-<script>
-(function(){
-  classify=function(title){
-    var s=String(title||'').trim(),compact=s.replace(/\s/g,'');
-    if(/동의서|계획|구입|촬영계획|사진촬영/.test(compact))return ['문서류','일반문서','종이','자동확정','특수기록 신호 없음'];
-    if(/(배치도면|설계도면|평면도|배치도|도면)$/.test(compact))return ['문서류','도면','종이','확인 필요','도면 제목 신호'];
-    if(/(대장)$/.test(compact)&&!/과제카드/.test(compact))return ['문서류','대장','종이','확인 필요','대장 제목 신호'];
-    if(/(^|[^과제])카드$/.test(compact)&&!/과제카드/.test(compact))return ['문서류','카드','종이','확인 필요','카드 제목 신호'];
-    if(/(사진자료|사진기록|행사사진|졸업식사진)$/.test(compact))return ['시청각류','사진','사진','확인 필요','사진자료 제목 신호'];
-    if(/(영상기록|동영상|영상자료)$/.test(compact))return ['시청각류','영상','디지털파일','확인 필요','영상 제목 신호'];
-    if(/(음성기록|녹음파일|음성자료)$/.test(compact))return ['시청각류','음성','디지털파일','확인 필요','음성 제목 신호'];
-    return ['문서류','일반문서','종이','자동확정','특수기록 신호 없음'];
-  };
-  taskDocs=function(t){
-    return docs.filter(function(d){return d.taskCard===t;}).sort(function(a,b){
-      var ao=Number(a.order),bo=Number(b.order),am=Number.isFinite(ao),bm=Number.isFinite(bo);
-      if(am&&bm)return ao-bo;
-      return String(a.date||'').localeCompare(String(b.date||''))||Number(a.id)-Number(b.id);
-    });
-  };
-  disclosureOf=function(vol){
-    var ds=[...new Set(vol.map(function(d){return d.disclosure;}).filter(Boolean))];
-    if(!ds.length)return '';
-    if(ds.length===1)return ds[0];
-    return '부분공개';
-  };
-  restrictionsOf=function(vol){
-    return [...new Set(vol.map(function(d){return d.restriction;}).filter(Boolean))].sort(function(a,b){
-      var an=Number((String(a).match(/\d+/)||['999'])[0]),bn=Number((String(b).match(/\d+/)||['999'])[0]);
-      return an-bn||String(a).localeCompare(String(b),'ko');
-    }).join(', ');
-  };
-  renderTaskList=function(){
-    var q=(document.getElementById('taskQ')&&document.getElementById('taskQ').value||'').toLowerCase();
-    var ts=tasks().filter(function(t){return String(t).toLowerCase().includes(q);});
-    if(!ts.includes(selectedTask))selectedTask=ts[0]||'';
-    var list=document.getElementById('taskList');if(!list)return;
-    list.innerHTML=ts.map(function(t){
-      var a=taskDocs(t).filter(function(d){return !d.excluded;});
-      var p=a.reduce(function(n,d){return n+(Number(d.pages)||0);},0);
-      return '<div class="taskitem '+(t===selectedTask?'on':'')+'" data-task="'+esc(t)+'"><b>'+esc(t)+'</b><span>'+a.length+'건 · '+volumesFor(t).length+'권 · '+p+'쪽</span></div>';
-    }).join('');
-    list.querySelectorAll('.taskitem').forEach(function(el){el.addEventListener('click',function(){selectedTask=el.dataset.task||'';renderTaskList();renderBinding();});});
-  };
-  function reorder(task,ids){
-    var m=new Map(ids.map(function(id,i){return [Number(id),i];}));
-    taskDocs(task).forEach(function(d,i){d.order=m.has(Number(d.id))?m.get(Number(d.id)):ids.length+i;});
-  }
-  moveDoc=function(id,dir){
-    var d=docs.find(function(x){return Number(x.id)===Number(id);});if(!d)return;
-    var a=taskDocs(d.taskCard).filter(function(x){return !x.excluded;});
-    var i=a.findIndex(function(x){return Number(x.id)===Number(id);}),j=i+Number(dir);
-    if(i<0||j<0||j>=a.length)return;var x=a[i];a[i]=a[j];a[j]=x;reorder(d.taskCard,a.map(function(x){return x.id;}));renderBinding();renderTaskList();
-  };
-  var dragId=null;
-  function dragify(){
-    document.querySelectorAll('#bindWork .docrow').forEach(function(r){
-      var b=r.querySelector('button[onclick*="moveDoc("]');if(!b)return;
-      var m=(b.getAttribute('onclick')||'').match(/moveDoc\\((\\d+)/);if(!m)return;
-      var id=Number(m[1]);r.draggable=true;r.dataset.docid=id;
-      if(r.firstElementChild){r.firstElementChild.classList.add('dd-drag-handle');r.firstElementChild.title='드래그해서 순서 이동';}
-      r.ondragstart=function(){dragId=id;r.classList.add('dd-dragging');};
-      r.ondragend=function(){dragId=null;r.classList.remove('dd-dragging');};
-      r.ondragover=function(e){e.preventDefault();};
-      r.ondrop=function(e){e.preventDefault();var tid=Number(r.dataset.docid);if(!dragId||dragId===tid)return;
-        var from=docs.find(function(x){return Number(x.id)===Number(dragId);}),to=docs.find(function(x){return Number(x.id)===tid;});
-        if(!from||!to||from.taskCard!==to.taskCard)return;
-        var a=taskDocs(from.taskCard).filter(function(x){return !x.excluded;}),fi=a.findIndex(function(x){return Number(x.id)===Number(dragId);}),ti=a.findIndex(function(x){return Number(x.id)===tid;});
-        if(fi<0||ti<0)return;var mv=a.splice(fi,1)[0];a.splice(ti,0,mv);reorder(from.taskCard,a.map(function(x){return x.id;}));renderBinding();renderTaskList();
-      };
-    });
-  }
-  var rb=renderBinding;renderBinding=function(){rb();dragify();};
-  folderTitle=function(task,vol,total){
-    var first=(vol[0]&&vol[0].title)||task,extra=Math.max(0,vol.length-1),idx=total>=10?String(vol._index).padStart(String(total).length,'0'):String(vol._index);
-    return task+' ('+total+'-'+idx+'): '+first+(extra?' 외 '+extra+'건':'');
-  };
-  downloadTransfer=async function(){
-    rebuildFolders(false);
-    var inst=document.getElementById('institution').value.trim(),dep=document.getElementById('department').value.trim(),ty=Number(document.getElementById('transferYear').value)||new Date().getFullYear();
-    if(!inst){alert('생산기관명을 입력해주세요.');go(4);return;}
-    if(!window.ExcelJS){alert('이관신청서 서식 라이브러리를 불러오지 못했습니다. 새로고침 후 다시 시도해주세요.');return;}
-    var totalDocs=folders.reduce(function(a,f){return a+(Number(f.documentCount)||0);},0);
-    var totalPages=folders.reduce(function(a,f){return a+(Number(f.sheetCount)||0);},0);
-    var book=new ExcelJS.Workbook();book.creator='딸깍';book.created=new Date();book.calcProperties.fullCalcOnLoad=true;
-    var ws=book.addWorksheet('이관신청서',{pageSetup:{paperSize:9,orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0,margins:{left:.25,right:.25,top:.35,bottom:.35,header:.15,footer:.15}}});
-    ws.views=[{state:'frozen',ySplit:12}];
-    [6,45,12,12,23,11,12,12,12,10,12,13,9,9,18,12].forEach(function(w,i){ws.getColumn(i+1).width=w;});ws.getColumn(16).hidden=true;
-    function m(a,b){ws.mergeCells(a+':'+b)}
-    function br(cell){cell.border={top:{style:'thin',color:{argb:'FFD9E2EC'}},left:{style:'thin',color:{argb:'FFD9E2EC'}},bottom:{style:'thin',color:{argb:'FFD9E2EC'}},right:{style:'thin',color:{argb:'FFD9E2EC'}}};}
-    function fill(cell,color){cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:color}}}
-    m('A1','O2');var t=ws.getCell('A1');t.value='기 록 물  이 관 신 청 서';t.font={name:'맑은 고딕',size:22,bold:true,color:{argb:'FFFFFFFF'}};t.alignment={horizontal:'center',vertical:'middle'};fill(t,'FF203A53');ws.getRow(1).height=27;ws.getRow(2).height=27;
-    m('A4','O4');var sub=ws.getCell('A4');sub.value='아래와 같이 비전자 기록물을 이관하고자 합니다.';sub.font={name:'맑은 고딕',size:12,bold:true};sub.alignment={horizontal:'center',vertical:'middle'};ws.getRow(4).height=24;
-    var info=[
-      ['A6','B6','기관명','C6','E6',inst,false],['F6','G6','이관연도','H6','J6',ty,false],['K6','L6','작성일','M6','O6',new Date().toISOString().slice(0,10),false],
-      ['A7','B7','처리부서','C7','E7',dep||'입력 필요',!dep],['F7','G7','작성자(인계자)','H7','J7','입력 필요',true],['K7','L7','학교 기록물관리자','M7','O7','입력 필요',true],
-      ['A8','B8','이관 기록물철','C8','E8',folders.length,false],['F8','G8','이관 문서수','H8','J8',totalDocs,false],['K8','L8','총 쪽수','M8','O8',totalPages,false]
-    ];
-    info.forEach(function(x){m(x[0],x[1]);m(x[3],x[4]);var lc=ws.getCell(x[0]),vc=ws.getCell(x[3]);lc.value=x[2];vc.value=x[5];lc.font={name:'맑은 고딕',size:10,bold:true,color:{argb:'FF334155'}};vc.font={name:'맑은 고딕',size:10,bold:!!x[6],color:{argb:x[6]?'FF8A6500':'FF334155'}};lc.alignment=vc.alignment={horizontal:'center',vertical:'middle'};fill(lc,'FFDCEAF7');if(x[6])fill(vc,'FFFFF2CC');});
-    for(var r0=6;r0<=8;r0++){ws.getRow(r0).height=21;for(var c0=1;c0<=15;c0++)br(ws.getCell(r0,c0));}
-    m('A10','O10');var note=ws.getCell('A10');note.value='※ 노란색 입력칸과 목록의 업무값은 결재 전 수정할 수 있습니다. 수정값은 연계데이터에 자동 반영되고 최초 생성값도 별도로 보존됩니다.';note.font={name:'맑은 고딕',size:9,color:{argb:'FF8A6500'}};note.alignment={vertical:'middle'};fill(note,'FFFFF7E1');ws.getRow(10).height=21;
-    var heads=['순번','기록물철 제목','생산연도(시작)','생산연도(끝)','단위과제','보존기간','기록유형','세부유형','매체유형','수량(권)','공개구분','비공개호수','문서수','쪽수','비고'];
-    heads.forEach(function(h,i){var cell=ws.getCell(12,i+1);cell.value=h;cell.font={name:'맑은 고딕',size:9,bold:true,color:{argb:'FFFFFFFF'}};cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};fill(cell,'FF347DB8');br(cell);});ws.getRow(12).height=29;
-    folders.forEach(function(f,i){var rr=13+i,vals=[i+1,f.title,f.yearFrom,f.yearTo,f.unitTask,f.retention,f.recordType,f.detailType,f.mediaType,1,f.disclosure,f.restrictionNos,Number(f.documentCount)||0,Number(f.sheetCount)||0,''];vals.forEach(function(v,j){var cell=ws.getCell(rr,j+1);cell.value=v;cell.font={name:'맑은 고딕',size:9,color:{argb:'FF475569'}};cell.alignment={horizontal:j===1?'left':'center',vertical:'middle',wrapText:true};br(cell);if(j===10&&String(v)!=='공개'){fill(cell,'FFFCE4D6');cell.font={name:'맑은 고딕',size:9,color:{argb:'FFC00000'}};}});ws.getCell(rr,16).value=f.rowId;ws.getRow(rr).height=34;});
-    var last=Math.max(13,12+folders.length);ws.pageSetup.printArea='A1:O'+last;ws.pageSetup.printTitlesRow='1:12';ws.autoFilter={from:'A12',to:'O'+last};
-
-    var hs=book.addWorksheet('_handoff');hs.state='veryHidden';
-    var hh=['schemaVersion','transferPackageId','rowId','currentInstitutionName','currentTransferDepartmentName','currentYearFrom','currentYearTo','currentTitle','currentUnitTask','currentRetentionPeriod','currentRecordType','currentDetailType','currentMediaType','currentSheetCount','currentDocumentCount','currentDisclosure','currentRestrictionNos','originalInstitutionName','originalDepartmentName','originalYearFrom','originalYearTo','originalTitle','originalUnitTask','originalRetentionPeriod','originalRecordType','originalDetailType','originalMediaType','originalSheetCount','originalDocumentCount','originalDisclosure','originalRestrictionNos','userModified','validationState'];
-    hh.forEach(function(h,i){hs.getCell(1,i+1).value=h;});
-    function fv(formula,result){return {formula:formula,result:result}}
-    folders.forEach(function(f,i){var hr=2+i,vr=13+i;var vals=['2.1',packageId,f.rowId,fv("='이관신청서'!$C$6",inst),fv("='이관신청서'!$C$7",dep||'입력 필요'),fv("='이관신청서'!$C$"+vr,f.yearFrom),fv("='이관신청서'!$D$"+vr,f.yearTo),fv("='이관신청서'!$B$"+vr,f.title),fv("='이관신청서'!$E$"+vr,f.unitTask),fv("='이관신청서'!$F$"+vr,f.retention),fv("='이관신청서'!$G$"+vr,f.recordType),fv("='이관신청서'!$H$"+vr,f.detailType),fv("='이관신청서'!$I$"+vr,f.mediaType),fv("='이관신청서'!$N$"+vr,Number(f.sheetCount)||0),fv("='이관신청서'!$M$"+vr,Number(f.documentCount)||0),fv("='이관신청서'!$K$"+vr,f.disclosure),fv("='이관신청서'!$L$"+vr,f.restrictionNos),inst,dep||'입력 필요',f.yearFrom,f.yearTo,f.title,f.unitTask,f.retention,f.recordType,f.detailType,f.mediaType,Number(f.sheetCount)||0,Number(f.documentCount)||0,f.disclosure,f.restrictionNos,fv('=OR(D'+hr+'<>R'+hr+',E'+hr+'<>S'+hr+',F'+hr+'<>T'+hr+',G'+hr+'<>U'+hr+',H'+hr+'<>V'+hr+',I'+hr+'<>W'+hr+',J'+hr+'<>X'+hr+',K'+hr+'<>Y'+hr+',L'+hr+'<>Z'+hr+',M'+hr+'<>AA'+hr+',N'+hr+'<>AB'+hr+',O'+hr+'<>AC'+hr+',P'+hr+'<>AD'+hr+',Q'+hr+'<>AE'+hr+')',false),'OK'];vals.forEach(function(v,j){hs.getCell(hr,j+1).value=v;});});
-    var ds=book.addWorksheet('_handoff_docs');ds.state='veryHidden';
-    var dh=['schemaVersion','transferPackageId','rowId','docSeq','documentNo','registrationDate','documentTitle','approvalType','senderReceiver','pageCount','startPage','endPage','electronicNonElectronic','sourceTaskCard','sourceTaskName','sourceRowRef'];dh.forEach(function(h,i){ds.getCell(1,i+1).value=h;});
-    var dr=2;folders.forEach(function(f){var pg=1;(f.docs||[]).forEach(function(d,i){var n=Number(d.pages)||0,row=['2.1',packageId,f.rowId,i+1,d.documentNo,d.date,d.title,d.approvalType,d.senderReceiver,n,pg,pg+n-1,d.nonElectronic||'비전자',d.taskCard,d.taskName,d.sourceRow];row.forEach(function(v,j){ds.getCell(dr,j+1).value=v;});dr++;pg+=n;});});
-    var buf=await book.xlsx.writeBuffer(),blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='기록물이관신청서_'+inst+'_'+ty+'.xlsx';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},500);
-    var foot=document.getElementById('foot');if(foot)foot.textContent=folders.length+'권 이관신청서를 생성했습니다. 결재용 서식과 숨김 연계데이터가 함께 포함됩니다.';
-  };
-  if(document.getElementById('taskList')){renderTaskList();renderBinding();}
-})();
-<\/script>`;
-    page=page.replace('</body>',runtimePatch+'</body>');
+    const page=await new Response(stream).text();
+    if(!page.includes('통합 Beta v0.3')) throw new Error('배포 파일 검증에 실패했습니다.');
     document.open();document.write(page);document.close();
   }catch(e){
     state.innerHTML='<b>화면을 불러오지 못했습니다.</b><br>'+String(e.message||e)+'<br><br>잠시 후 새로고침해주세요.';
   }
 })();
 </script>
-</body></html>
+</body>
+</html>
