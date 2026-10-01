@@ -1,0 +1,28 @@
+name: Extract migration v0.6.1 source
+on:
+  push:
+    paths:
+      - '.github/workflows/extract-migration-v061-review.yml'
+permissions:
+  contents: write
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract migration HTML
+        shell: python
+        run: |
+          import base64, gzip, pathlib
+          parts=[]
+          for i in range(1,7):
+              parts.append(pathlib.Path(f'site-src/migration-v0.6.1.part{i:02d}.b64').read_text().strip())
+          html=gzip.decompress(base64.b64decode(''.join(parts))).decode('utf-8')
+          pathlib.Path('site-src/migration-v0.6.1.source.html').write_text(html,encoding='utf-8')
+      - name: Commit extracted source
+        run: |
+          git config user.name "ddalkkak-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add site-src/migration-v0.6.1.source.html
+          git commit -m "chore: extract migration v0.6.1 source for review" || exit 0
+          git push
