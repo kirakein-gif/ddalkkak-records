@@ -34,7 +34,7 @@ html{font-size:16px}body{font-size:15px;line-height:1.55;letter-spacing:-.15px}
 .doclead{display:flex;align-items:center;gap:6px;white-space:nowrap}
 .voltag{display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:24px;padding:0 6px;border-radius:7px;background:var(--blue);color:#fff;font-size:11.5px;font-weight:900}
 .volmeta{font-size:10.5px;color:#667085;font-weight:700}
-.docrow.volfirst{background:#fbfdff;border-top:1px solid #dbe6f5}.docrow.special-row{background:#fff8e8!important;border-left:3px solid #f0b429}.docrow.oversize-row{background:#fff0ef!important;border-left:3px solid #d92d20}.rowflag{display:inline-flex;align-items:center;margin-left:5px;padding:1px 5px;border-radius:999px;font-size:9.5px;font-weight:900}.rowflag.special{background:#fff0c2;color:#8a5b00}.rowflag.over{background:#fee4e2;color:#b42318}
+.docrow.volfirst{background:#fbfdff;border-top:1px solid #dbe6f5}.docrow.special-row{background:#fff8e8!important;border-left:3px solid #f0b429}.docrow.single-row{background:#fff0ef!important;border-left:3px solid #d92d20}.rowflag{display:inline-flex;align-items:center;margin-left:5px;padding:1px 5px;border-radius:999px;font-size:9.5px;font-weight:900}.rowflag.special{background:#fff0c2;color:#8a5b00}.rowflag.single{background:#fee4e2;color:#b42318}
 #p4 .card{margin-bottom:9px}#p4 .body{padding-top:10px;padding-bottom:10px}#p4 .finalgrid{grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}#p4 .field{gap:4px}#p4 .field label{font-size:11.5px}#p4 .field input{min-height:38px}#p4 .summary{margin:6px 0 9px}#p4 .tablewrap{max-height:calc(100vh - 345px);overflow:auto}
 .footerin{padding:7px 24px;min-height:48px}.foottext{font-size:11.5px}
 @media(max-width:950px){#p4 .finalgrid{grid-template-columns:1fr}.bindgrid{grid-template-columns:1fr}.tasks{position:static;max-height:none}.docrow{grid-template-columns:24px 78px minmax(0,1fr) 58px}.docrow .actions{grid-column:2/-1}.type-relation{font-size:11.5px}}
@@ -109,11 +109,11 @@ function renderBinding(){
   vols.forEach((v,vi)=>{
     const vp=v.reduce((a,d)=>a+d.pages,0);body+='<div class="vol">';
     v.forEach((d,di)=>{
-      const special=d.detailType!=='일반문서',over=Number(d.pages)>100;
-      body+='<div class="docrow '+(di===0?'volfirst ':'')+(special?'special-row ':'')+(over?'oversize-row ':'')+(d.excluded?'ex ':'')+(d.manualSplit?'splitline':'')+'" draggable="true" ondragstart="dragDocStart('+d.id+',event)" ondragend="dragDocEnd(event)" ondragover="event.preventDefault()" ondrop="dragDocDrop('+d.id+',event)">'
+      const special=d.detailType!=='일반문서',single=Number(d.pages)>=100;
+      body+='<div class="docrow '+(di===0?'volfirst ':'')+(special?'special-row ':'')+(single?'single-row ':'')+(d.excluded?'ex ':'')+(d.manualSplit?'splitline':'')+'" draggable="true" ondragstart="dragDocStart('+d.id+',event)" ondragend="dragDocEnd(event)" ondragover="event.preventDefault()" ondrop="dragDocDrop('+d.id+',event)">'
         +'<div class="doclead">'+(di===0?'<span class="voltag">'+(vi+1)+'권</span>':'')+'<span class="draghandle">⋮⋮</span></div>'
         +'<div class="dt">'+esc(d.date)+'</div>'
-        +'<div class="ttl"><b>'+esc(d.title)+'</b><div class="muted">'+esc(d.documentNo)+' · '+esc(d.detailType)+(special?'<span class="rowflag special">특수기록</span>':'')+(over?'<span class="rowflag over">100쪽 초과</span>':'')+(di===0?' · <span class="volmeta">'+v.length+'문서 · '+vp+'쪽</span>':'')+'</div></div>'
+        +'<div class="ttl"><b>'+esc(d.title)+'</b><div class="muted">'+esc(d.documentNo)+' · '+esc(d.detailType)+(special?'<span class="rowflag special">특수기록</span>':'')+(single?'<span class="rowflag single">단독 1권</span>':'')+(di===0?' · <span class="volmeta">'+v.length+'문서 · '+vp+'쪽</span>':'')+'</div></div>'
         +'<div><b>'+d.pages+'</b>쪽</div>'
         +'<div class="actions"><button class="btn sm" onclick="moveDoc('+d.id+',-1)">↑</button><button class="btn sm" onclick="moveDoc('+d.id+',1)">↓</button><button class="btn sm" onclick="toggleSplit('+d.id+')">'+(d.manualSplit?'분권해제':'여기서 분권')+'</button><button class="btn sm red" onclick="toggleExclude('+d.id+')">제외</button></div></div>';
     });body+='</div>';
