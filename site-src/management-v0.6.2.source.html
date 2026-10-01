@@ -29,9 +29,23 @@ select,input[type=text],input[type=number]{border:1px solid var(--line);border-r
 .modalback{display:none;position:fixed;inset:0;background:rgba(15,23,42,.44);z-index:100;align-items:center;justify-content:center;padding:20px}.modalback.on{display:flex}.modal{width:min(720px,96vw);max-height:88vh;overflow:auto;background:#fff;border-radius:15px}.modalhead{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}.modalbody{padding:14px 16px}
 @media(max-width:1000px){.summary{grid-template-columns:repeat(3,1fr)}.grid{grid-template-columns:1fr}.side{position:static}.outgrid{grid-template-columns:repeat(2,1fr)}}@media(max-width:650px){.steps{grid-template-columns:1fr}.summary{grid-template-columns:repeat(2,1fr)}.files{grid-template-columns:1fr}.rec{grid-template-columns:28px 1fr 60px}.rec>*:nth-child(4),.rec>*:nth-child(5){display:none}}
 </style>
+<style id="management-beta-compact">
+#p2 .card>.body{padding:10px 12px!important}
+#p2 .box{margin-bottom:6px!important;border-radius:9px!important}
+#p2 .boxh{padding:5px 8px!important;min-height:34px!important;align-items:center!important}
+#p2 .boxheadinfo{display:flex;align-items:center;gap:8px;min-width:0}
+#p2 .boxname{font-size:12.5px!important;white-space:nowrap}
+#p2 .boxmeta{font-size:11px!important;margin:0!important;white-space:nowrap}
+#p2 .rec{grid-template-columns:28px minmax(260px,620px) 62px 58px 132px!important;justify-content:start!important;gap:6px!important;padding:5px 8px!important;min-height:42px!important}
+#p2 .rec .title{font-size:12.5px!important;line-height:1.3!important}
+#p2 .rec .btn{min-height:30px!important;padding:5px 7px!important;font-size:11.5px!important}
+#p2 .box-excluded .boxh{background:#fafafa!important}
+#p2 .exclude-reason{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:999px;background:#f2f4f7;color:#667085;font-size:10px;font-weight:700;vertical-align:1px;white-space:nowrap}
+@media(max-width:900px){#p2 .rec{grid-template-columns:28px minmax(220px,1fr) 58px 120px!important}#p2 .rec>*:nth-child(4){display:none}}
+</style>
 </head>
 <body>
-<div class="top"><div class="topin"><div class="brand"><div class="logo">딸깍</div><div><h1>기록물관리 자동화</h1><div class="sub">이관신청서 취합부터 상자배정·관리번호·최종 출력까지</div></div></div><span class="badge info">통합 v0.6.2</span></div></div>
+<div class="top"><div class="topin"><div class="brand"><div class="logo">딸깍</div><div><h1>기록물관리 자동화</h1><div class="sub">이관신청서 취합부터 상자배정·관리번호·최종 출력까지</div></div></div><span class="badge info">통합 v0.7 Beta</span></div></div>
 <main class="wrap">
 <div class="steps">
  <div class="step on" data-step="1" onclick="go(1)">1. 자료 불러오기</div>
@@ -82,17 +96,15 @@ select,input[type=text],input[type=number]{border:1px solid var(--line);border-r
 
 <section id="p5" class="panel">
  <div id="summary5" class="summary"></div>
- <div class="card"><div class="head"><div><h2>최종 출력</h2><div class="sub">같은 최종 데이터에서 4종 출력물을 생성합니다. 표준대장은 추후 구현합니다.</div></div><button class="btn green" onclick="downloadAllTemplateOutputs(this)">4종 원본서식 ZIP 생성</button></div><div class="body">
-  <div class="outgrid">
-   <div class="out"><div class="icon">📘</div><h3>기록물철 표지</h3><p>GitHub의 <b>표지(서식).xlsx</b>를 복제해 최종 철제목을 넣습니다.</p><button class="btn primary" onclick="downloadTemplateOutput('cover',this)">원본서식 Excel 생성</button></div>
-   <div class="out"><div class="icon">📑</div><h3>색인</h3><p>GitHub의 <b>색인목록(서식).xlsx</b>에 _handoff_docs를 최종 철별로 넣습니다.</p><button class="btn primary" onclick="downloadTemplateOutput('index',this)">원본서식 Excel 생성</button></div>
-   <div class="out"><div class="icon">🏷️</div><h3>관리번호 스티커</h3><p>GitHub의 <b>관리번호스티커(서식).xlsx</b> 규격에 관리번호를 5매씩 채웁니다.</p><button class="btn primary" onclick="downloadTemplateOutput('sticker',this)">원본서식 Excel 생성</button></div>
-   <div class="out"><div class="icon">📦</div><h3>보존상자 라벨</h3><p>GitHub의 <b>상자라벨(서식).xlsx</b> 원본에 상자별 최대 8권을 채웁니다.</p><button class="btn primary" onclick="downloadTemplateOutput('box',this)">원본서식 Excel 생성</button></div>
-   <div class="out" style="opacity:.62"><div class="icon">📊</div><h3>표준 기록물관리대장</h3><p>학교·직속·기록관 표준양식 출력은 추후 구현합니다.</p><button class="btn" type="button" disabled aria-disabled="true">추후 구현</button></div>
+ <div class="card"><div class="head"><div><h2>최종 출력</h2><div class="sub">관리단계에서는 최종 번호가 반영된 표지·관리번호 스티커·보존상자 라벨·표준 기록물관리대장을 생성합니다.</div></div><button class="btn green" onclick="downloadAllTemplateOutputs(this)">4종 원본서식 ZIP 생성</button></div><div class="body">
+  <div class="outgrid" style="grid-template-columns:repeat(4,1fr)">
+   <div class="out"><div class="icon">📘</div><h3>기록물철 표지</h3><p>이관신청서와 같은 표지 로직에 최종 관리번호와 재번호된 철제목을 적용합니다.</p><button class="btn primary" onclick="downloadTemplateOutput('cover',this)">표지 Excel 생성</button></div>
+   <div class="out"><div class="icon">🏷️</div><h3>관리번호 스티커</h3><p>원본 스티커 규격에 최종 관리번호를 5매씩 채웁니다.</p><button class="btn primary" onclick="downloadTemplateOutput('sticker',this)">스티커 Excel 생성</button></div>
+   <div class="out"><div class="icon">📦</div><h3>보존상자 라벨</h3><p>최종 상자배정 결과를 원본 상자라벨 서식에 채웁니다.</p><button class="btn primary" onclick="downloadTemplateOutput('box',this)">상자라벨 Excel 생성</button></div>
+   <div class="out"><div class="icon">📊</div><h3>표준 기록물관리대장</h3><p>기관 설정의 학교·직속·기록관 표준양식을 선택해 최종 데이터를 채웁니다.</p><button class="btn primary" onclick="downloadStandardLedger(this)">표준대장 Excel 생성</button></div>
   </div>
   <div id="outputCheck" class="notice" style="margin-top:13px"></div>
-  <div id="templateStatus" class="notice" style="margin-top:8px"><b>XML 패치 출력</b> · GitHub 원본 XLSX의 프린터설정·서식은 보존하고 필요한 셀 XML만 바꿉니다.</div>
-  <div style="display:flex;justify-content:flex-end;margin-top:8px"><button class="btn" onclick="downloadAllOutputData()">주입데이터 확인</button></div>
+  <div id="templateStatus" class="notice" style="margin-top:8px"><b>원본서식 출력</b> · GitHub의 공식 XLSX 템플릿 구조와 서식을 유지하고 최종 데이터만 주입합니다.</div>
  </div></div>
 </section>
 
@@ -325,8 +337,26 @@ function renderInstList(){
  root.querySelectorAll('.inst').forEach(el=>el.addEventListener('click',()=>{selectedInst=el.dataset.inst||'';renderBoxesAll()}))
 }
 function renderRuleInfo(){const p=profile(selectedInst);document.getElementById('ruleInfo').innerHTML=`<div class="formrow"><label>최대 권수</label><b>8권</b></div><div class="formrow"><label>최대 쪽수</label><b>1,000쪽</b></div><div class="formrow"><label>동일 보존기간</label><b>필수</b></div><div class="formrow"><label>제외규칙</label><b>${(p.formRules||[]).length+(p.titleRules||[]).length}개</b></div><button class="btn" style="width:100%" onclick="openProfile()">기관별 설정 편집</button>`}
-function renderBoxes(){const recs=records.filter(r=>r.institution===selectedInst),map={};recs.filter(r=>!r.boxExcluded).forEach(r=>(map[r.boxNo]??=[]).push(r));let h='';Object.entries(map).forEach(([b,a])=>{const pg=a.reduce((s,r)=>s+r.sheetCount,0);h+=`<div class="box"><div class="boxh"><div><div class="boxname">${esc(b)}</div><div class="boxmeta">${esc(a[0].retention)} · ${a.length}권 · ${pg.toLocaleString()}쪽</div></div>${a.length>8||pg>1000?'<span class="badge bad">기준초과</span>':'<span class="badge ok">자동배정</span>'}</div>`;a.forEach((r,i)=>{h+=`<div class="rec"><div>${i+1}</div><div class="title">${esc(r.title)}${r.userModified?'<div><span class="badge warn">수기수정</span></div>':''}</div><div>${r.sheetCount}쪽</div><div>${esc(r.retention)}</div><div><button class="btn" onclick="splitHere(${r._idx})">${r.manualSplit?'분할취소':'여기서 새 상자'}</button> <button class="btn" onclick="toggleExclude(${r._idx})">제외</button></div></div>`});h+='</div>'});const ex=recs.filter(r=>r.boxExcluded);if(ex.length){h+=`<div class="box"><div class="boxh"><div><div class="boxname">상자 제외</div><div class="boxmeta">관리대장에는 남고 상자에만 넣지 않음</div></div></div>`;ex.forEach(r=>h+=`<div class="rec excluded"><div>—</div><div class="title">${esc(r.title)}<div class="muted">${esc(r.autoExcludeReason||'사용자 제외')}</div></div><div>${r.sheetCount}쪽</div><div>${esc(r.retention)}</div><div><button class="btn" onclick="toggleExclude(${r._idx})">복원</button></div></div>`);h+='</div>'}document.getElementById('boxes').innerHTML=h||'<div class="notice">선택 기관에 기록물이 없습니다.</div>'}
-
+function renderBoxes(){
+ const recs=records.filter(r=>r.institution===selectedInst),map={};
+ recs.filter(r=>!r.boxExcluded).forEach(r=>(map[r.boxNo]??=[]).push(r));
+ let h='';
+ Object.entries(map).forEach(([b,a])=>{
+  const pg=a.reduce((s,r)=>s+r.sheetCount,0);
+  h+='<div class="box"><div class="boxh"><div class="boxheadinfo"><span class="boxname">'+esc(b)+'</span><span class="boxmeta">'+esc(a[0].retention)+' · '+a.length+'권 · '+pg.toLocaleString()+'쪽</span></div>'+(a.length>8||pg>1000?'<span class="badge bad">기준초과</span>':'<span class="badge ok">자동배정</span>')+'</div>';
+  a.forEach((r,i)=>{
+   h+='<div class="rec" draggable="true" ondragstart="boxDragStart('+r._idx+',event)" ondragover="boxDragOver(event)" ondrop="boxDrop('+r._idx+',event)"><div>'+(i+1)+'</div><div class="title">'+esc(r.title)+(r.userModified?'<span class="badge warn" style="margin-left:6px">수기수정</span>':'')+'</div><div>'+r.sheetCount+'쪽</div><div>'+esc(r.retention)+'</div><div><button class="btn" onclick="splitHere('+r._idx+')">'+(r.manualSplit?'분할취소':'새 상자')+'</button> <button class="btn" onclick="toggleExclude('+r._idx+')">제외</button></div></div>';
+  });
+  h+='</div>';
+ });
+ const ex=recs.filter(r=>r.boxExcluded);
+ if(ex.length){
+  h+='<div class="box box-excluded"><div class="boxh"><div class="boxheadinfo"><span class="boxname">상자 제외</span><span class="boxmeta">'+ex.length+'권</span></div></div>';
+  ex.forEach(r=>h+='<div class="rec excluded"><div>—</div><div class="title">'+esc(r.title)+'<span class="exclude-reason">'+esc(r.autoExcludeReason||'사용자 제외')+'</span></div><div>'+r.sheetCount+'쪽</div><div>'+esc(r.retention)+'</div><div><button class="btn" onclick="toggleExclude('+r._idx+')">복원</button></div></div>');
+  h+='</div>';
+ }
+ document.getElementById('boxes').innerHTML=h||'<div class="notice">선택 기관에 기록물이 없습니다.</div>';
+}
 function parseTitle(t){const m=String(t).match(/^(.*?)\s*\(\s*\d+\s*-\s*0*\d+\s*\)(.*)$/);return m?{base:m[1].trim(),tail:m[2]}:null}
 function renumberTitles(){insts().forEach(inst=>{const by={};records.filter(r=>r.institution===inst).forEach(r=>(by[r.unitTask||'__NO_TASK__']??=[]).push(r));Object.values(by).forEach(arr=>{arr.sort((a,b)=>(retentionRank[a.retention]||4)-(retentionRank[b.retention]||4)||String(a.boxNo).localeCompare(String(b.boxNo),'ko')||a._order-b._order);const total=arr.length,pad=String(total).length;arr.forEach((r,i)=>{const p=parseTitle(r.title);r.originalTitle=r.originalTitle||r.title;if(p)r.finalTitle=`${p.base} (${total}-${String(i+1).padStart(pad,'0')})${p.tail}`;else r.finalTitle=r.title;r.titlePatternMissing=!p})})})}
 function findLedgerInfo(inst){if(ledgerInfo[inst])return ledgerInfo[inst];const keys=Object.keys(ledgerInfo);if(keys.length===1&&keys[0]==='__UNKNOWN__')return ledgerInfo[keys[0]];return null}
@@ -337,7 +367,8 @@ function fillInstFilter(id){const s=document.getElementById(id),v=s.value;s.inne
 function renderFinal(){if(!finalReady)recalcFinal();renderSummary3();fillInstFilter('filterInst3');const q=(document.getElementById('q3').value||'').toLowerCase(),fi=document.getElementById('filterInst3').value;let arr=records.filter(r=>(!fi||r.institution===fi)&&(!q||(r.managementNo+' '+r.finalTitle+' '+r.unitTask).toLowerCase().includes(q)));document.getElementById('finalBody').innerHTML=arr.map(r=>`<tr><td><b>${esc(r.managementNo)}</b></td><td>${esc(r.institution)}</td><td class="title">${esc(r.finalTitle)}${r.titlePatternMissing?'<div><span class="badge warn">번호패턴 없음</span></div>':''}</td><td class="muted">${esc(r.originalTitle)}</td><td>${esc(r.retention)}</td><td>${r.boxExcluded?'<span class="badge warn">상자제외</span>':esc(r.boxNo)}</td><td>${r.sheetCount.toLocaleString()}</td><td>${r.userModified?'<span class="badge warn">수기수정</span>':'<span class="badge ok">완료</span>'}</td></tr>`).join('');setFoot('최종 철제목과 관리번호를 확인하세요. 제목 본문은 유지하고 권차 부분만 재번호했습니다.')}
 function renderReview(){if(!finalReady)recalcFinal();document.getElementById('summary4').innerHTML=summaryHtml([['기록물철',records.length,'권'],['색인 원본문서',documentRows.length||records.reduce((s,r)=>s+r.documentCount,0),'건'],['총 쪽수',records.reduce((s,r)=>s+r.sheetCount,0).toLocaleString(),'쪽'],['보존상자',new Set(records.filter(r=>!r.boxExcluded).map(r=>r.institution+'|'+r.boxNo)).size,'개'],['상자 제외',records.filter(r=>r.boxExcluded).length,'권'],['관리번호',records.filter(r=>r.managementNo).length,'개']]);const boxes=[...new Set(records.filter(r=>r.boxNo).map(r=>r.boxNo))].sort();const fb=document.getElementById('filterBox4'),v=fb.value;fb.innerHTML='<option value="">상자 전체</option>'+boxes.map(b=>`<option>${esc(b)}</option>`).join('');fb.value=v;const q=(document.getElementById('q4').value||'').toLowerCase(),box=fb.value,st=document.getElementById('filterState4').value;let arr=records.filter(r=>(!box||r.boxNo===box)&&(!q||(r.finalTitle+' '+r.managementNo+' '+r.unitTask).toLowerCase().includes(q))&&(!st||(st==='box'?r.boxExcluded:r.userModified)));document.getElementById('reviewBody').innerHTML=arr.map(r=>`<tr><td><b>${esc(r.managementNo)}</b></td><td>${esc(r.institution)}</td><td class="title">${esc(r.finalTitle)}</td><td>${esc(r.unitTask)}</td><td>${esc(r.recordType)} / ${esc(r.detailType)} / ${esc(r.mediaType)}</td><td>${esc(r.retention)}</td><td>${r.boxExcluded?'<span class="badge warn">제외</span>':esc(r.boxNo)}</td><td>${r.documentCount}건 / ${r.sheetCount.toLocaleString()}쪽</td></tr>`).join('');setFoot('이 데이터 한 세트가 표지·색인·스티커·상자라벨·표준관리대장의 공통 원본이 됩니다.')}
 function splitFinalTitle(t){
- const parts=String(t||'').split(/\n\s*:\s*/);return {main:(parts[0]||'').trim(),sub:parts.slice(1).join(' : ').trim()}
+ const s=String(t||'').trim(),i=s.indexOf(':');
+ return i>=0?{main:s.slice(0,i).trim(),sub:s.slice(i+1).trim()}:{main:s,sub:''}
 }
 function outputDataSets(){
  if(!finalReady)recalcFinal();
@@ -373,7 +404,7 @@ function downloadAllOutputData(){
 
 // v0.6.2: worksheet XML 선언 중복 제거
 const TEMPLATE_RAW_BASE='https://raw.githubusercontent.com/kirakein-gif/ddalkkak-records/main/templates';
-const TEMPLATE_FILES={cover:'표지(서식).xlsx',index:'색인목록(서식).xlsx',sticker:'관리번호스티커(서식).xlsx',box:'상자라벨(서식).xlsx'};
+const TEMPLATE_FILES={cover:'표지(서식).xlsx',index:'색인목록(서식).xlsx',sticker:'관리번호스티커(서식).xlsx',box:'상자라벨(서식).xlsx',ledgerSchool:'기록물관리대장 서식(학교).xlsx',ledgerDirect:'기록물관리대장 서식(직속).xlsx',ledgerArchive:'기록물관리대장 서식(기록관).xlsx'};
 const XLSX_NS='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
 const XML_NS='http://www.w3.org/XML/1998/namespace';
 function templateUrl(kind){return `${TEMPLATE_RAW_BASE}/${encodeURIComponent(TEMPLATE_FILES[kind])}`}
@@ -450,6 +481,14 @@ function setRowBreaks(sheetDoc,ids){
  const cb=direct(root,'colBreaks'),custom=direct(root,'customProperties'),watch=direct(root,'cellWatches'),ignored=direct(root,'ignoredErrors'),smart=direct(root,'smartTags'),drawing=direct(root,'drawing'),legacy=direct(root,'legacyDrawing');
  const before=cb||custom||watch||ignored||smart||drawing||legacy;if(before)root.insertBefore(rb,before);else root.appendChild(rb);
 }
+function removeFreezePane(sheetDoc){
+ const views=direct(sheetDoc.documentElement,'sheetViews');if(!views)return;
+ for(const view of directs(views,'sheetView')){
+  const pane=direct(view,'pane');if(pane)view.removeChild(pane);
+  for(const sel of directs(view,'selection')){sel.removeAttribute('pane');sel.removeAttribute('activeCell');sel.removeAttribute('sqref')}
+ }
+}
+
 function replaceRows(sheetDoc,newRows){const sd=direct(sheetDoc.documentElement,'sheetData');if(!sd)throw new Error('sheetData를 찾지 못했습니다.');while(sd.firstChild)sd.removeChild(sd.firstChild);newRows.sort((a,b)=>Number(a.getAttribute('r'))-Number(b.getAttribute('r'))).forEach(r=>sd.appendChild(r));return sd}
 function sanitizeSheetExternalFormulas(sheetDoc){for(const f of allLocal(sheetDoc,'f'))if(/\[[0-9]+\]/.test(f.textContent||''))f.parentNode.removeChild(f)}
 function sanitizeWorkbookDoc(wbDoc){
@@ -508,7 +547,7 @@ async function buildCoverTemplate(){
  if(!src.size)throw new Error('표지 원본에 행 서식을 찾지 못했습니다.');
  records.forEach((r,i)=>{const off=i*42;for(const [n,row] of src)if(n>=1&&n<=42)rows.push(cloneRowShift(row,n+off))});
  const newSd=replaceRows(doc,rows),merges=[];records.forEach((_,i)=>baseM.forEach(ref=>merges.push(shiftRangeRows(ref,i*42))));setMergeRefs(doc,merges);
- records.forEach((r,i)=>{const off=i*42,t=splitFinalTitle(r.finalTitle);const rr=n=>ensureRow(doc,newSd,n+off);setText(doc,rr(3),'C',r.managementNo||'');setText(doc,rr(4),'C',t.main||r.finalTitle||'');setText(doc,rr(5),'C',t.sub||'');setText(doc,rr(7),'C',`${yearText(r)} / ${r.retention||''}`);setText(doc,rr(9),'C',r.institution||'')});
+ records.forEach((r,i)=>{const off=i*42,t=splitFinalTitle(r.finalTitle);const rr=n=>ensureRow(doc,newSd,n+off);setText(doc,rr(3),'C',r.managementNo||'');setText(doc,rr(4),'C',t.main||r.finalTitle||'');setText(doc,rr(5),'C',t.sub||'');setText(doc,rr(7),'C',String(r.yearFrom||'')+'-'+String(r.yearTo||r.yearFrom||'')+' ('+(r.retention||'')+')');setText(doc,rr(9),'C','충청남도교육지원청 '+(r.institution||''))});
  const end=Math.max(42,records.length*42);setDimension(doc,`A1:F${end}`);setRowBreaks(doc,Array.from({length:Math.max(0,records.length-1)},(_,i)=>(i+1)*42));
  return {buffer:await finishPatchedZip(zip,doc,`$A$1:$F$${end}`),filename:'기록물철표지_완성.xlsx'};
 }
@@ -535,21 +574,63 @@ async function buildBoxTemplate(){
  if(src.has(1))rows.push(src.get(1).cloneNode(true));for(let p=0;p<pages;p++){const off=p*14;for(const [n,row] of src)if(n>=2&&n<=13)rows.push(cloneRowShift(row,n+off));pageM.forEach(ref=>merges.push(shiftRangeRows(ref,off)))}
  const newSd=replaceRows(doc,rows);setMergeRefs(doc,merges);
  for(let p=0;p<pages;p++){const pageStart=2+p*14;for(let slot=0;slot<3;slot++){const a=groups[p*3+slot],co=slot*4,C=colLetters(3+co),D=colLetters(4+co);for(let rr=pageStart;rr<=pageStart+11;rr++){clearAt(doc,newSd,rr,C);clearAt(doc,newSd,rr,D)}if(!a)continue;const first=a[0],rowAt=rel=>ensureRow(doc,newSd,pageStart+(rel-2));setText(doc,rowAt(2),C,first.boxNo||'');setText(doc,rowAt(3),C,first.retention||'');setText(doc,rowAt(4),C,yearText(first));setText(doc,rowAt(5),C,first.institution||'');for(let i=0;i<8;i++){const item=a[i],row=rowAt(6+i);setText(doc,row,C,item?String(item.yearTo||item.yearFrom||''):'');setText(doc,row,D,item?(item.finalTitle||''):'')}}}
- const end=13+(pages-1)*14;setDimension(doc,`A1:L${end}`);setRowBreaks(doc,Array.from({length:Math.max(0,pages-1)},(_,i)=>13+i*14));return {buffer:await finishPatchedZip(zip,doc,`$A$1:$L$${end}`),filename:'보존상자라벨_완성.xlsx'};
+ const end=13+(pages-1)*14;setDimension(doc,`A1:L${end}`);setRowBreaks(doc,Array.from({length:Math.max(0,pages-1)},(_,i)=>13+i*14));removeFreezePane(doc);return {buffer:await finishPatchedZip(zip,doc,`$A$1:$L$${end}`),filename:'보존상자라벨_완성.xlsx'};
+}
+
+function ledgerTemplateKey(t){return t==='archive'?'ledgerArchive':t==='direct'?'ledgerDirect':'ledgerSchool'}
+function ledgerSafeName(s){return String(s||'기관').replace(/[\\/:*?"<>|]/g,'_')}
+async function buildStandardLedgerFor(inst,arr){
+ const p=profile(inst),kind=p.template||'school',key=ledgerTemplateKey(kind),zip=await fetchTemplateZip(key),doc=await sheetDocFromZip(zip),sd=direct(doc.documentElement,'sheetData'),src=rowMap(sd),styleRow=src.get(5);
+ if(!styleRow)throw new Error('표준 기록물관리대장 원본의 5행 데이터 서식을 찾지 못했습니다.');
+ const keepRows=[];for(const [n,row] of src)if(n>=1&&n<=4)keepRows.push(row.cloneNode(true));
+ arr.forEach((_,i)=>keepRows.push(cloneRowShift(styleRow,5+i)));
+ const newSd=replaceRows(doc,keepRows),baseM=sourceMergeRefs(doc).filter(ref=>{const x=parseRangeRef(ref);return x&&x.r2<=4});setMergeRefs(doc,baseM);
+ const maxCol=kind==='archive'?32:31,cols=Array.from({length:maxCol},(_,i)=>colLetters(i+1));
+ arr.forEach((r,i)=>{
+  const rn=5+i,row=ensureRow(doc,newSd,rn,styleRow);for(const col of cols)clearAt(doc,newSd,rn,col);
+  const put=(col,val,num=false)=>{if(val===undefined||val===null||val==='')return;num?setNumber(doc,row,col,val):setText(doc,row,col,val)};
+  put('A',i+1,true);put('D',r.institution);put('F',r.institution);put('G',r.yearFrom,true);put('H',r.yearTo||r.yearFrom,true);put('I',r.managementNo);put('J',r.finalTitle);put('K',r.unitTask);put('L',r.retention);put('M',r.recordType);put('N',r.detailType);put('O',r.mediaType);put('P',1,true);put('Q',r.disclosure);put('R',r.restrictionNos);put('S',kind==='archive'?'기록관':'처리과');put(kind==='archive'?'AD':'AC',new Date().getFullYear(),true);
+  if(kind==='archive'){put('AC',r.boxExcluded?'':r.boxNo)}else{put('AB',r.boxExcluded?'':r.boxNo)}
+ });
+ const end=Math.max(5,4+arr.length);setDimension(doc,'A1:'+(kind==='archive'?'AF':'AE')+end);removeFreezePane(doc);
+ return {buffer:await finishPatchedZip(zip,doc,null),filename:'표준기록물관리대장_'+ledgerSafeName(inst)+'.xlsx'};
+}
+async function buildStandardLedgerOutputs(){
+ if(!finalReady)recalcFinal();const outs=[];
+ for(const inst of insts()){const arr=records.filter(r=>r.institution===inst);if(arr.length)outs.push(await buildStandardLedgerFor(inst,arr))}
+ return outs
+}
+async function downloadStandardLedger(button){
+ const old=button?.textContent;try{
+  if(button){button.disabled=true;button.textContent='생성 중...'}setTemplateStatus('기관별 표준 기록물관리대장을 생성하고 있습니다.');
+  const outs=await buildStandardLedgerOutputs();if(!outs.length)throw new Error('출력할 기록물이 없습니다.');
+  if(outs.length===1){blobDownloadBuffer(outs[0].buffer,outs[0].filename)}
+  else{if(!window.JSZip)throw new Error('JSZip을 불러오지 못했습니다.');const z=new JSZip();outs.forEach(o=>z.file(o.filename,o.buffer));downloadBlob(await z.generateAsync({type:'blob',compression:'DEFLATE'}),'표준기록물관리대장_기관별.zip')}
+  setTemplateStatus('표준 기록물관리대장 생성 완료 · '+outs.length+'개 기관');
+ }catch(e){console.error(e);setTemplateStatus(e.message||String(e),true);alert('표준대장 생성 오류: '+(e.message||e))}
+ finally{if(button){button.disabled=false;button.textContent=old}}
 }
 async function buildTemplateOutput(kind){if(!records.length)throw new Error('출력할 기록물이 없습니다.');if(!finalReady)recalcFinal();if(kind==='cover')return buildCoverTemplate();if(kind==='index')return buildIndexTemplate();if(kind==='sticker')return buildStickerTemplate();if(kind==='box')return buildBoxTemplate();throw new Error('지원하지 않는 출력물입니다.')}
 function blobDownloadBuffer(buffer,name){downloadBlob(new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),name)}
 async function downloadTemplateOutput(kind,button){const old=button?.textContent;try{if(button){button.disabled=true;button.textContent='생성 중...'}setTemplateStatus(`${TEMPLATE_FILES[kind]} 원본 구조를 유지한 채 XML 패치 중입니다.`);const out=await buildTemplateOutput(kind);blobDownloadBuffer(out.buffer,out.filename);setTemplateStatus(`${out.filename} 생성 완료 · 프린터설정과 원본 서식을 보존했습니다.`)}catch(e){console.error(e);setTemplateStatus(e.message||String(e),true);alert('출력 생성 오류: '+(e.message||e))}finally{if(button){button.disabled=false;button.textContent=old}}}
-async function downloadAllTemplateOutputs(button){const old=button?.textContent;try{if(button){button.disabled=true;button.textContent='4종 생성 중...'}if(!documentRows.length)throw new Error('색인 생성에 필요한 _handoff_docs가 없습니다.');if(!window.JSZip)throw new Error('JSZip을 불러오지 못했습니다.');const bundle=new JSZip();for(const kind of ['cover','index','sticker','box']){setTemplateStatus(`${TEMPLATE_FILES[kind]} XML 패치 중...`);const out=await buildTemplateOutput(kind);bundle.file(out.filename,out.buffer)}downloadBlob(await bundle.generateAsync({type:'blob',compression:'DEFLATE'}),'기록물관리_출력물4종_완성.zip');setTemplateStatus('표지·색인·관리번호스티커·보존상자라벨 4종 생성 완료 · 원본 패키지 기반 XML 패치 방식입니다.')}catch(e){console.error(e);setTemplateStatus(e.message||String(e),true);alert('전체 출력 오류: '+(e.message||e))}finally{if(button){button.disabled=false;button.textContent=old}}}
-
+async function downloadAllTemplateOutputs(button){
+ const old=button?.textContent;try{
+  if(button){button.disabled=true;button.textContent='4종 생성 중...'}if(!window.JSZip)throw new Error('JSZip을 불러오지 못했습니다.');
+  const bundle=new JSZip();
+  for(const kind of ['cover','sticker','box']){setTemplateStatus(TEMPLATE_FILES[kind]+' 생성 중...');const out=await buildTemplateOutput(kind);bundle.file(out.filename,out.buffer)}
+  const ledgers=await buildStandardLedgerOutputs();ledgers.forEach(o=>bundle.file(o.filename,o.buffer));
+  downloadBlob(await bundle.generateAsync({type:'blob',compression:'DEFLATE'}),'기록물관리_출력물4종_완성.zip');
+  setTemplateStatus('표지·관리번호스티커·보존상자라벨·표준 기록물관리대장 생성 완료');
+ }catch(e){console.error(e);setTemplateStatus(e.message||String(e),true);alert('전체 출력 오류: '+(e.message||e))}
+ finally{if(button){button.disabled=false;button.textContent=old}}
+}
 function renderOutput(){
  if(!finalReady)recalcFinal();const ds=outputDataSets();
- document.getElementById('summary5').innerHTML=summaryHtml([['표지',ds.cover.length,'매'],['색인 문서',ds.index.length,'건'],['관리번호',records.length,'매'],['보존상자',ds.box.length,'개'],['표준대장','추후','구현'],['상자 제외',records.filter(r=>r.boxExcluded).length,'권']]);
- const missing=[];if(!documentRows.length)missing.push('_handoff_docs 없음');if(records.some(r=>!r.managementNo))missing.push('관리번호 미부여');
- document.getElementById('outputCheck').innerHTML=missing.length?`<b>확인 필요</b> · ${missing.join(' · ')}`:`<b>XML 패치 출력 준비 완료</b> · 표지 ${ds.cover.length}매, 색인 ${ds.index.length}건, 관리번호 스티커 ${records.length}매, 상자라벨 ${ds.box.length}매를 원본 XLSX 구조를 유지한 채 생성합니다. <br><span class="muted">프린터설정·셀서식·병합은 원본에 남기고 필요한 worksheet XML만 수정합니다. 표준 기록물관리대장은 추후 구현합니다.</span>`;
- setFoot(`XML 패치 출력 연결 완료 · 원본 Excel 패키지를 보존한 실제 출력물을 생성합니다.`)
+ document.getElementById('summary5').innerHTML=summaryHtml([['표지',ds.cover.length,'매'],['관리번호',records.length,'매'],['보존상자',ds.box.length,'개'],['표준대장',insts().length,'개'],['상자 제외',records.filter(r=>r.boxExcluded).length,'권'],['기관',insts().length,'개']]);
+ const missing=[];if(records.some(r=>!r.managementNo))missing.push('관리번호 미부여');
+ document.getElementById('outputCheck').innerHTML=missing.length?'<b>확인 필요</b> · '+missing.join(' · '):'<b>원본서식 출력 준비 완료</b> · 최종 철번호와 관리번호가 반영된 표지, 관리번호 스티커, 보존상자 라벨, 표준 기록물관리대장을 생성합니다.';
+ setFoot('관리단계 최종 출력 준비 완료 · 색인은 이관신청 단계에서 생성합니다.')
 }
-
 let editingInst='',editingProfile=null;
 function openProfile(){editingInst=selectedInst||insts()[0];editingProfile=JSON.parse(JSON.stringify(profile(editingInst)));document.getElementById('profileTitle').textContent=editingInst+' · 기관 설정';document.getElementById('pfPrefix').value=editingProfile.prefix||'';document.getElementById('pfTemplate').value=editingProfile.template||'school';renderProfileRules();document.getElementById('profileModal').classList.add('on')}
 function closeProfile(){document.getElementById('profileModal').classList.remove('on')}
