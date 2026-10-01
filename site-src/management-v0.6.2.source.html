@@ -43,6 +43,7 @@ select,input[type=text],input[type=number]{border:1px solid var(--line);border-r
 #p2 .exclude-reason{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:999px;background:#f2f4f7;color:#667085;font-size:10px;font-weight:700;vertical-align:1px;white-space:nowrap}
 @media(max-width:900px){#p2 .rec{grid-template-columns:28px minmax(220px,1fr) 58px 120px!important}#p2 .rec>*:nth-child(4){display:none}}
 </style>
+<script src="../site-src/org-resolver.js"></script>
 </head>
 <body>
 <div class="top"><div class="topin"><div class="brand"><div class="logo">딸깍</div><div><h1>기록물관리 자동화</h1><div class="sub">이관신청서 취합부터 상자배정·관리번호·최종 출력까지</div></div></div><span class="badge info">통합 v0.7 Beta</span></div></div>
@@ -404,6 +405,7 @@ function downloadAllOutputData(){
 
 // v0.6.2: worksheet XML 선언 중복 제거
 const TEMPLATE_RAW_BASE='https://raw.githubusercontent.com/kirakein-gif/ddalkkak-records/main/templates';
+const ORG_SHEET='충청남도교육청 기관별 명칭 및 기관코드', ORG_DIR_CACHE={};
 const TEMPLATE_FILES={cover:'표지(서식).xlsx',index:'색인목록(서식).xlsx',sticker:'관리번호스티커(서식).xlsx',box:'상자라벨(서식).xlsx',ledgerSchool:'기록물관리대장 서식(학교).xlsx',ledgerDirect:'기록물관리대장 서식(직속).xlsx',ledgerArchive:'기록물관리대장 서식(기록관).xlsx'};
 const XLSX_NS='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
 const XML_NS='http://www.w3.org/XML/1998/namespace';
@@ -577,10 +579,32 @@ async function buildBoxTemplate(){
  const end=13+(pages-1)*14;setDimension(doc,`A1:L${end}`);setRowBreaks(doc,Array.from({length:Math.max(0,pages-1)},(_,i)=>13+i*14));removeFreezePane(doc);return {buffer:await finishPatchedZip(zip,doc,`$A$1:$L$${end}`),filename:'보존상자라벨_완성.xlsx'};
 }
 
+
+async function loadOfficialOrgDirectory(kind){
+ const key=ledgerTemplateKey(kind);if(ORG_DIR_CACHE[key])return ORG_DIR_CACHE[key];
+ const url=templateUrl(key),res=await fetch(url,{cache:'no-store'});if(!res.ok)throw new Error('기관코드표 템플릿 다운로드 실패 ('+res.status+')');
+ const wb=XLSX.read(await res.arrayBuffer(),{type:'array'}),ws=wb.Sheets[ORG_SHEET];if(!ws)throw new Error('표준서식에서 기관코드 시트를 찾지 못했습니다.');
+ const matrix=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+ const hi=matrix.findIndex(row=>row.map(v=>String(v).trim()).includes('전체기관명')&&row.map(v=>String(v).trim()).includes('기관코드'));
+ if(hi<0)throw new Error('기관코드표 헤더를 찾지 못했습니다.');
+ const h=matrix[hi].map(v=>String(v).trim()),idx=n=>h.indexOf(n),rows=[];
+ for(let r=hi+1;r<matrix.length;r++){
+  const row=matrix[r],full=String(row[idx('전체기관명')]??'').trim(),leaf=String(row[idx('최하위기관명')]??'').trim(),code=String(row[idx('기관코드')]??'').trim(),status=String(row[idx('폐지구분')]??'').trim();
+  if(full&&code)rows.push({fullName:full,leafName:leaf||full,code,status});
+ }
+ ORG_DIR_CACHE[key]=rows;return rows;
+}
+async function resolveOfficialOrgOrThrow(name,kind){
+ const rows=await loadOfficialOrgDirectory(kind),res=window.DdalkkakOrgResolver.resolve(name,rows);
+ if(res.ambiguous)throw new Error('기관명 중복 확인 필요: '+name+' → '+res.candidates.map(x=>x.fullName+' ['+(x.status||'상태없음')+']').join(' / '));
+ if(!res.match)throw new Error('표준 기관코드표에서 기관을 찾지 못했습니다: '+name);
+ return res.match;
+}
+
 function ledgerTemplateKey(t){return t==='archive'?'ledgerArchive':t==='direct'?'ledgerDirect':'ledgerSchool'}
 function ledgerSafeName(s){return String(s||'기관').replace(/[\\/:*?"<>|]/g,'_')}
 async function buildStandardLedgerFor(inst,arr){
- const p=profile(inst),kind=p.template||'school',key=ledgerTemplateKey(kind),zip=await fetchTemplateZip(key),doc=await sheetDocFromZip(zip),sd=direct(doc.documentElement,'sheetData'),src=rowMap(sd),styleRow=src.get(5);
+ const p=profile(inst),kind=p.template||'school',official=await resolveOfficialOrgOrThrow(inst,kind),key=ledgerTemplateKey(kind),zip=await fetchTemplateZip(key),doc=await sheetDocFromZip(zip),sd=direct(doc.documentElement,'sheetData'),src=rowMap(sd),styleRow=src.get(5);
  if(!styleRow)throw new Error('표준 기록물관리대장 원본의 5행 데이터 서식을 찾지 못했습니다.');
  const keepRows=[];for(const [n,row] of src)if(n>=1&&n<=4)keepRows.push(row.cloneNode(true));
  arr.forEach((_,i)=>keepRows.push(cloneRowShift(styleRow,5+i)));
@@ -589,7 +613,7 @@ async function buildStandardLedgerFor(inst,arr){
  arr.forEach((r,i)=>{
   const rn=5+i,row=ensureRow(doc,newSd,rn,styleRow);for(const col of cols)clearAt(doc,newSd,rn,col);
   const put=(col,val,num=false)=>{if(val===undefined||val===null||val==='')return;num?setNumber(doc,row,col,val):setText(doc,row,col,val)};
-  put('A',i+1,true);put('D',r.institution);put('F',r.institution);put('G',r.yearFrom,true);put('H',r.yearTo||r.yearFrom,true);put('I',r.managementNo);put('J',r.finalTitle);put('K',r.unitTask);put('L',r.retention);put('M',r.recordType);put('N',r.detailType);put('O',r.mediaType);put('P',1,true);put('Q',r.disclosure);put('R',r.restrictionNos);put('S',kind==='archive'?'기록관':'처리과');put(kind==='archive'?'AD':'AC',new Date().getFullYear(),true);
+  put('A',i+1,true);put('C',official.code);put('D',official.fullName);put('E',official.code);put('F',official.fullName);put('G',r.yearFrom,true);put('H',r.yearTo||r.yearFrom,true);put('I',r.managementNo);put('J',r.finalTitle);put('K',r.unitTask);put('L',r.retention);put('M',r.recordType);put('N',r.detailType);put('O',r.mediaType);put('P',1,true);put('Q',r.disclosure);put('R',r.restrictionNos);put('S',kind==='archive'?'기록관':'처리과');put(kind==='archive'?'AD':'AC',new Date().getFullYear(),true);
   if(kind==='archive'){put('AC',r.boxExcluded?'':r.boxNo)}else{put('AB',r.boxExcluded?'':r.boxNo)}
  });
  const end=Math.max(5,4+arr.length);setDimension(doc,'A1:'+(kind==='archive'?'AF':'AE')+end);removeFreezePane(doc);
