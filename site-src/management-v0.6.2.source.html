@@ -32,6 +32,7 @@ select,input[type=text],input[type=number]{border:1px solid var(--line);border-r
 <style id="management-beta-compact">
 #p2 .card>.body{padding:10px 12px!important}
 #p2 .box{margin-bottom:6px!important;border-radius:9px!important}
+#p2 .box.box-focus{outline:2px solid #2563eb!important;outline-offset:2px!important;box-shadow:0 0 0 5px rgba(37,99,235,.10)!important}
 #p2 .boxh{padding:5px 8px!important;min-height:34px!important;align-items:center!important}
 #p2 .boxheadinfo{display:flex;align-items:center;gap:8px;min-width:0}
 #p2 .boxname{font-size:12.5px!important;white-space:nowrap}
@@ -280,6 +281,19 @@ function applyAllAutoExclusions(){records.forEach(r=>{const why=autoReason(r);r.
 const retentionRank={'3년':1,'5년':2,'10년':3,'30년':5,'준영구':6,'영구':7};
 function boxPrefix(r){return ['30년','준영구','영구'].includes(r.retention)?r.retention:String(r.yearFrom||'연도미상')}
 function volNo(title){const m=String(title).match(/\((?:\d+)-0*(\d+)\)/);return m?Number(m[1]):0}
+function boxDisplayKey(boxNo){
+ const s=String(boxNo||'').trim(),m=s.match(/^(\d{4})-(\d+)$/);
+ if(m)return [0,Number(m[1]),Number(m[2])];
+ const longRank={'30년':1,'준영구':2,'영구':3},p=s.match(/^(30년|준영구|영구)-(\d+)$/);
+ if(p)return [1,longRank[p[1]]||9,Number(p[2])];
+ return [2,9999,9999,s];
+}
+function boxNoCompare(a,b){
+ const x=boxDisplayKey(a),y=boxDisplayKey(b);
+ for(let i=0;i<Math.min(x.length,y.length);i++){if(x[i]===y[i])continue;return typeof x[i]==='number'&&typeof y[i]==='number'?x[i]-y[i]:String(x[i]).localeCompare(String(y[i]),'ko')}
+ return String(a).localeCompare(String(b),'ko');
+}
+let pendingBoxFocus='';
 function baseBoxCompare(a,b){
  return (retentionRank[a.retention]||4)-(retentionRank[b.retention]||4)
    || String(a.unitTask).localeCompare(String(b.unitTask),'ko')
@@ -328,7 +342,7 @@ function boxDrop(targetIdx,e){
  assignBoxes();renderBoxesAll()
 }
 function toggleExclude(idx){const r=records.find(x=>x._idx===idx);if(!r)return;r.boxExcluded=!r.boxExcluded;r.boxExcludeOrigin=r.boxExcluded?'manual':'override';assignBoxes();renderBoxesAll()}
-function splitHere(idx){const r=records.find(x=>x._idx===idx);if(!r)return;r.manualSplit=!r.manualSplit;assignBoxes();renderBoxesAll()}
+function splitHere(idx){const r=records.find(x=>x._idx===idx);if(!r)return;r.manualSplit=!r.manualSplit;assignBoxes();pendingBoxFocus=r.boxNo||'';renderBoxesAll()}
 function resetEdits(){records.forEach(r=>{r.manualSplit=false;delete r._manualBoxOrder;r.boxExcludeOrigin='';const why=autoReason(r);r.autoExcludeReason=why;r.boxExcluded=!!why;r.boxExcludeOrigin=why?'auto':''});assignBoxes();renderBoxesAll()}
 function summaryHtml(vals){return vals.map(x=>`<div class="stat"><div class="k">${x[0]}</div><div class="v">${x[1]}<span class="u">${x[2]||''}</span></div></div>`).join('')}
 function renderBoxesAll(){applyAllAutoExclusions();assignBoxes();const excluded=records.filter(r=>r.boxExcluded).length,boxes=new Set(records.filter(r=>!r.boxExcluded).map(r=>r.institution+'|'+r.boxNo)).size,mods=records.filter(r=>r.userModified).length;document.getElementById('summary2').innerHTML=summaryHtml([['기관',insts().length,'개'],['기록물철',records.length,'권'],['상자 배정',records.length-excluded,'권'],['상자 제외',excluded,'권'],['보존상자',boxes,'개'],['수기수정',mods,'권']]);renderInstList();renderRuleInfo();renderBoxes();setFoot('상자 자동배정을 검토하고 필요하면 기관 설정이나 개별 제외/분할을 조정하세요.')}
@@ -342,9 +356,11 @@ function renderBoxes(){
  const recs=records.filter(r=>r.institution===selectedInst),map={};
  recs.filter(r=>!r.boxExcluded).forEach(r=>(map[r.boxNo]??=[]).push(r));
  let h='';
- Object.entries(map).forEach(([b,a])=>{
+ const boxEntries=Object.entries(map).sort((a,b)=>boxNoCompare(a[0],b[0]));
+ boxEntries.forEach(([b,a])=>{
+  a.sort(boxCompare);
   const pg=a.reduce((s,r)=>s+r.sheetCount,0);
-  h+='<div class="box"><div class="boxh"><div class="boxheadinfo"><span class="boxname">'+esc(b)+'</span><span class="boxmeta">'+esc(a[0].retention)+' · '+a.length+'권 · '+pg.toLocaleString()+'쪽</span></div>'+(a.length>8||pg>1000?'<span class="badge bad">기준초과</span>':'<span class="badge ok">자동배정</span>')+'</div>';
+  h+='<div class="box" data-box="'+esc(b)+'"><div class="boxh"><div class="boxheadinfo"><span class="boxname">'+esc(b)+'</span><span class="boxmeta">'+esc(a[0].retention)+' · '+a.length+'권 · '+pg.toLocaleString()+'쪽</span></div>'+(a.length>8||pg>1000?'<span class="badge bad">기준초과</span>':'<span class="badge ok">자동배정</span>')+'</div>';
   a.forEach((r,i)=>{
    h+='<div class="rec" draggable="true" ondragstart="boxDragStart('+r._idx+',event)" ondragover="boxDragOver(event)" ondrop="boxDrop('+r._idx+',event)"><div>'+(i+1)+'</div><div class="title">'+esc(r.title)+(r.userModified?'<span class="badge warn" style="margin-left:6px">수기수정</span>':'')+'</div><div>'+r.sheetCount+'쪽</div><div>'+esc(r.retention)+'</div><div><button class="btn" onclick="splitHere('+r._idx+')">'+(r.manualSplit?'분할취소':'새 상자')+'</button> <button class="btn" onclick="toggleExclude('+r._idx+')">제외</button></div></div>';
   });
@@ -356,7 +372,14 @@ function renderBoxes(){
   ex.forEach(r=>h+='<div class="rec excluded"><div>—</div><div class="title">'+esc(r.title)+'<span class="exclude-reason">'+esc(r.autoExcludeReason||'사용자 제외')+'</span></div><div>'+r.sheetCount+'쪽</div><div>'+esc(r.retention)+'</div><div><button class="btn" onclick="toggleExclude('+r._idx+')">복원</button></div></div>');
   h+='</div>';
  }
- document.getElementById('boxes').innerHTML=h||'<div class="notice">선택 기관에 기록물이 없습니다.</div>';
+ const root=document.getElementById('boxes');root.innerHTML=h||'<div class="notice">선택 기관에 기록물이 없습니다.</div>';
+ if(pendingBoxFocus){
+  const wanted=pendingBoxFocus;pendingBoxFocus='';
+  requestAnimationFrame(()=>{
+   const el=[...root.querySelectorAll('.box[data-box]')].find(x=>x.dataset.box===wanted);
+   if(el){el.classList.add('box-focus');el.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>el.classList.remove('box-focus'),1400)}
+  });
+ }
 }
 function parseTitle(t){const m=String(t).match(/^(.*?)\s*\(\s*\d+\s*-\s*0*\d+\s*\)(.*)$/);return m?{base:m[1].trim(),tail:m[2]}:null}
 function renumberTitles(){insts().forEach(inst=>{const by={};records.filter(r=>r.institution===inst).forEach(r=>(by[r.unitTask||'__NO_TASK__']??=[]).push(r));Object.values(by).forEach(arr=>{arr.sort((a,b)=>(retentionRank[a.retention]||4)-(retentionRank[b.retention]||4)||String(a.boxNo).localeCompare(String(b.boxNo),'ko')||a._order-b._order);const total=arr.length,pad=String(total).length;arr.forEach((r,i)=>{const p=parseTitle(r.title);r.originalTitle=r.originalTitle||r.title;if(p)r.finalTitle=`${p.base} (${total}-${String(i+1).padStart(pad,'0')})${p.tail}`;else r.finalTitle=r.title;r.titlePatternMissing=!p})})})}
