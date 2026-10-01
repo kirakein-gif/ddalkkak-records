@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>딸깍 기록물관리대장 마이그레이션 v0.6.1 · 표준기준 검증</title>
+<title>딸깍 기록물관리대장 마이그레이션 v0.6.2 · 기관코드 정규화</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <style>
@@ -137,6 +137,7 @@
 .issue-card{margin-bottom:12px}.issue-list{display:flex;flex-direction:column;gap:7px}.issue-row{display:grid;grid-template-columns:90px 1fr;gap:9px;border:1px solid var(--line);border-radius:9px;padding:9px 10px;font-size:10.5px;line-height:1.5}.issue-row.bad{background:#fff4f2;border-color:#f4c9c4}.issue-row.warn{background:#fff9eb;border-color:#f0dda7}.issue-row.ok{background:#f2fbf7;border-color:#cbe8db}.issue-row b{font-size:10px}.issue-counts{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:9px}.issue-pill{padding:5px 8px;border-radius:999px;background:#f2f4f7;font-size:9.5px;font-weight:800}.celltag.standard{background:#eaf7f2;color:#17795b}.celltag.invalid{background:#fff0ef;color:#b42318}.badge.bad{background:#fff0ef;color:#b42318}.badge.good{background:#eaf7f2;color:#17795b}
 
 </style>
+<script src="../site-src/org-resolver.js"></script>
 </head><body>
 <div class="top"><div class="topin"><div class="brand"><div class="logo">딸깍</div><div><h1>기록물관리대장 마이그레이션</h1><div class="sub">지역별·기관별로 다른 기존 기록물관리대장을 하나의 표준 구조로 맞춥니다</div></div></div><span class="badge purple">v0.6 · 표준기준 검증</span></div></div>
 <main class="wrap">
@@ -325,7 +326,7 @@ const SYN={
  sno:['순번','일련번호','연번'],folderId:['기록물철ID','폴더ID'],keepOrgNm:['처리부서명','처리과','관리부서','현부서(팀)명','현부서팀명','처리부서','학교(기관)명','기관(학교)명','기관명'],creatOrgNm:['생산부서명','생산부서','생산부서(팀)명','생산부서팀명','생산과','생산팀','생산학교','생산기관','원생산부서','학교(기관)명','기관(학교)명'],creatYyyyFrom:['생산연도(시작)','시작연도','시작년도','생산연도','생산년도'],creatYyyyTo:['생산연도(끝)','종료연도','종료년도'],mngNo:['관리번호','등록번호','(신)관리번호','신관리번호'],title:['기록물명','기록물철제목','기록물철 제목','철제목','제목','문서철'],clssNm:['단위과제','단위과제명','표준화단위과제','단위업무카드','과제카드명','단위과제카드명'],presvTermNm:['보존기간','보존기한'],typeDivNm:['기록유형','기록물유형'],detailTypeNm:['세부유형','기록물종류','기록물형태','기록물 형태','형태'],mediaTypeNm:['매체유형'],hoCnt:['수량(권)','수량'],openDivNm:['공개구분','공개여부'],openGrade:['비공개호수','비공개근거'],presvLocNm:['보존장소','보관장소'],operReadRangeNm:['열람구분'],descInfo:['비고','비고1'],regUser:['등록자','이관담당자명'],orgPresvLoc:['위치번호','위치정보','위치','위치표시','상세위치정보','상세위치정보-기록관위치','모빌랙위치번호'],orgBoxNum:['상자번호','박스번호','보존상자번호','상세위치정보-박스번호'],excelBoxNo:['위치번호','위치정보','위치','위치표시','상세위치정보'],excelPresvBoxNm:['상자번호','박스번호','보존상자번호'],stackNm:['서고','서고이름','문서고','보관장소'],rackNm:['서가','서가이름','서가번호','서가번호(캐비닛번호)','서가번호캐비닛번호'],rowNo:['열'],rowNm:['열'],colNo:['층'],colNm:['층'],presvBoxNm:['보존상자명'],takeYyyy:['이관연도','이관일자','이관년도'],docuConditionNm:['기록물상태','정수점검(상태점검)','정수점검','상태점검'],rmsRegFlagNm:['DB등록여부','DB구축여부','업무관리시스템등록여부']
 };
 const IMPORTANT=['mngNo','title','creatYyyyFrom','creatYyyyTo','presvTermNm','clssNm'];
-let currentStep=1,targetType='',STD=[],TPL_BUFFER=null,STANDARD_TASKS=[],STANDARD_EXAMPLE_INDEX=new Map(),STANDARD_RETENTIONS=['미지정','1년','3년','5년','10년','30년','준영구','영구'],STANDARD_TYPES=['문서류','시청각류'],STANDARD_DETAILS=['일반문서','대장','카드','도면','사진','영상','음성'],STANDARD_MEDIA=['종이','사진','필름','자기매체','광매체','기타','인화사진','슬라이드필름','사진CD','사진DVD','영화필름','비디오디스크','비디오테이프','비디오릴','녹음테이프','녹음테이프릴','DVD','오디오CD','DAT','마이크로카세트'],sourceFileName='',sourceRows=[],sourceSheet='',headerIndex=-1,headerSpan2=false,headers=[],dataRows=[],rowMeta=[],sourceCandidates=[],mergeStats={merged:0,conflicts:0,templateRows:0},mapping=[],bindings={},autoBindings={},headerSignature='',profiles=loadProfiles(),metaInfo={},previewRecords=[],traceRecords=[],editingTarget='',editingTransform=null;
+let currentStep=1,targetType='',STD=[],TPL_BUFFER=null,STANDARD_TASKS=[],STANDARD_ORGS=[],STANDARD_EXAMPLE_INDEX=new Map(),STANDARD_RETENTIONS=['미지정','1년','3년','5년','10년','30년','준영구','영구'],STANDARD_TYPES=['문서류','시청각류'],STANDARD_DETAILS=['일반문서','대장','카드','도면','사진','영상','음성'],STANDARD_MEDIA=['종이','사진','필름','자기매체','광매체','기타','인화사진','슬라이드필름','사진CD','사진DVD','영화필름','비디오디스크','비디오테이프','비디오릴','녹음테이프','녹음테이프릴','DVD','오디오CD','DAT','마이크로카세트'],sourceFileName='',sourceRows=[],sourceSheet='',headerIndex=-1,headerSpan2=false,headers=[],dataRows=[],rowMeta=[],sourceCandidates=[],mergeStats={merged:0,conflicts:0,templateRows:0},mapping=[],bindings={},autoBindings={},headerSignature='',profiles=loadProfiles(),metaInfo={},previewRecords=[],traceRecords=[],editingTarget='',editingTransform=null;
 const $=id=>document.getElementById(id), norm=s=>String(s??'').replace(/[\r\n]+/g,'').replace(/\s+/g,'').trim();
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function loadProfiles(){try{return JSON.parse(localStorage.getItem(PROFILE_KEY)||'{}')}catch(e){return {}}} function persistProfiles(){try{localStorage.setItem(PROFILE_KEY,JSON.stringify(profiles))}catch(e){}}
@@ -339,6 +340,22 @@ $('manualTpl').addEventListener('change',async e=>{const f=e.target.files[0];if(
 async function readTemplate(){
   const wb=new ExcelJS.Workbook();await wb.xlsx.load(TPL_BUFFER);const ws=wb.getWorksheet(LEDGER_SHEET)||wb.worksheets[0];
   STD=[];for(let c=1;c<=ws.columnCount;c++){const ko=ws.getRow(KO_ROW).getCell(c).value,en=ws.getRow(EN_ROW).getCell(c).value;if(en===null||en===undefined||String(en).trim()==='')continue;const v=ws.getRow(DATA_ROW).getCell(c).value;const formula=!!(v&&typeof v==='object'&&v.formula!==undefined);STD.push({index:c,ko:String(ko??'').replace(/[\r\n]+/g,' ').trim(),en:String(en).trim(),locked:formula,formula:formula?v.formula:null})}
+  STANDARD_ORGS=[];
+  const ows=wb.getWorksheet(ORG_SHEET);
+  if(ows){
+    let hi=0,cols={};
+    for(let r=1;r<=Math.min(10,ows.rowCount);r++){
+      const vals=ows.getRow(r).values.map(v=>String(v??'').trim());
+      const full=vals.indexOf('전체기관명'),leaf=vals.indexOf('최하위기관명'),code=vals.indexOf('기관코드'),status=vals.indexOf('폐지구분');
+      if(full>0&&code>0){hi=r;cols={full,leaf,code,status};break}
+    }
+    if(hi){
+      for(let r=hi+1;r<=ows.rowCount;r++){
+        const row=ows.getRow(r),full=String(row.getCell(cols.full).value??'').trim(),leaf=String(row.getCell(cols.leaf).value??'').trim(),code=String(row.getCell(cols.code).value??'').trim(),status=cols.status?String(row.getCell(cols.status).value??'').trim():'';
+        if(full&&code)STANDARD_ORGS.push({fullName:full,leafName:leaf||full,code,status});
+      }
+    }
+  }
   STANDARD_TASKS=[];STANDARD_EXAMPLE_INDEX=new Map();
   const tws=wb.getWorksheet(TASK_SHEET);
   if(tws){for(let r=6;r<=tws.rowCount;r++){const row=tws.getRow(r),task=String(row.getCell(4).value??'').trim(),ret=String(row.getCell(6).value??'').trim(),cards=String(row.getCell(8).value??''),examples=String(row.getCell(9).value??''),description=String(row.getCell(5).value??'');if(!task)continue;const rec={task,retention:ret,cards:cards.split(/[\r\n]+/).map(cleanTaskAlias).filter(Boolean),examples,description,examplePhrases:extractExamplePhrases(examples)};STANDARD_TASKS.push(rec)}}
@@ -811,10 +828,27 @@ function typeFromDetail(v){const s=norm(v);if(!s)return {};if(['문서','일반�
 function statusObj(v,status,sourceHeader,manual=false,original=null,transform='',reason=''){return {value:v,status:manual&&status==='source'?'manual':status,sourceHeader:sourceHeader||'',originalValue:original,transform:transform||'',reason:reason||''}}
 function rawValueByHeaders(row,names){const i=headerIndexFor(headers,names);return i>=0?row[i]:null}
 function expectedExpiry(endYear,ret){const y=Number(String(endYear??'').match(/\d{4}/)?.[0]),m=String(ret??'').match(/^(1|3|5|10|30)년$/);return y&&m?y+Number(m[1]):null}
+function applyOfficialOrgField(fields,nameKey,codeKey,issues){
+  const f=fields[nameKey];if(!f||f.value===null||f.value===undefined||String(f.value).trim()===''||!STANDARD_ORGS.length)return;
+  const res=window.DdalkkakOrgResolver.resolve(f.value,STANDARD_ORGS);
+  if(res.ambiguous){
+    issues.push({level:'error',code:'orgAmbiguous',message:'기관명 중복 확인 필요: '+f.value,reason:res.candidates.map(x=>x.fullName+' ['+(x.status||'상태없음')+']').join(' / ')});
+    return;
+  }
+  if(!res.match){
+    issues.push({level:'error',code:'orgNotFound',message:'표준 기관코드표에서 기관을 찾지 못함: '+f.value,reason:'기관명 또는 상위기관 정보를 확인해주세요.'});
+    return;
+  }
+  const m=res.match,orig=f.originalValue??f.value,reason='기관코드표 매칭 · '+m.code+' · '+(m.status||'상태없음');
+  fields[nameKey]=statusObj(m.fullName,'standard',f.sourceHeader||'',false,orig,f.transform||'',reason);
+  if(fields[codeKey]&&fields[codeKey].status!=='formula')fields[codeKey]=statusObj(m.code,'standard',fields[codeKey].sourceHeader||'',false,fields[codeKey].originalValue??null,'',reason);
+  if(res.reason==='closed-match')issues.push({level:'standard',code:'closedOrgMatch',message:'폐지기관으로 매칭: '+m.fullName,reason:'동일명 현존기관이 없어 폐지기관을 사용했습니다.'});
+}
 function buildRecord(row,rowIndex){
   const fields={},issues=[],defs={keepOrgNm:$('defaultKeepOrg').value.trim(),creatOrgNm:$('defaultCreatOrg').value.trim()};
   for(const c of STD){if(c.locked){fields[c.en]=statusObj(null,'formula','');continue}const b=bindingFor(c.en),applied=b?applyBinding(b,row):{value:null,originalValue:null,sourceHeader:'',transformed:false};let raw=applied.value,val=raw,status=(raw===null||raw===undefined||String(raw).trim()==='')?'missing':(applied.transformed?'transform':(b?.manual?'manual':'source'));if(c.en==='openDivNm'&&status!=='missing'){const z=normalizeDisclosure(raw);val=z.v;if(z.status==='norm')status='norm'}if(status==='missing'&&defs[c.en]){val=defs[c.en];status='profile'}fields[c.en]=statusObj(val,status,applied.sourceHeader,b?.manual,applied.originalValue,b?transformSummary(b.transform,b.sourceCols.length):'')}
   if(fields.keepOrgNm?.status==='missing'&&metaInfo.institution)fields.keepOrgNm=statusObj(metaInfo.institution,'source','상단 기관(학교)명',false,metaInfo.institution);if(fields.creatOrgNm?.status==='missing'&&metaInfo.institution)fields.creatOrgNm=statusObj(metaInfo.institution,'source','상단 기관(학교)명',false,metaInfo.institution);if(fields.creatOrgNm?.status==='missing'&&metaInfo.productionOrg)fields.creatOrgNm=statusObj(metaInfo.productionOrg,'source','상단 생산부서',false,metaInfo.productionOrg);
+  applyOfficialOrgField(fields,'keepOrgNm','keepOrgCd',issues);applyOfficialOrgField(fields,'creatOrgNm','creatOrgCd',issues);
   const taskRes=resolveStandardTask(fields.clssNm?.value,fields.title?.value);if(taskRes){const stdTask=taskRes.task.task,stdRet=taskRes.task.retention;if(taskRes.conflict)issues.push({level:'error',code:'taskConflict',message:`단위과제 후보 충돌: ${stdTask} ↔ ${taskRes.conflict.candidate}`,reason:`원본 매핑과 표준 등록·편철 예시가 서로 다릅니다. ${taskRes.conflict.reason}`});if(!fields.clssNm||taskNorm(fields.clssNm.value)!==taskNorm(stdTask))fields.clssNm=statusObj(stdTask,'standard',fields.clssNm?.sourceHeader||'',false,fields.clssNm?.value??null,'',taskRes.reason);const cur=canonRetention(fields.presvTermNm?.value);if(stdRet&&(!cur.valid||cur.value!==stdRet)){issues.push({level:'standard',code:'retentionCorrected',message:`보존기간 ${cur.value||'(없음)'} → ${stdRet}`,reason:taskRes.reason});fields.presvTermNm=statusObj(stdRet,'standard',fields.presvTermNm?.sourceHeader||'',false,fields.presvTermNm?.value??null,'',`${taskRes.reason} · ${stdTask}=${stdRet}`)}}
   if(!taskRes&&fields.presvTermNm?.status!=='missing'){const z=normalizeRetention(fields.presvTermNm.value);fields.presvTermNm=statusObj(z.v,z.status,fields.presvTermNm.sourceHeader,false,fields.presvTermNm.originalValue??fields.presvTermNm.value,fields.presvTermNm.transform,z.status==='invalid'?'표준 보존기간 허용값 아님':'');if(z.status==='invalid')issues.push({level:'error',code:'invalidRetention',message:`비표준 보존기간: ${z.v}`,reason:'표준 유효성검사 허용값 아님'})}
   const detailRaw=fields.detailTypeNm?.value,typeRaw=fields.typeDivNm?.value,t=typeFromDetail(detailRaw);if($('normType').checked&&t.type){if(typeRaw!==t.type){issues.push({level:'standard',code:'typeHierarchy',message:`기록유형 ${typeRaw||'(없음)'} → ${t.type}`,reason:t.reason||`${detailRaw} 표준 계층`});fields.typeDivNm=statusObj(t.type,'standard',fields.typeDivNm?.sourceHeader||'',false,typeRaw,'',t.reason||`${detailRaw} 표준 계층`)}if(t.detail&&detailRaw!==t.detail)fields.detailTypeNm=statusObj(t.detail,'standard',fields.detailTypeNm?.sourceHeader||'',false,detailRaw,'',t.reason||'세부유형 표준화');if(t.media&&(!fields.mediaTypeNm||fields.mediaTypeNm.status==='missing'))fields.mediaTypeNm=statusObj(t.media,'standard',fields.detailTypeNm?.sourceHeader||'',false,null,'',t.reason||'문서형태 기반 매체 표준화')}
