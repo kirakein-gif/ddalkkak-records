@@ -1,0 +1,863 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>딸깍 기록물관리대장 마이그레이션 v0.6.1 · 표준기준 검증</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--line:#dfe5ec;--ink:#1f2937;--muted:#667085;--blue:#316bd6;--bluebg:#eef4ff;--green:#17795b;--greenbg:#eaf7f2;--warn:#966400;--warnbg:#fff4d6;--red:#b42318;--redbg:#fff0ef;--purple:#6842c2;--purplebg:#f3efff;--gray:#64748b;--graybg:#f1f5f9}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Malgun Gothic","Noto Sans KR",sans-serif}button,input,select{font-family:inherit}
+.top{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30}.topin{max-width:1500px;margin:auto;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}.brand{display:flex;gap:10px;align-items:center}.logo{width:38px;height:38px;border-radius:12px;background:var(--purple);color:#fff;display:grid;place-items:center;font-weight:900;font-size:17px}.brand h1{font-size:17px;margin:0}.sub{font-size:10px;color:var(--muted);margin-top:3px}
+.wrap{max-width:1500px;margin:auto;padding:17px 20px 80px}.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:13px}.step{border:1px solid var(--line);background:#fff;border-radius:11px;padding:10px;text-align:center;font-size:10px;font-weight:800;color:var(--muted);cursor:pointer}.step.on{background:var(--purple);color:#fff;border-color:var(--purple)}.step.done{background:var(--greenbg);color:var(--green);border-color:#b7e0d3}
+.panel{display:none}.panel.on{display:block}.card{background:#fff;border:1px solid var(--line);border-radius:13px;overflow:hidden;margin-bottom:12px}.head{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px}.head h2{font-size:13px;margin:0}.body{padding:13px 14px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 10px;font-size:10px;font-weight:800;cursor:pointer}.btn:hover{background:#f7f9fc}.btn.primary{background:var(--purple);border-color:var(--purple);color:#fff}.btn.green{background:var(--green);border-color:var(--green);color:#fff}.btn:disabled{opacity:.5;cursor:not-allowed}.drop{border:2px dashed #c8c1ea;background:#fdfcff;border-radius:13px;padding:26px;text-align:center}.drop strong{font-size:14px}.drop p{font-size:10px;color:var(--muted);line-height:1.6}.typepick{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.type{border:1px solid var(--line);border-radius:11px;padding:13px;cursor:pointer;background:#fff}.type.on{border-color:#9f8bdb;background:var(--purplebg);box-shadow:inset 0 0 0 1px #9f8bdb}.type b{font-size:12px}.type p{font-size:9.5px;color:var(--muted);margin:4px 0 0}.notice{border-radius:10px;padding:10px 12px;background:var(--bluebg);color:#31558e;font-size:10px;line-height:1.6}.warnbox{border-radius:10px;padding:10px 12px;background:var(--warnbg);color:#745000;font-size:10px;line-height:1.6}.badbox{border-radius:10px;padding:10px 12px;background:var(--redbg);color:var(--red);font-size:10px;line-height:1.6}
+.summary{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px}.stat{background:#fff;border:1px solid var(--line);border-radius:11px;padding:11px}.k{font-size:9px;color:var(--muted);font-weight:800}.v{font-size:20px;font-weight:900;margin-top:5px}.u{font-size:9px;color:var(--muted);margin-left:2px}.badge{display:inline-flex;padding:3px 7px;border-radius:999px;font-size:9px;font-weight:900}.ok{background:var(--greenbg);color:var(--green)}.info{background:var(--bluebg);color:var(--blue)}.warn{background:var(--warnbg);color:var(--warn)}.bad{background:var(--redbg);color:var(--red)}.purple{background:var(--purplebg);color:var(--purple)}.gray{background:var(--graybg);color:var(--gray)}
+.grid{display:grid;grid-template-columns:350px minmax(0,1fr);gap:11px;align-items:start}.side{position:sticky;top:82px}.formrow{display:grid;grid-template-columns:120px 1fr;gap:8px;align-items:center;margin:8px 0;font-size:10px}.formrow label{font-weight:800;color:#475467}select,input[type=text]{border:1px solid var(--line);border-radius:8px;padding:8px 9px;font-size:10px;background:#fff;width:100%}.checks{display:grid;gap:7px;margin-top:8px}.checks label{font-size:10px;display:flex;gap:7px;align-items:flex-start}.checks input{margin-top:2px}
+.tablewrap{overflow:auto;max-height:620px;border-top:1px solid var(--line)}table{width:100%;border-collapse:collapse;font-size:10px}th{position:sticky;top:0;z-index:2;background:#f7f9fc;padding:8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}td{padding:8px;border-bottom:1px solid #eef1f4;vertical-align:top}.source{font-weight:800}.sample{max-width:320px;color:var(--muted);line-height:1.45}.mapselect{min-width:185px}.muted{font-size:9px;color:var(--muted)}.mono{font-family:ui-monospace,Consolas,monospace;font-size:9px}
+.missing{display:flex;flex-wrap:wrap;gap:6px}.missing span{border:1px solid var(--line);border-radius:999px;padding:5px 8px;font-size:9px;background:#fff}.missing span.hot{background:var(--warnbg);border-color:#e7cc95;color:#745000}.toolbar{padding:9px 11px;border-bottom:1px solid var(--line);display:flex;gap:7px;align-items:center;flex-wrap:wrap}.search{flex:1;min-width:220px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:10px}.origin{display:inline-flex;gap:4px;flex-wrap:wrap}.celltag{display:inline-flex;font-size:8px;padding:2px 5px;border-radius:999px;white-space:nowrap}.celltag.source{background:var(--greenbg);color:var(--green)}.celltag.norm{background:var(--bluebg);color:var(--blue)}.celltag.profile{background:var(--purplebg);color:var(--purple)}.celltag.missing{background:var(--graybg);color:var(--gray)}.celltag.manual{background:var(--warnbg);color:var(--warn)}.celltag.transform{background:#f1ecff;color:#6941c6}
+.footer{position:sticky;bottom:0;z-index:20;background:rgba(244,247,251,.95);border-top:1px solid var(--line);padding:10px 20px;margin:12px -20px -80px}.footerin{max-width:1500px;margin:auto;display:flex;justify-content:space-between;gap:10px;align-items:center}.foot{font-size:10px;color:var(--muted)}
+@media(max-width:1000px){.summary{grid-template-columns:repeat(3,1fr)}.grid{grid-template-columns:1fr}.side{position:static}}@media(max-width:700px){.steps,.typepick{grid-template-columns:1fr}.summary{grid-template-columns:repeat(2,1fr)}}
+
+/* v0.2 horizontal drag mapping */
+.mapping-help{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:10px;color:var(--muted)}
+.mapping-help b{color:var(--ink)}
+.mapping-toolbar{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.mapping-shell{border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden}
+.mapping-scroll{overflow-x:auto;overflow-y:hidden;scroll-behavior:smooth}
+.mapping-grid{display:flex;min-width:max-content;border-top:1px solid var(--line)}
+.targetcol{width:210px;min-width:210px;border-right:1px solid var(--line);background:#fff}
+.targetcol:last-child{border-right:0}
+.targetcol.gap .targethead{background:#fff8e8}
+.targetcol.gap .mapdrop{background:#fffdf7;border-color:#e3b341}
+.targetcol.locked{opacity:.72;background:#fafafa}
+.targethead{height:82px;padding:9px 10px;background:#f7f9fc;border-bottom:1px solid var(--line)}
+.targethead .colno{font-size:9px;color:var(--muted);font-weight:800}
+.targethead .ko{font-size:10.5px;font-weight:900;margin-top:4px;line-height:1.3}
+.targethead .en{font-size:8.5px;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mapdrop{min-height:330px;height:auto;margin:8px;border:1.5px dashed #c9d2df;border-radius:10px;padding:7px;background:#fbfcfe;display:flex;flex-direction:column;justify-content:flex-start;transition:.12s}
+.mapdrop.over{border-color:var(--blue);background:var(--bluebg);box-shadow:inset 0 0 0 1px var(--blue)}
+.mapdrop.empty::before{content:"여기에 원본 열 놓기";font-size:9px;color:#98a2b3;text-align:center}
+.mapdrop.locked::before{content:"수식/자동 필드";font-size:9px;color:#98a2b3;text-align:center}
+.sourcecard{position:relative;border:1px solid #b9cae9;background:#fff;border-radius:9px;padding:7px 25px 7px 8px;cursor:grab;box-shadow:0 1px 3px rgba(16,24,40,.06)}
+.sourcecard:active{cursor:grabbing}
+.sourcecard .sh{font-size:10px;font-weight:900;line-height:1.25}
+.sourcecard .sv{font-size:8.5px;color:var(--muted);line-height:1.35;margin-top:4px;max-height:34px;overflow:hidden}
+.sourcecard .sx{position:absolute;right:5px;top:5px;border:0;background:#f2f4f7;color:#667085;width:17px;height:17px;border-radius:50%;font-size:11px;line-height:17px;padding:0;cursor:pointer}
+.sourcecard.manual{border-color:#e3b341;background:#fffaf0}
+.sourcecard.auto{border-color:#99c2b3;background:#f8fffc}
+.sourcecard.similar{border-color:#a9c5ff;background:#f8fbff}
+.source-status{font-size:8px;font-weight:800;margin-top:5px}
+.source-status.auto{color:var(--green)}
+.source-status.manual{color:var(--warn)}
+.source-status.similar{color:var(--blue)}
+.unmatched-zone{border-top:1px solid var(--line);padding:11px;background:#f8fafc}
+.unmatched-title{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:8px}
+.unmatched-title b{font-size:11px}
+.source-tray{min-height:80px;border:1.5px dashed #c8d0db;border-radius:10px;padding:8px;display:flex;gap:7px;align-items:flex-start;overflow-x:auto;background:#fff}
+.source-tray.over{border-color:var(--blue);background:var(--bluebg)}
+.source-tray .sourcecard{width:174px;min-width:174px}
+.mapping-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:7px;font-size:9px;color:var(--muted)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}
+.dot.auto{background:#61a88f}.dot.similar{background:#7aa2e8}.dot.manual{background:#d6a21c}.dot.gap{background:#e3b341}
+.map-bottom-note{padding:9px 11px;background:#fbfcfe;border-top:1px solid var(--line);font-size:9px;color:var(--muted);line-height:1.6}
+.mapping-scroll::-webkit-scrollbar,.source-tray::-webkit-scrollbar{height:12px}
+.mapping-scroll::-webkit-scrollbar-thumb,.source-tray::-webkit-scrollbar-thumb{background:#c8d0da;border-radius:99px;border:3px solid #f7f9fc}
+.mapping-scroll::-webkit-scrollbar-track,.source-tray::-webkit-scrollbar-track{background:#f7f9fc}
+
+
+.map-sample{margin-top:8px;border-top:1px solid #e6eaf0;padding-top:7px}
+.map-sample-title{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:8.5px;color:var(--muted);font-weight:800;margin-bottom:5px}
+.map-sample-title .target{color:#475467;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.map-sample-grid{border:1px solid #dce2e9;border-radius:7px;overflow:hidden;background:#fff}
+.map-sample-row{display:grid;grid-template-columns:26px minmax(0,1fr);min-height:25px;border-bottom:1px solid #edf0f3}
+.map-sample-row:last-child{border-bottom:0}
+.map-sample-no{display:flex;align-items:center;justify-content:center;background:#f6f8fa;color:#8a94a3;font-size:8px;font-weight:800;border-right:1px solid #edf0f3}
+.map-sample-val{padding:5px 6px;font-size:9px;line-height:1.35;white-space:normal;overflow:hidden;word-break:break-all;color:#344054}
+.map-sample-val.blank{color:#98a2b3;font-style:italic}
+.sample-hint{font-size:8px;color:#98a2b3;margin-top:5px;text-align:right}
+
+
+.flowline{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin:10px 0 0}
+.flowitem{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 8px;text-align:center;font-size:9px;color:#475467;line-height:1.45}
+.flowitem b{display:block;color:var(--ink);font-size:10px;margin-bottom:2px}
+.flowitem.done{background:#f7fbff;border-color:#b9d2ff}
+.policybox{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.policy{border:1px solid var(--line);border-radius:10px;padding:10px;background:#fbfcfe}
+.policy b{display:block;font-size:10px;margin-bottom:4px}
+.policy span{font-size:9px;color:var(--muted);line-height:1.5}
+@media(max-width:1100px){.flowline{grid-template-columns:repeat(3,1fr)}.policybox{grid-template-columns:repeat(2,1fr)}}
+
+
+/* v0.5 mapping editor */
+.mapdrop.empty{justify-content:center}
+.map-source-list{display:flex;flex-direction:column;gap:5px}
+.map-actions{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:7px}
+.map-actions .mini{border:1px solid var(--line);background:#fff;border-radius:7px;padding:4px 7px;font-size:8.5px;cursor:pointer;color:#344054}
+.map-actions .mini.edit{border-color:#9bbcff;background:#f4f8ff;color:#245bb8;font-weight:800}
+.map-actions .mini.clear{color:#8b4450}
+.rule-badge{display:inline-flex;align-items:center;min-height:22px;border-radius:7px;background:#f2f4f7;padding:3px 6px;font-size:8px;color:#475467;line-height:1.25}
+.sourcecard.reused{border-color:#b69fe8;background:#fbf9ff}
+.source-status.reused{color:#714db9}
+.source-use{font-size:8px;color:#714db9;margin-top:4px;font-weight:800}
+.map-sample.beforeafter .map-sample-row{grid-template-columns:22px minmax(0,1fr)}
+.map-sample-before{font-size:7.5px;color:#98a2b3;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.map-sample-arrow{color:#98a2b3;margin:0 2px}
+.map-sample-after{font-weight:800;color:#344054}
+.modalback{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(16,24,40,.44);padding:24px}
+.modalback.on{display:flex}
+.modaldialog{width:min(760px,96vw);max-height:90vh;overflow:auto;background:#fff;border-radius:16px;box-shadow:0 22px 70px rgba(16,24,40,.28);border:1px solid #dfe5ec}
+.modalhead{padding:15px 17px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.modalhead h3{margin:0;font-size:15px}
+.modalbody{padding:15px 17px}
+.modalfoot{padding:12px 17px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:8px;align-items:center}
+.modalclose{border:0;background:#f2f4f7;border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:18px}
+.editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.editor-box{border:1px solid var(--line);border-radius:10px;padding:10px;background:#fbfcfe}
+.editor-box h4{font-size:10px;margin:0 0 8px}
+.editor-row{display:grid;grid-template-columns:125px 1fr;gap:8px;align-items:center;margin:7px 0}
+.editor-row label{font-size:9px;color:#475467;font-weight:800}
+.editor-row input,.editor-row select{width:100%;border:1px solid #cfd6df;border-radius:7px;padding:7px 8px;font-size:10px;background:#fff}
+.editor-source-list{display:flex;gap:5px;flex-wrap:wrap}
+.editor-source-chip{border:1px solid #c8d4e6;background:#fff;border-radius:7px;padding:5px 7px;font-size:9px;font-weight:800}
+.editor-help{font-size:8.5px;color:var(--muted);line-height:1.5;margin-top:6px}
+.editor-preview{margin-top:12px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.editor-preview-head{background:#f7f9fc;padding:8px 10px;font-size:9px;font-weight:900;border-bottom:1px solid var(--line)}
+.editor-preview-row{display:grid;grid-template-columns:32px 1fr 22px 1fr;border-bottom:1px solid #edf0f3;min-height:38px}
+.editor-preview-row:last-child{border-bottom:0}
+.editor-preview-row>div{padding:7px 8px;font-size:9px;display:flex;align-items:center;word-break:break-all}
+.editor-preview-row .n{justify-content:center;background:#fafbfc;color:#98a2b3;font-weight:800}
+.editor-preview-row .arr{justify-content:center;color:#98a2b3;padding-left:0;padding-right:0}
+.editor-preview-row .out{font-weight:900;background:#fcfdff}
+.transform-note{padding:8px 10px;background:#fff8e8;border:1px solid #f1d58b;border-radius:8px;font-size:9px;line-height:1.5;color:#71530a;margin-top:9px}
+@media(max-width:760px){.editor-grid{grid-template-columns:1fr}.editor-row{grid-template-columns:1fr}}
+
+
+.sheet-choice{border:1px solid var(--line);background:#fbfcfe;border-radius:12px;padding:12px}
+.issue-card{margin-bottom:12px}.issue-list{display:flex;flex-direction:column;gap:7px}.issue-row{display:grid;grid-template-columns:90px 1fr;gap:9px;border:1px solid var(--line);border-radius:9px;padding:9px 10px;font-size:10.5px;line-height:1.5}.issue-row.bad{background:#fff4f2;border-color:#f4c9c4}.issue-row.warn{background:#fff9eb;border-color:#f0dda7}.issue-row.ok{background:#f2fbf7;border-color:#cbe8db}.issue-row b{font-size:10px}.issue-counts{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:9px}.issue-pill{padding:5px 8px;border-radius:999px;background:#f2f4f7;font-size:9.5px;font-weight:800}.celltag.standard{background:#eaf7f2;color:#17795b}.celltag.invalid{background:#fff0ef;color:#b42318}.badge.bad{background:#fff0ef;color:#b42318}.badge.good{background:#eaf7f2;color:#17795b}
+
+</style>
+</head><body>
+<div class="top"><div class="topin"><div class="brand"><div class="logo">딸깍</div><div><h1>기록물관리대장 마이그레이션</h1><div class="sub">지역별·기관별로 다른 기존 기록물관리대장을 하나의 표준 구조로 맞춥니다</div></div></div><span class="badge purple">v0.6 · 표준기준 검증</span></div></div>
+<main class="wrap">
+<div class="steps"><div class="step on" onclick="go(1)">1. 기준 선택</div><div class="step" onclick="go(2)">2. 대장 읽기</div><div class="step" onclick="go(3)">3. 열 매핑</div><div class="step" onclick="go(4)">4. 보정·검토</div><div class="step" onclick="go(5)">5. 변환</div></div>
+<div class="flowline">
+  <div class="flowitem done"><b>① 표준서식 선택</b>학교·직속·기록관</div>
+  <div class="flowitem done"><b>② 기존 대장 읽기</b>헤더·시트 자동탐지</div>
+  <div class="flowitem done"><b>③ 자동 + 편집 매핑</b>복제·나누기·자르기·합치기</div>
+  <div class="flowitem done"><b>④ 표준기준 보정</b>단위과제·보존기간·유형 검증</div>
+  <div class="flowitem done"><b>⑤ 프로필 저장</b>다음 같은 서식에 재사용</div>
+  <div class="flowitem done"><b>⑥ 표준 변환</b>원본·보정근거 함께 추적</div>
+</div>
+
+
+<section id="p1" class="panel on">
+<div class="card"><div class="head"><h2>어떤 표준 구조로 맞출까요?</h2><span class="badge info">GitHub 표준양식</span></div><div class="body"><div id="typePick" class="typepick"></div><div id="tplState" class="notice" style="margin-top:10px">표준서식 종류를 선택하세요.</div><input id="manualTpl" type="file" accept=".xlsx" style="display:none"></div></div>
+
+<div class="notice"><b>마이그레이션 원칙</b> · 신규 기록물을 받는 기능이 아니라, 기존에 각 지역·기관에서 사용하던 대장을 표준 구조로 맞추는 기능입니다.</div>
+<div class="policybox">
+  <div class="policy"><b>역사값은 보존</b><span>기존 관리번호·상자번호·위치정보·기록물철 제목은 임의로 다시 만들지 않습니다.</span></div>
+  <div class="policy"><b>분류값은 표준화</b><span>단위과제·보존기간·기록유형은 표준양식의 단위과제표와 유효성검사를 기준으로 검증·보정합니다.</span></div>
+  <div class="policy"><b>틀린 값은 통과시키지 않음</b><span>6년·7년·8년 같은 비표준 보존기간은 그대로 출력하지 않고 표준 근거를 찾거나 검토필요로 표시합니다.</span></div>
+  <div class="policy"><b>원본과 근거를 함께 추적</b><span>보정 전 원본값, 보정값, 표준 근거, 원본 파일·시트·행을 추적정보에 남깁니다.</span></div>
+</div>
+
+</section>
+
+<section id="p2" class="panel">
+<div class="card"><div class="head"><h2>기존 기록물관리대장 불러오기</h2><span class="badge purple">지역별 서식 자동분석</span></div><div class="body">
+<div class="drop"><strong>기존 기록물관리대장 Excel을 선택하세요</strong><p>.xlsx · .xlsm · 구형 .xls를 읽습니다. 여러 시트가 파편화되어 있으면 후보 시트를 통합하고, 숨김 시트도 표시해 누락을 막습니다.<br>처음 테스트는 샘플자료로 바로 확인할 수 있습니다.</p><input id="srcFile" type="file" accept=".xlsx,.xlsm,.xls" style="display:none"><button class="btn primary" onclick="document.getElementById('srcFile').click()">대장 선택</button> <button class="btn" onclick="loadSample()">샘플자료로 시험</button></div>
+<div id="sourceState" class="notice" style="display:none;margin-top:10px"></div>
+<div id="sheetChooser" class="sheet-choice" style="display:none;margin-top:10px">
+  <div class="formrow"><label>처리 방식</label><select id="sheetMode"><option value="single">선택한 시트만 변환</option><option value="merge">후보 시트 통합 · 중복 보충</option></select></div>
+  <div class="formrow"><label>대표 시트</label><select id="sheetSelect"></select></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" onclick="applySheetMode()">이 방식으로 읽기</button><span id="sheetHint" class="muted"></span></div>
+</div>
+</div></div>
+<div class="card"><div class="head"><h2>저장된 마이그레이션 프로필</h2></div><div class="body"><div class="formrow"><label>프로필 JSON</label><div><input id="profileFile" type="file" accept=".json" style="display:none"><button class="btn" onclick="document.getElementById('profileFile').click()">프로필 불러오기</button> <button class="btn" onclick="exportCurrentProfile()">현재 프로필 내보내기</button></div></div><div class="muted">같은 지역·기관 서식을 다시 넣으면 헤더 구성값을 기준으로 저장된 매핑을 자동 적용합니다. 실제 기록물 내용은 프로필에 저장하지 않습니다.</div></div></div>
+</section>
+
+
+<section id="p3" class="panel">
+<div id="mapSummary" class="summary"></div>
+
+<div class="card">
+  <div class="head">
+    <div>
+      <h2>원본 열 → 표준대장 열 매핑</h2>
+      <div class="sub">표준대장의 실제 열 순서대로 가로로 펼쳐집니다. 원본 열은 재료처럼 여러 표준필드에 반복해서 사용할 수 있고, 각 표준필드에서 나누기·자르기·치환·합치기 규칙을 편집할 수 있습니다.</div>
+    </div>
+    <div class="mapping-toolbar">
+      <button class="btn" onclick="scrollMappingToGap()">첫 미매칭 칸으로</button>
+      <button class="btn" onclick="resetMappings()">자동매핑으로 되돌리기</button>
+    </div>
+  </div>
+  <div class="body" style="padding-bottom:8px">
+    <div class="mapping-help">
+      <b>사용법</b>
+      <span>아래 ‘원본 열 재료함’의 카드를 표준 필드 칸으로 끌어다 놓습니다.</span>
+      <span>같은 원본 열을 여러 칸에 놓아도 원본은 사라지지 않습니다.</span><span>‘값 편집’에서 앞 3건의 변환 결과를 즉시 확인합니다.</span><span>이미 배정된 카드도 다른 칸으로 이동할 수 있습니다.</span>
+      <span>×를 누르거나 아래 바구니로 다시 끌면 매핑이 해제됩니다.</span>
+    </div>
+    <div class="mapping-legend">
+      <span><i class="dot auto"></i>자동 정확매칭</span>
+      <span><i class="dot similar"></i>자동 유사매칭</span>
+      <span><i class="dot manual"></i>사용자/저장 프로필</span>
+      <span><i class="dot gap"></i>표준필드 미충족</span>
+    </div>
+  </div>
+
+  <div class="mapping-shell">
+    <div id="mappingBoard" class="mapping-scroll" ondragover="mappingBoardDragOver(event)">
+      <div id="mappingGrid" class="mapping-grid"></div>
+    </div>
+
+    <div class="unmatched-zone">
+      <div class="unmatched-title">
+        <div>
+          <b>원본 열 재료함</b>
+          <div class="muted">모든 원본 열을 계속 사용할 수 있습니다. 미매칭 열을 배치하거나 이미 사용한 열을 다른 표준필드에 다시 놓을 수 있습니다.</div>
+        </div>
+        <span id="unusedCount" class="badge gray">미매칭 0개</span>
+      </div>
+      <div id="sourceTray" class="source-tray"></div>
+    </div>
+
+    <div class="map-bottom-note">
+      표준대장에 칸이 없는 원본 열도 버리지 않습니다. 변환 추적정보에는 원본 열과 값이 그대로 보존됩니다.
+      각 매핑 칸에는 변환 후 데이터의 앞 3건만 미리보기로 표시됩니다. 같은 원본 열을 여러 표준필드에 재사용할 수 있으며, 여러 원본 열을 한 표준필드에 놓으면 기본적으로 공백으로 합쳐집니다. 확정한 매핑과 변환규칙은 프로필에 함께 저장됩니다.
+    </div>
+  </div>
+</div>
+</section>
+
+
+<section id="p4" class="panel">
+<div class="grid"><aside class="side">
+<div class="card"><div class="head"><h2>기관 공통값</h2></div><div class="body"><div class="formrow"><label>보존/관리기관명</label><input id="defaultKeepOrg" type="text" placeholder="원본에 없을 때만 사용"></div><div class="formrow"><label>생산기관명</label><input id="defaultCreatOrg" type="text" placeholder="원본에 없을 때만 사용"></div><div class="muted" id="metaDetected"></div></div></div>
+<div class="card"><div class="head"><h2>표준기준 자동 검증·보정</h2></div><div class="body"><div class="checks">
+<label><input id="normTaskStandard" type="checkbox" checked> <span>표준 단위과제표 적용<br><span class="muted">단위과제·카드명·등록/편철 예시를 비교해 확실한 경우 과제와 보존기간을 표준값으로 맞춤</span></span></label>
+<label><input id="normRetention" type="checkbox" checked> <span>보존기간 유효성검사<br><span class="muted">허용값: 1·3·5·10·30년, 준영구, 영구. 비표준값은 검토필요</span></span></label>
+<label><input id="normDisclosure" type="checkbox" checked> <span>공개구분 표기 정규화</span></label>
+<label><input id="normType" type="checkbox" checked> <span>기록유형 계층 검증<br><span class="muted">카드·대장·도면 → 문서류, 사진·영상·음성 → 시청각류. 충돌값은 표준계층으로 보정</span></span></label>
+</div></div></div>
+<div class="card"><div class="head"><h2>프로필</h2></div><div class="body"><div class="formrow"><label>프로필 이름</label><input id="profileName" type="text" placeholder="예: 아산 학교용 구서식"></div><button class="btn green" style="width:100%" onclick="saveProfileLocal()">현재 매핑을 프로필로 저장</button></div></div>
+</aside><div>
+<div id="statusSummary" class="summary"></div><div id="standardIssues" class="card issue-card"><div class="head"><h2>표준기준 검증</h2><span id="issueBadge" class="badge info">검증 전</span></div><div id="issueBody" class="body"><div class="muted">미리보기를 계산하면 표준 단위과제·보존기간·유형을 검증하고, 만료연도는 종료연도+보존기간 산식으로 자동 검산합니다.</div></div></div>
+<div class="card"><div class="head"><div><h2>변환 미리보기</h2><div class="sub">값 옆 표시로 어디서 왔는지 확인할 수 있습니다.</div></div><button class="btn" onclick="rebuildPreview()">다시 계산</button></div><div class="toolbar"><input id="previewSearch" class="search" placeholder="관리번호·철제목·단위과제 검색" oninput="renderPreviewTable()"><select id="previewFilter" onchange="renderPreviewTable()"><option value="">전체 상태</option><option value="missing">정보없음 포함</option><option value="norm">표기정규화 포함</option><option value="standard">표준기준 보정 포함</option><option value="invalid">검토필요 포함</option><option value="profile">기관설정 보충 포함</option><option value="manual">수동매핑 포함</option><option value="transform">사용자변환 포함</option></select></div><div class="tablewrap"><table><thead id="previewHead"></thead><tbody id="previewBody"></tbody></table></div></div>
+<div class="card"><div class="head"><h2>표준 필드 충족 현황</h2></div><div class="body"><div id="fieldCoverage" class="missing"></div></div></div>
+</div></div>
+</section>
+
+<section id="p5" class="panel">
+<div id="finalSummary" class="summary"></div>
+<div class="card"><div class="head"><h2>변환 결과</h2><span class="badge warn">표준 오류가 남으면 출력 차단</span></div><div class="body">
+<div class="notice"><b>v0.6.1 변환 규칙</b> · 관리번호·상자번호·위치정보·기존 철제목은 역사값으로 보존합니다. 단위과제·보존기간·기록유형은 표준양식의 기준정보로 검증하며, 확실한 근거가 있는 경우 표준값으로 보정합니다. 근거를 찾지 못한 비표준값은 출력 전에 검토가 필요합니다.</div>
+
+<div class="muted" style="margin-top:10px;line-height:1.6">
+  현재 구현범위: .xls/.xlsx 입력 · 숨김/다중시트 분석 · 후보 시트 통합 및 보충 · 빈 양식행 제외 · 자동/편집 매핑 · 표준 단위과제표 기반 과제/보존기간 검증 · 기록유형 계층 정규화 · 만료연도 오류 검증 · 원본/보정근거 추적 · 표준서식 변환.
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button id="downloadStdBtn" class="btn primary" onclick="downloadStandardWorkbook()">표준서식 Excel 생성</button><button class="btn" onclick="downloadTrace()">변환 추적정보 JSON</button><button class="btn" onclick="exportCurrentProfile()">마이그레이션 프로필 JSON</button></div><div id="exportState" class="notice" style="margin-top:10px">아직 파일을 생성하지 않았습니다.</div></div></div>
+<div class="card"><div class="head"><h2>향후 관리프로그램 연결</h2></div><div class="body"><div class="muted">이 변환본의 기존 관리번호·상자번호·위치정보는 보존한 채 딸깍 기록물관리의 기준 데이터로 사용할 수 있습니다. 신규 이관기록만 이후 번호부터 추가하는 구조입니다.</div></div></div>
+</section>
+
+
+<div id="transformModal" class="modalback" onclick="if(event.target===this)closeTransformEditor()">
+  <div class="modaldialog">
+    <div class="modalhead">
+      <div>
+        <h3 id="editorTitle">매핑 값 편집</h3>
+        <div id="editorTargetMeta" class="muted" style="margin-top:4px"></div>
+      </div>
+      <button class="modalclose" type="button" onclick="closeTransformEditor()">×</button>
+    </div>
+    <div class="modalbody">
+      <div class="editor-grid">
+        <div class="editor-box">
+          <h4>이 표준필드에 사용하는 원본 열</h4>
+          <div id="editorSources" class="editor-source-list"></div>
+          <div class="editor-help">원본 열 추가는 편집창을 닫고 재료함에서 같은 표준필드로 드래그하면 됩니다. 같은 원본 열은 여러 표준필드에 동시에 사용할 수 있습니다.</div>
+        </div>
+        <div class="editor-box">
+          <h4>변환 방식</h4>
+          <div class="editor-row"><label>적용 방식</label>
+            <select id="transformType" onchange="renderTransformOptions();updateTransformPreview()">
+              <option value="direct">그대로 사용</option>
+              <option value="split">구분자로 나누기</option>
+              <option value="slice">앞/뒤 글자 자르기</option>
+              <option value="replace">문자 찾기·치환</option>
+              <option value="digits">숫자만 추출</option>
+              <option value="year">4자리 연도 추출</option>
+              <option value="join">여러 원본 열 합치기</option>
+            </select>
+          </div>
+          <div id="transformOptions"></div>
+        </div>
+      </div>
+      <div class="transform-note">원본 데이터는 수정하지 않습니다. 여기에서 정한 규칙은 표준서식으로 내보낼 값에만 적용되며, 규칙 자체도 마이그레이션 프로필에 저장됩니다.</div>
+      <div class="editor-preview">
+        <div class="editor-preview-head">실시간 변환 예시 · 원본 앞 3건</div>
+        <div id="transformPreviewRows"></div>
+      </div>
+    </div>
+    <div class="modalfoot">
+      <button class="btn" type="button" onclick="clearEditingTarget()">이 표준필드 매핑 비우기</button>
+      <div>
+        <button class="btn" type="button" onclick="closeTransformEditor()">취소</button>
+        <button class="btn primary" type="button" onclick="saveTransformEditor()">규칙 적용</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer"><div class="footerin"><div id="foot" class="foot">표준서식 종류를 선택하세요.</div><div><button id="prevBtn" class="btn" onclick="go(currentStep-1)" style="display:none">이전</button> <button id="nextBtn" class="btn primary" onclick="nextStep()">다음 단계</button></div></div></div>
+</main>
+<script>
+const REPO_RAW='https://raw.githubusercontent.com/kirakein-gif/ddalkkak-records/main/templates';
+const TEMPLATE_DEF={
+ school:{title:'학교용',desc:'각급 학교·유치원',file:'기록물관리대장 서식(학교).xlsx'},
+ direct:{title:'직속기관용',desc:'교육청 직속기관',file:'기록물관리대장 서식(직속).xlsx'},
+ archive:{title:'기록관용',desc:'교육지원청 기록관',file:'기록물관리대장 서식(기록관).xlsx'}
+};
+const LEDGER_SHEET='기록물등록 기록물철 일괄등록서식', ORG_SHEET='충청남도교육청 기관별 명칭 및 기관코드', TASK_SHEET='학교단위과제', VALID_SHEET='(삭제금지)유효성검사';
+const KO_ROW=3,EN_ROW=4,DATA_ROW=5,PROFILE_KEY='ddalkkak.records.migrationProfiles.v1';
+const SYN={
+ sno:['순번','일련번호','연번'],folderId:['기록물철ID','폴더ID'],keepOrgNm:['처리부서명','처리과','관리부서','현부서(팀)명','현부서팀명','처리부서','학교(기관)명','기관(학교)명','기관명'],creatOrgNm:['생산부서명','생산부서','생산부서(팀)명','생산부서팀명','생산과','생산팀','생산학교','생산기관','원생산부서','학교(기관)명','기관(학교)명'],creatYyyyFrom:['생산연도(시작)','시작연도','시작년도','생산연도','생산년도'],creatYyyyTo:['생산연도(끝)','종료연도','종료년도'],mngNo:['관리번호','등록번호','(신)관리번호','신관리번호'],title:['기록물명','기록물철제목','기록물철 제목','철제목','제목','문서철'],clssNm:['단위과제','단위과제명','표준화단위과제','단위업무카드','과제카드명','단위과제카드명'],presvTermNm:['보존기간','보존기한'],typeDivNm:['기록유형','기록물유형'],detailTypeNm:['세부유형','기록물종류','기록물형태','기록물 형태','형태'],mediaTypeNm:['매체유형'],hoCnt:['수량(권)','수량'],openDivNm:['공개구분','공개여부'],openGrade:['비공개호수','비공개근거'],presvLocNm:['보존장소','보관장소'],operReadRangeNm:['열람구분'],descInfo:['비고','비고1'],regUser:['등록자','이관담당자명'],orgPresvLoc:['위치번호','위치정보','위치','위치표시','상세위치정보','상세위치정보-기록관위치','모빌랙위치번호'],orgBoxNum:['상자번호','박스번호','보존상자번호','상세위치정보-박스번호'],excelBoxNo:['위치번호','위치정보','위치','위치표시','상세위치정보'],excelPresvBoxNm:['상자번호','박스번호','보존상자번호'],stackNm:['서고','서고이름','문서고','보관장소'],rackNm:['서가','서가이름','서가번호','서가번호(캐비닛번호)','서가번호캐비닛번호'],rowNo:['열'],rowNm:['열'],colNo:['층'],colNm:['층'],presvBoxNm:['보존상자명'],takeYyyy:['이관연도','이관일자','이관년도'],docuConditionNm:['기록물상태','정수점검(상태점검)','정수점검','상태점검'],rmsRegFlagNm:['DB등록여부','DB구축여부','업무관리시스템등록여부']
+};
+const IMPORTANT=['mngNo','title','creatYyyyFrom','creatYyyyTo','presvTermNm','clssNm'];
+let currentStep=1,targetType='',STD=[],TPL_BUFFER=null,STANDARD_TASKS=[],STANDARD_EXAMPLE_INDEX=new Map(),STANDARD_RETENTIONS=['미지정','1년','3년','5년','10년','30년','준영구','영구'],STANDARD_TYPES=['문서류','시청각류'],STANDARD_DETAILS=['일반문서','대장','카드','도면','사진','영상','음성'],STANDARD_MEDIA=['종이','사진','필름','자기매체','광매체','기타','인화사진','슬라이드필름','사진CD','사진DVD','영화필름','비디오디스크','비디오테이프','비디오릴','녹음테이프','녹음테이프릴','DVD','오디오CD','DAT','마이크로카세트'],sourceFileName='',sourceRows=[],sourceSheet='',headerIndex=-1,headerSpan2=false,headers=[],dataRows=[],rowMeta=[],sourceCandidates=[],mergeStats={merged:0,conflicts:0,templateRows:0},mapping=[],bindings={},autoBindings={},headerSignature='',profiles=loadProfiles(),metaInfo={},previewRecords=[],traceRecords=[],editingTarget='',editingTransform=null;
+const $=id=>document.getElementById(id), norm=s=>String(s??'').replace(/[\r\n]+/g,'').replace(/\s+/g,'').trim();
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function loadProfiles(){try{return JSON.parse(localStorage.getItem(PROFILE_KEY)||'{}')}catch(e){return {}}} function persistProfiles(){try{localStorage.setItem(PROFILE_KEY,JSON.stringify(profiles))}catch(e){}}
+function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(16)}
+function setFoot(s){$('foot').textContent=s}
+function go(n){if(n<1||n>5)return;if(n>1&&!targetType){alert('먼저 표준서식 종류를 선택하세요.');return}if(n>2&&!dataRows.length){alert('먼저 기존 대장을 불러오세요.');return}if(n===4)rebuildPreview();if(n===5)renderFinal();currentStep=n;document.querySelectorAll('.panel').forEach((x,i)=>x.classList.toggle('on',i===n-1));document.querySelectorAll('.step').forEach((x,i)=>{x.classList.toggle('on',i===n-1);x.classList.toggle('done',i<n-1)});$('prevBtn').style.display=n>1?'inline-block':'none';$('nextBtn').style.display=n<5?'inline-block':'none';window.scrollTo({top:0,behavior:'smooth'})}
+function nextStep(){go(currentStep+1)}
+function initTypes(){const el=$('typePick');Object.entries(TEMPLATE_DEF).forEach(([id,t])=>{const d=document.createElement('div');d.className='type';d.dataset.id=id;d.innerHTML=`<b>${t.title}</b><p>${t.desc}</p>`;d.onclick=()=>selectType(id);el.appendChild(d)})}
+async function selectType(id){targetType=id;document.querySelectorAll('.type').forEach(x=>x.classList.toggle('on',x.dataset.id===id));$('tplState').innerHTML=`<b>${TEMPLATE_DEF[id].title}</b> 표준서식을 GitHub에서 확인하는 중...`;try{const r=await fetch(`${REPO_RAW}/${encodeURIComponent(TEMPLATE_DEF[id].file)}`,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);TPL_BUFFER=await r.arrayBuffer();await readTemplate();$('tplState').innerHTML=`<b>${TEMPLATE_DEF[id].title}</b> 표준서식 확인 완료 · ${STD.length}개 시스템 필드`;setFoot('다음 단계에서 기존 대장을 불러오세요.')}catch(e){TPL_BUFFER=null;$('tplState').innerHTML=`자동 불러오기 실패(${esc(e.message)}). <button class="btn" onclick="$('manualTpl').click()">표준서식 직접 선택</button>`}}
+$('manualTpl').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;TPL_BUFFER=await f.arrayBuffer();await readTemplate();$('tplState').textContent=`직접 선택한 표준서식 확인 완료 · ${STD.length}개 시스템 필드`});
+async function readTemplate(){
+  const wb=new ExcelJS.Workbook();await wb.xlsx.load(TPL_BUFFER);const ws=wb.getWorksheet(LEDGER_SHEET)||wb.worksheets[0];
+  STD=[];for(let c=1;c<=ws.columnCount;c++){const ko=ws.getRow(KO_ROW).getCell(c).value,en=ws.getRow(EN_ROW).getCell(c).value;if(en===null||en===undefined||String(en).trim()==='')continue;const v=ws.getRow(DATA_ROW).getCell(c).value;const formula=!!(v&&typeof v==='object'&&v.formula!==undefined);STD.push({index:c,ko:String(ko??'').replace(/[\r\n]+/g,' ').trim(),en:String(en).trim(),locked:formula,formula:formula?v.formula:null})}
+  STANDARD_TASKS=[];STANDARD_EXAMPLE_INDEX=new Map();
+  const tws=wb.getWorksheet(TASK_SHEET);
+  if(tws){for(let r=6;r<=tws.rowCount;r++){const row=tws.getRow(r),task=String(row.getCell(4).value??'').trim(),ret=String(row.getCell(6).value??'').trim(),cards=String(row.getCell(8).value??''),examples=String(row.getCell(9).value??''),description=String(row.getCell(5).value??'');if(!task)continue;const rec={task,retention:ret,cards:cards.split(/[\r\n]+/).map(cleanTaskAlias).filter(Boolean),examples,description,examplePhrases:extractExamplePhrases(examples)};STANDARD_TASKS.push(rec)}}
+  for(const task of STANDARD_TASKS){for(const phrase of task.examplePhrases||[]){const k=taskNorm(phrase);if(!k)continue;if(!STANDARD_EXAMPLE_INDEX.has(k))STANDARD_EXAMPLE_INDEX.set(k,new Set());STANDARD_EXAMPLE_INDEX.get(k).add(task.task)}}
+  const vws=wb.getWorksheet(VALID_SHEET);if(vws){const collect=col=>{const vals=[];for(let r=3;r<=vws.rowCount;r++){const v=String(vws.getRow(r).getCell(col).value??'').trim();if(v&&!vals.includes(v))vals.push(v)}return vals};const types=collect(1),details=collect(2),media=collect(3),rets=collect(9);if(types.length)STANDARD_TYPES=types;if(details.length)STANDARD_DETAILS=details;if(media.length)STANDARD_MEDIA=media;if(rets.length)STANDARD_RETENTIONS=rets}
+}
+function cleanTaskAlias(s){return String(s??'').replace(/^[•·\-\s]+/,'').replace(/\([^)]*(추가활용|과제카드)[^)]*\)/g,'').trim()}
+function extractExamplePhrases(text){const out=[],generic=/^(신청서|계획|계획서|회의록|명단|대장|보고서|결과|자료|서류|관련서류|증빙자료|동의서|출석부|등록부|업무|관리)$/;for(let line of String(text??'').split(/[\r\n]+/)){line=line.replace(/^[•·*\-\s]+/,'').trim();if(!line)continue;const colon=line.indexOf(':');if(colon>=0)line=line.slice(colon+1);line=line.replace(/\([^)]*\)/g,' ');for(let p of line.split(/[,;/]/)){p=p.replace(/^[•·*\-\s]+/,'').trim();const n=taskNorm(p);if(n.length>=4&&!generic.test(n)&&!out.includes(p))out.push(p)}}return out}
+function candidatesFor(col){return [...(SYN[col.en]||[]),col.ko].filter(Boolean)}
+function matchHeader(h){const n=norm(h);let best={en:null,score:0};if(!n)return best;for(const c of STD){if(c.locked)continue;for(const s of candidatesFor(c)){const x=norm(s);let score=0;if(x===n)score=1;else if(x&& (n.includes(x)||x.includes(n)))score=Math.min(x.length,n.length)/Math.max(x.length,n.length);if(score>best.score)best={en:c.en,score}}}if(best.score<.5)best.en=null;return best}
+function scoreRow(row){const seen=new Set();let score=0;for(const v of row||[]){const m=matchHeader(v);if(m.en&&!seen.has(m.en)){seen.add(m.en);score+=m.score>=.999?1:.5}}return score}
+function span2(a,b,n){const out=[];for(let c=0;c<n;c++){const child=b?.[c],parent=a?.[c];out.push(child!==null&&child!==undefined&&String(child).trim()!==''?child:parent)}return out}
+function detectHeader(rows){let best={index:-1,span2:false,score:-1};for(let i=0;i<Math.min(18,rows.length);i++){const s1=scoreRow(rows[i]||[]);if(s1>best.score)best={index:i,span2:false,score:s1};if(i+1<rows.length){const s2=scoreRow(span2(rows[i],rows[i+1],Math.max(rows[i]?.length||0,rows[i+1]?.length||0)));if(s2>best.score)best={index:i,span2:true,score:s2}}}return best}
+function extractMeta(rows,until){const out={institution:'',productionOrg:'',raw:[]};for(let r=0;r<Math.min(until,15);r++){for(const cell of rows[r]||[]){if(cell===null||cell===undefined)continue;const s=String(cell).replace(/[\r\n]+/g,' ').trim();if(!s)continue;out.raw.push(s);let m=s.match(/기관\s*\(학교\)\s*명\s*[:：]?\s*(.+)$/i);if(m)out.institution=m[1].trim();m=s.match(/생산부서\s*[:：]\s*(.+)$/i);if(m)out.productionOrg=m[1].trim()}}return out}
+function buildSignature(){return `${targetType}:${hash(headers.map(norm).join('|'))}`}
+function sampleVals(ci,n=3){const a=[];for(const r of dataRows){const v=r[ci];if(v===null||v===undefined||String(v).trim()==='')continue;const s=String(v).replace(/\s+/g,' ').trim();if(!a.includes(s))a.push(s);if(a.length>=n)break}return a}
+
+function cloneObj(v){return JSON.parse(JSON.stringify(v))}
+function sourceByCol(ci){return mapping.find(m=>m.colIndex===Number(ci))||null}
+function bindingFor(en){return bindings[en]||null}
+function defaultTransform(type='direct'){return {type,delimiter:'~',part:'first',partIndex:1,side:'first',count:4,find:'',replace:'',separator:' '}}
+function normalizeSavedTransform(t){return {...defaultTransform(t?.type||'direct'),...(t||{})}}
+function makeBinding(targetEn,sourceCols,manual=false,score=0,transform=null){return {targetEn,sourceCols:[...new Set((sourceCols||[]).map(Number))],manual:!!manual,score:Number(score)||0,transform:normalizeSavedTransform(transform)}}
+
+function autoMap(){
+  const used=new Set();
+  mapping=headers.map((h,ci)=>{
+    const m=matchHeader(h);
+    let autoEn=m.en;
+    if(autoEn&&used.has(autoEn))autoEn=null;
+    if(autoEn)used.add(autoEn);
+    return {colIndex:ci,header:String(h),autoEn,score:m.score};
+  });
+  bindings={};
+  for(const m of mapping){
+    if(m.autoEn)bindings[m.autoEn]=makeBinding(m.autoEn,[m.colIndex],false,m.score,{type:'direct'});
+  }
+  const yearCol=mapping.find(m=>['생산연도','생산년도'].includes(norm(m.header)));if(yearCol){if(STD.some(c=>c.en==='creatYyyyFrom'))bindings.creatYyyyFrom=makeBinding('creatYyyyFrom',[yearCol.colIndex],false,1,{type:'direct'});if(STD.some(c=>c.en==='creatYyyyTo'))bindings.creatYyyyTo=makeBinding('creatYyyyTo',[yearCol.colIndex],false,1,{type:'direct'})}
+  autoBindings=cloneObj(bindings);
+  $('defaultKeepOrg').value='';
+  $('defaultCreatOrg').value='';
+  $('profileName').value='';
+  $('normTaskStandard').checked=true;
+  $('normRetention').checked=true;
+  $('normDisclosure').checked=true;
+  $('normType').checked=true;
+
+  const p=profiles[headerSignature];
+  if(p){
+    if(Array.isArray(p.bindings)){
+      const byHeader=new Map();
+      mapping.forEach(m=>{const k=norm(m.header);if(k&&!byHeader.has(k))byHeader.set(k,m.colIndex)});
+      const restored={};
+      for(const b of p.bindings){
+        if(!b?.targetEn || !STD.some(c=>c.en===b.targetEn&&!c.locked))continue;
+        const cols=(b.sourceHeaders||[]).map(h=>byHeader.get(norm(h))).filter(v=>v!==undefined);
+        if(cols.length)restored[b.targetEn]=makeBinding(b.targetEn,cols,true,b.score||0,b.transform);
+      }
+      bindings=restored;
+    }else if(Array.isArray(p.mapping)){
+      // v0.4 이하 프로필 호환
+      const by={};(p.mapping||[]).forEach(x=>by[norm(x.header)]=x.en);
+      for(const m of mapping){
+        if(Object.prototype.hasOwnProperty.call(by,norm(m.header))){
+          const en=by[norm(m.header)];
+          if(en)bindings[en]=makeBinding(en,[m.colIndex],true,m.score,{type:'direct'});
+        }
+      }
+    }
+    if(p.defaults){
+      $('defaultKeepOrg').value=p.defaults.keepOrg||'';
+      $('defaultCreatOrg').value=p.defaults.creatOrg||'';
+    }
+    if(p.normalization){
+      $('normTaskStandard').checked=p.normalization.standardTask!==false;
+      $('normRetention').checked=p.normalization.retention!==false;
+      $('normDisclosure').checked=p.normalization.disclosure!==false;
+      $('normType').checked=p.normalization.type!==false;
+    }
+    $('profileName').value=p.name||'';
+  }
+}
+function headerInfo(rows,det){const n=Math.max(rows[det.index]?.length||0,rows[det.index+1]?.length||0);return (det.span2?span2(rows[det.index],rows[det.index+1],n):(rows[det.index]||[])).map(x=>x??'')}
+function headerIndexFor(hs,names){let best=-1,bs=0;for(let i=0;i<hs.length;i++){const h=norm(hs[i]);for(const n of names){const x=norm(n);let sc=h===x?1:(h&&x&&(h.includes(x)||x.includes(h))?Math.min(h.length,x.length)/Math.max(h.length,x.length):0);if(sc>bs){bs=sc;best=i}}}return bs>=.5?best:-1}
+function rowIsTemplateOnly(row,hs){const title=headerIndexFor(hs,SYN.title),mng=headerIndexFor(hs,SYN.mngNo),box=headerIndexFor(hs,[...(SYN.excelPresvBoxNm||[]),...(SYN.orgBoxNum||[])]),loc=headerIndexFor(hs,[...(SYN.orgPresvLoc||[]),...(SYN.stackNm||[]),...(SYN.rackNm||[])]);const has=i=>i>=0&&row[i]!==null&&row[i]!==undefined&&String(row[i]).trim()!=='';if(has(title)||has(mng)||has(box)||has(loc))return false;const cnt=row.filter(v=>v!==null&&v!==undefined&&String(v).trim()!=='').length;return cnt>0&&cnt<=6}
+function extractCandidateRows(c){const hs=headerInfo(c.rows,c),nonempty=hs.map((h,i)=>norm(h)?i:-1).filter(i=>i>=0),out=[],meta=[];let blank=0,templates=0;for(let r=c.index+(c.span2?2:1);r<c.rows.length;r++){const row=c.rows[r]||[],any=nonempty.some(i=>row[i]!==null&&row[i]!==undefined&&String(row[i]).trim()!=='');if(!any){blank++;if(blank>=3)break;continue}blank=0;if(rowIsTemplateOnly(row,hs)){templates++;continue}out.push(row);meta.push({sourceSheet:c.name,sourceRow:r+1,sourceSheets:[c.name],sourceRows:[r+1]})}return {headers:hs,rows:out,meta,templates}}
+function processUnified(hs,rows,name,info={}){sourceRows=rows;sourceSheet=name;headers=hs;dataRows=rows;rowMeta=info.rowMeta||rows.map((_,i)=>({sourceSheet:name,sourceRow:i+1,sourceSheets:[name],sourceRows:[i+1]}));headerIndex=info.headerIndex??0;headerSpan2=!!info.headerSpan2;metaInfo=info.metaInfo||{};mergeStats=info.mergeStats||{merged:0,conflicts:0,templateRows:0};headerSignature=buildSignature();autoMap();$('sourceState').style.display='block';const extra=mergeStats.merged||mergeStats.conflicts||mergeStats.templateRows?` · 통합보충 ${mergeStats.merged}건 · 충돌 ${mergeStats.conflicts}건 · 빈 양식행 제외 ${mergeStats.templateRows}건`:'';$('sourceState').innerHTML=`<b>분석 완료</b> · ${esc(name)} · 데이터 ${dataRows.length}행${extra} · 형식 ID <span class="mono">${headerSignature}</span>${profiles[headerSignature]?' · 저장 프로필 자동적용':''}`;renderMapping();setFoot('자동 매핑과 표준기준 보정 결과를 확인하세요.')}
+function processRows(rows,name,det){const e=extractCandidateRows({rows,name,...det});processUnified(e.headers,e.rows,name,{rowMeta:e.meta,headerIndex:det.index,headerSpan2:det.span2,metaInfo:extractMeta(rows,det.index),mergeStats:{merged:0,conflicts:0,templateRows:e.templates}})}
+function mergeCandidateSheets(cs){const extracted=cs.map(c=>({...c,...extractCandidateRows(c)})),union=[],idx=new Map();for(const c of extracted){c.headers.forEach(h=>{const k=norm(h);if(k&&!idx.has(k)){idx.set(k,union.length);union.push(h)}})}const recs=[];let templateRows=0;for(const c of extracted){templateRows+=c.templates;for(let i=0;i<c.rows.length;i++){const out=Array(union.length).fill(null);c.headers.forEach((h,j)=>{const k=norm(h);if(k&&idx.has(k))out[idx.get(k)]=c.rows[i][j]});recs.push({row:out,meta:c.meta[i]})}}
+  const ti=headerIndexFor(union,SYN.title),mi=headerIndexFor(union,SYN.mngNo),yi=headerIndexFor(union,['생산연도','생산년도','시작연도','시작년도']),ye=headerIndexFor(union,['종료연도','종료년도']),ri=headerIndexFor(union,SYN.presvTermNm);const keyOf=r=>{const v=i=>i>=0?norm(r[i]):'';if(v(mi))return 'M|'+v(mi);if(v(ti)&&v(yi))return 'T|'+v(ti)+'|'+v(yi)+'|'+v(ye)+'|'+v(ri);return ''};const bySheet=new Map();for(const x of recs){const k=keyOf(x.row);if(!k)continue;const sk=x.meta.sourceSheet+'|'+k;bySheet.set(sk,(bySheet.get(sk)||0)+1)}
+  const groups=new Map(),result=[],metas=[];let merged=0,conflicts=0;const core=new Set([ti,mi,yi,ye,ri].filter(i=>i>=0));for(const x of recs){const k=keyOf(x.row);if(!k||bySheet.get(x.meta.sourceSheet+'|'+k)>1){result.push(x.row);metas.push(x.meta);continue}if(!groups.has(k)){groups.set(k,{row:[...x.row],meta:{...x.meta},index:result.length});result.push([...x.row]);metas.push({...x.meta});continue}const g=groups.get(k),base=result[g.index],m=metas[g.index];let bad=false;for(let i=0;i<union.length;i++){const a=base[i],b=x.row[i],ea=a===null||a===undefined||String(a).trim()==='',eb=b===null||b===undefined||String(b).trim()=='';if(ea&&!eb)base[i]=b;else if(!ea&&!eb&&norm(a)!==norm(b)&&core.has(i))bad=true}if(bad){conflicts++;result.push(x.row);metas.push({...x.meta,mergeConflict:true});continue}merged++;m.sourceSheets=[...new Set([...(m.sourceSheets||[m.sourceSheet]),x.meta.sourceSheet])];m.sourceRows=[...(m.sourceRows||[m.sourceRow]),x.meta.sourceRow]}
+  const metaAgg={};for(const c of cs){const m=extractMeta(c.rows,c.index);if(m.institution&&!metaAgg.institution)metaAgg.institution=m.institution;if(m.productionOrg&&!metaAgg.productionOrg)metaAgg.productionOrg=m.productionOrg}return {headers:union,rows:result,rowMeta:metas,stats:{merged,conflicts,templateRows},metaInfo:metaAgg}}
+function applySheetMode(){if(!sourceCandidates.length)return;const mode=$('sheetMode').value;if(mode==='merge'&&sourceCandidates.length>1){const m=mergeCandidateSheets(sourceCandidates);processUnified(m.headers,m.rows,`통합 ${sourceCandidates.length}개 시트`,{rowMeta:m.rowMeta,metaInfo:m.metaInfo,mergeStats:m.stats});return}const c=sourceCandidates[Number($('sheetSelect').value)||0];processRows(c.rows,c.name,c)}
+$('srcFile').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;sourceFileName=f.name;const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});const cs=[];for(let si=0;si<wb.SheetNames.length;si++){const name=wb.SheetNames[si],rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:null,raw:true});if(rows.length<2)continue;const d=detectHeader(rows),hidden=Number(wb.Workbook?.Sheets?.[si]?.Hidden||0);if(d.score>=2.5)cs.push({name,rows,...d,hidden})}cs.sort((a,b)=>(a.hidden-b.hidden)||(b.score-a.score));sourceCandidates=cs;if(!cs.length){$('sourceState').style.display='block';$('sourceState').innerHTML='<b>대장 헤더를 찾지 못했습니다.</b> 표준서식 종류가 맞는지 확인해주세요.';return}$('sheetSelect').innerHTML=cs.map((c,i)=>`<option value="${i}">${esc(c.name)}${c.hidden?' [숨김]':''} · 인식 ${c.score.toFixed(1)}</option>`).join('');$('sheetChooser').style.display=cs.length>1?'block':'none';$('sheetMode').value=cs.length>1?'merge':'single';$('sheetHint').textContent=cs.length>1?`대장 후보 ${cs.length}개 · 통합 모드는 중복 자료의 빈 위치·상자값을 보충합니다.`:'';applySheetMode()});
+$('profileFile').addEventListener('change',async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{
+    const p=JSON.parse(await f.text());
+    if(p.signature){profiles[p.signature]=p;persistProfiles();alert('프로필을 불러왔습니다. 같은 형식의 파일을 다시 열면 매핑과 변환규칙이 자동 적용됩니다.')}
+    else if(p.profiles){profiles={...profiles,...p.profiles};persistProfiles();alert('프로필 묶음을 불러왔습니다.')}
+  }catch(err){alert('프로필 JSON 오류: '+err.message)}
+});
+function loadSample(){
+  sourceFileName='샘플_구형학교대장.xlsx';
+  const rows=[
+    ['샘플유치원 기록물관리대장'],[],
+    ['□ 기관(학교)명: 샘플유치원'],
+    ['일련번호','위치정보','','','기록물철 정보','','','','','','','','관리정보','','','편집연습'],
+    ['','보관장소','서가번호(캐비닛번호)','상자번호','관리번호','기록물형태','시작연도','종료연도','보존기간','보존기간 만료연도','기록물철 제목','단위과제명','공개여부','이관일자','정수점검(상태점검)','생산연도범위'],
+    [1,'문서고','A-1','2020-1','샘플유-01001','문서',2020,2020,5,2025,'학교회계 지출증빙서','학교회계관리','비공개',2021.2,'확인','2020~2020'],
+    [2,'문서고','A-1','영구-1','샘플유-01002','대장',1998,2005,'영구','영구','졸업대장','NEIS졸업대장','비공개',2006.3,'확인','1998~2005'],
+    [3,'문서고','B-2','영구-2','샘플유-01003','시청각(CD)',2018,2018,'영구','영구','개원기념 사진자료','유치원행사관리','공개',2019.2,'확인','2018~2018'],
+    [4,'행정실','캐비닛2','2019-2','샘플유-01004','문서',2019,2019,10,2029,'시설공사 관련서류','시설관리','부분공개',2020.2,'확인','2019~2019']
+  ];
+  const d=detectHeader(rows);processRows(rows,'1. 기록물관리대장',d);
+}
+function stdOptions(selected){return '<option value="">— 사용 안 함 —</option>'+STD.filter(c=>!c.locked).map(c=>`<option value="${esc(c.en)}" ${c.en===selected?'selected':''}>${esc(c.ko)} · ${esc(c.en)}</option>`).join('')}
+
+let dragColIndex=null,dragOriginTarget='',mapScrollLeft=0;
+
+function excelColName(n){
+  let s='';n=Number(n)||0;
+  while(n>0){n--;s=String.fromCharCode(65+(n%26))+s;n=Math.floor(n/26)}
+  return s||'?';
+}
+function cleanString(v){return v===null||v===undefined?'':String(v).replace(/\s+/g,' ').trim()}
+function sourceUsageCount(ci){return Object.values(bindings).filter(b=>(b.sourceCols||[]).includes(Number(ci))).length}
+function sourceStatus(m){
+  const n=sourceUsageCount(m.colIndex);
+  if(n>1)return {cls:'reused',label:`${n}곳에 재사용`};
+  if(n===1)return {cls:'manual',label:'1곳에 사용 중'};
+  if(m.autoEn&&m.score>=.999)return {cls:'auto',label:'자동 후보'};
+  if(m.autoEn)return {cls:'similar',label:'유사 후보'};
+  return {cls:'',label:'미매칭'};
+}
+function sourceCardHtml(m,mapped=false,targetEn='',binding=null){
+  const st=mapped
+    ? (binding?.manual||binding?.transform?.type!=='direct'||(binding?.sourceCols?.length||0)>1?{cls:'manual',label:'사용자/변환'}:(binding?.score>=.999?{cls:'auto',label:'자동 정확매칭'}:{cls:'similar',label:'자동 유사매칭'}))
+    : sourceStatus(m);
+  const vals=sampleVals(m.colIndex).slice(0,2).map(esc).join(' · ')||'값 없음';
+  return `<div class="sourcecard ${st.cls}" draggable="true" data-col="${m.colIndex}" data-origin-target="${esc(targetEn)}">
+    ${mapped?`<button class="sx" type="button" title="이 표준필드에서 이 원본 열 제거" data-remove-source="${m.colIndex}" data-target="${esc(targetEn)}">×</button>`:''}
+    <div class="sh">${esc(m.header||'(빈 헤더)')}</div>
+    <div class="sv">${vals}</div>
+    <div class="source-status ${st.cls}">${st.label}</div>
+    ${!mapped&&sourceUsageCount(m.colIndex)?`<div class="source-use">현재 ${sourceUsageCount(m.colIndex)}개 표준필드에서 사용</div>`:''}
+  </div>`;
+}
+function rawValuesForBinding(binding,row){
+  return (binding?.sourceCols||[]).map(ci=>row?.[ci]);
+}
+function applyTransform(values,t){
+  const tr=normalizeSavedTransform(t),type=tr.type||'direct';
+  if(type==='direct')return values.length?values[0]:'';
+  const s=cleanString(values[0]);
+  if(type==='join'){
+    const sep=tr.separator??' ';
+    return values.map(cleanString).filter(Boolean).join(sep);
+  }
+  if(type==='split'){
+    if(!s)return '';
+    const delim=String(tr.delimiter??'');
+    const parts=delim===''?[s]:s.split(delim).map(x=>x.trim());
+    if(tr.part==='last')return parts.at(-1)??'';
+    if(tr.part==='index'){const idx=Math.max(1,Number(tr.partIndex)||1)-1;return parts[idx]??''}
+    return parts[0]??'';
+  }
+  if(type==='slice'){
+    const count=Math.max(0,Number(tr.count)||0);
+    return tr.side==='last'?(count?s.slice(-count):s):(count?s.slice(0,count):s);
+  }
+  if(type==='replace'){
+    const find=String(tr.find??'');
+    if(!find)return s;
+    return s.split(find).join(String(tr.replace??''));
+  }
+  if(type==='digits'){
+    const m=s.match(/\d+/g);return m?m.join(''):'';
+  }
+  if(type==='year'){
+    const m=s.match(/(?:18|19|20|21)\d{2}/);return m?m[0]:'';
+  }
+  return s;
+}
+function applyBinding(binding,row){
+  if(!binding)return {value:null,originalValue:null,sourceHeader:'',transformed:false};
+  const originals=rawValuesForBinding(binding,row);
+  const value=applyTransform(originals,binding.transform);
+  const transformed=(binding.transform?.type||'direct')!=='direct'||originals.length>1;
+  return {
+    value,
+    originalValue:originals.length<=1?(originals[0]??null):originals,
+    sourceHeader:(binding.sourceCols||[]).map(ci=>sourceByCol(ci)?.header||'').filter(Boolean).join(' + '),
+    transformed
+  };
+}
+function transformSummary(t,sourceCount=1){
+  const tr=normalizeSavedTransform(t);
+  if(tr.type==='direct')return sourceCount>1?'여러 열 사용':'그대로';
+  if(tr.type==='join')return `합치기 · “${tr.separator??' '}”`;
+  if(tr.type==='split'){
+    const part=tr.part==='last'?'마지막':tr.part==='index'?`${tr.partIndex||1}번째`:'첫번째';
+    return `나누기 · “${tr.delimiter??''}” · ${part}`;
+  }
+  if(tr.type==='slice')return `${tr.side==='last'?'뒤':'앞'} ${tr.count||0}글자`;
+  if(tr.type==='replace')return `치환 · “${tr.find??''}”→“${tr.replace??''}”`;
+  if(tr.type==='digits')return '숫자만 추출';
+  if(tr.type==='year')return '4자리 연도 추출';
+  return tr.type;
+}
+function mappedSampleHtml(binding,target){
+  const rows=dataRows.slice(0,3);
+  return `<div class="map-sample beforeafter">
+    <div class="map-sample-title">
+      <span>변환 예시 · 앞 3건</span>
+      <span class="target">→ ${esc(target.ko||target.en)}</span>
+    </div>
+    <div class="map-sample-grid">
+      ${[0,1,2].map(i=>{
+        const row=rows[i]||[];
+        const a=applyBinding(binding,row);
+        const before=(binding.sourceCols||[]).map(ci=>cleanString(row?.[ci])).filter(Boolean).join(' + ');
+        const out=cleanString(a.value);
+        return `<div class="map-sample-row">
+          <div class="map-sample-no">${i+1}</div>
+          <div class="map-sample-val ${out?'':'blank'}">
+            <div class="map-sample-before">${before?esc(before):'(빈 값)'}</div>
+            <div><span class="map-sample-arrow">→</span> <span class="map-sample-after">${out?esc(out):'(빈 값)'}</span></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+function renderBindingSources(binding,targetEn){
+  return `<div class="map-source-list">${(binding.sourceCols||[]).map(ci=>{
+    const m=sourceByCol(ci);return m?sourceCardHtml(m,true,targetEn,binding):'';
+  }).join('')}</div>`;
+}
+function renderMapping(){
+  const board=$('mappingBoard'),oldScroll=board?board.scrollLeft:mapScrollLeft,grid=$('mappingGrid');
+  if(!grid)return;
+  grid.innerHTML=STD.map(c=>{
+    const b=bindingFor(c.en),gap=!c.locked&&!b;
+    const inner=c.locked
+      ? `<div class="mapdrop locked"></div>`
+      : b
+        ? `<div class="mapdrop" data-target="${esc(c.en)}">
+            ${renderBindingSources(b,c.en)}
+            <div class="map-actions">
+              <span class="rule-badge">${esc(transformSummary(b.transform,b.sourceCols.length))}</span>
+              <button class="mini edit" type="button" data-edit-target="${esc(c.en)}">값 편집</button>
+              <button class="mini clear" type="button" data-clear-target="${esc(c.en)}">비우기</button>
+            </div>
+            ${mappedSampleHtml(b,c)}
+          </div>`
+        : `<div class="mapdrop empty" data-target="${esc(c.en)}"></div>`;
+    return `<div class="targetcol ${gap?'gap':''} ${c.locked?'locked':''}" data-field="${esc(c.en)}">
+      <div class="targethead">
+        <div class="colno">${excelColName(c.index)}열 · ${c.index}번째</div>
+        <div class="ko">${esc(c.ko||c.en)}</div>
+        <div class="en">${esc(c.en)}</div>
+      </div>${inner}</div>`;
+  }).join('');
+
+  const allSources=mapping.filter(m=>norm(m.header));
+  $('sourceTray').innerHTML=allSources.map(m=>sourceCardHtml(m,false)).join('')||'<div class="muted" style="padding:18px 8px">원본 열이 없습니다.</div>';
+  const unmatched=allSources.filter(m=>sourceUsageCount(m.colIndex)===0).length;
+  $('unusedCount').textContent=`미매칭 ${unmatched}개 · 전체 ${allSources.length}개`;
+
+  bindMappingDnD();renderMapSummary();
+  requestAnimationFrame(()=>{if($('mappingBoard'))$('mappingBoard').scrollLeft=oldScroll});
+}
+function renderMapSummary(){
+  const bs=Object.values(bindings),targetCount=STD.filter(c=>!c.locked).length;
+  const exact=bs.filter(b=>!b.manual&&(b.transform?.type||'direct')==='direct'&&b.sourceCols.length===1&&b.score>=.999).length;
+  const similar=bs.filter(b=>!b.manual&&(b.transform?.type||'direct')==='direct'&&b.sourceCols.length===1&&b.score<.999).length;
+  const edited=bs.filter(b=>b.manual||(b.transform?.type||'direct')!=='direct'||b.sourceCols.length>1).length;
+  const reused=mapping.filter(m=>sourceUsageCount(m.colIndex)>1).length;
+  const gaps=STD.filter(c=>!c.locked&&!bindings[c.en]).length;
+  $('mapSummary').innerHTML=summary([
+    ['표준 필드',targetCount,'개'],
+    ['자동 정확',exact,'개'],
+    ['자동 유사',similar,'개'],
+    ['사용자/변환',edited,'개'],
+    ['원본 재사용',reused,'열'],
+    ['표준 미충족',gaps,'개']
+  ]);
+}
+function bindMappingDnD(){
+  document.querySelectorAll('.sourcecard[draggable="true"]').forEach(card=>{
+    card.addEventListener('dragstart',e=>{
+      dragColIndex=Number(card.dataset.col);
+      dragOriginTarget=card.dataset.originTarget||'';
+      e.dataTransfer.effectAllowed='copyMove';
+      e.dataTransfer.setData('text/plain',String(dragColIndex));
+      card.style.opacity='.55';
+    });
+    card.addEventListener('dragend',()=>{
+      card.style.opacity='';dragColIndex=null;dragOriginTarget='';
+      document.querySelectorAll('.mapdrop,.source-tray').forEach(x=>x.classList.remove('over'));
+    });
+  });
+  document.querySelectorAll('.mapdrop[data-target]').forEach(zone=>{
+    zone.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='copy';zone.classList.add('over')});
+    zone.addEventListener('dragleave',()=>zone.classList.remove('over'));
+    zone.addEventListener('drop',e=>{
+      e.preventDefault();zone.classList.remove('over');
+      const ci=Number(e.dataTransfer.getData('text/plain')||dragColIndex);
+      addSourceToTarget(ci,zone.dataset.target);
+    });
+  });
+  const tray=$('sourceTray');
+  tray.addEventListener('dragover',e=>{e.preventDefault();tray.classList.add('over')});
+  tray.addEventListener('dragleave',()=>tray.classList.remove('over'));
+  tray.addEventListener('drop',e=>{
+    e.preventDefault();tray.classList.remove('over');
+    if(dragOriginTarget&&Number.isFinite(dragColIndex))removeSourceFromTarget(dragOriginTarget,dragColIndex);
+  });
+  document.querySelectorAll('[data-remove-source]').forEach(btn=>{
+    btn.addEventListener('click',e=>{e.stopPropagation();removeSourceFromTarget(btn.dataset.target,Number(btn.dataset.removeSource))});
+  });
+  document.querySelectorAll('[data-edit-target]').forEach(btn=>btn.addEventListener('click',()=>openTransformEditor(btn.dataset.editTarget)));
+  document.querySelectorAll('[data-clear-target]').forEach(btn=>btn.addEventListener('click',()=>clearTargetBinding(btn.dataset.clearTarget)));
+}
+function addSourceToTarget(colIndex,targetEn){
+  if(!Number.isFinite(colIndex)||!targetEn)return;
+  const target=STD.find(c=>c.en===targetEn);if(!target||target.locked)return;
+  mapScrollLeft=$('mappingBoard')?.scrollLeft||0;
+  let b=bindings[targetEn];
+  if(!b){
+    const src=sourceByCol(colIndex);
+    bindings[targetEn]=makeBinding(targetEn,[colIndex],true,src?.score||0,{type:'direct'});
+  }else if(!b.sourceCols.includes(colIndex)){
+    b.sourceCols.push(colIndex);
+    b.manual=true;
+    if(b.sourceCols.length>1 && (b.transform?.type||'direct')==='direct')b.transform={...defaultTransform('join'),type:'join',separator:' '};
+  }
+  renderMapping();
+}
+function removeSourceFromTarget(targetEn,colIndex){
+  mapScrollLeft=$('mappingBoard')?.scrollLeft||0;
+  const b=bindings[targetEn];if(!b)return;
+  b.sourceCols=b.sourceCols.filter(x=>x!==Number(colIndex));b.manual=true;
+  if(!b.sourceCols.length)delete bindings[targetEn];
+  else if(b.sourceCols.length===1&&b.transform?.type==='join')b.transform=defaultTransform('direct');
+  renderMapping();
+}
+function clearTargetBinding(targetEn){
+  mapScrollLeft=$('mappingBoard')?.scrollLeft||0;
+  delete bindings[targetEn];renderMapping();
+}
+function mappingBoardDragOver(e){
+  e.preventDefault();const board=$('mappingBoard');if(!board)return;
+  const r=board.getBoundingClientRect(),margin=70,speed=28;
+  if(e.clientX<r.left+margin)board.scrollLeft-=speed;
+  else if(e.clientX>r.right-margin)board.scrollLeft+=speed;
+  mapScrollLeft=board.scrollLeft;
+}
+function scrollMappingToGap(){
+  const board=$('mappingBoard'),gap=document.querySelector('.targetcol.gap');
+  if(!board||!gap)return;
+  board.scrollTo({left:Math.max(0,gap.offsetLeft-30),behavior:'smooth'});
+}
+function renderUnused(){}
+
+function openTransformEditor(targetEn){
+  const b=bindingFor(targetEn);if(!b)return;
+  editingTarget=targetEn;editingTransform=cloneObj(b.transform||defaultTransform());
+  const c=STD.find(x=>x.en===targetEn);
+  $('editorTitle').textContent='값 편집 · '+(c?.ko||targetEn);
+  $('editorTargetMeta').textContent=targetEn+' · 원본 열 '+b.sourceCols.length+'개 사용';
+  $('editorSources').innerHTML=b.sourceCols.map(ci=>`<span class="editor-source-chip">${esc(sourceByCol(ci)?.header||'열 '+(ci+1))}</span>`).join('');
+  $('transformType').value=editingTransform.type||'direct';
+  renderTransformOptions();updateTransformPreview();$('transformModal').classList.add('on');
+}
+function closeTransformEditor(){$('transformModal').classList.remove('on');editingTarget='';editingTransform=null}
+function readTransformForm(){
+  const type=$('transformType').value,t={...defaultTransform(type),type};
+  if(type==='split'){
+    t.delimiter=$('trDelimiter')?.value??'~';
+    t.part=$('trPart')?.value||'first';
+    t.partIndex=Math.max(1,Number($('trPartIndex')?.value)||1);
+  }else if(type==='slice'){
+    t.side=$('trSide')?.value||'first';t.count=Math.max(0,Number($('trCount')?.value)||0);
+  }else if(type==='replace'){
+    t.find=$('trFind')?.value??'';t.replace=$('trReplace')?.value??'';
+  }else if(type==='join'){
+    t.separator=$('trSeparator')?.value??' ';
+  }
+  return t;
+}
+function renderTransformOptions(){
+  const type=$('transformType').value,t=editingTransform||defaultTransform(type),el=$('transformOptions');
+  if(type==='split'){
+    el.innerHTML=`<div class="editor-row"><label>구분자</label><input id="trDelimiter" value="${esc(t.delimiter??'~')}" oninput="updateTransformPreview()"></div>
+      <div class="editor-row"><label>가져올 부분</label><select id="trPart" onchange="transformPartChanged()">
+        <option value="first" ${t.part==='first'?'selected':''}>첫번째</option>
+        <option value="last" ${t.part==='last'?'selected':''}>마지막</option>
+        <option value="index" ${t.part==='index'?'selected':''}>몇 번째인지 지정</option>
+      </select></div>
+      ${t.part==='index'?`<div class="editor-row"><label>부분 번호</label><input id="trPartIndex" type="number" min="1" value="${Number(t.partIndex)||1}" oninput="updateTransformPreview()"></div>`:''}`;
+  }else if(type==='slice'){
+    el.innerHTML=`<div class="editor-row"><label>방향</label><select id="trSide" onchange="updateTransformPreview()"><option value="first" ${t.side!=='last'?'selected':''}>앞에서</option><option value="last" ${t.side==='last'?'selected':''}>뒤에서</option></select></div>
+      <div class="editor-row"><label>글자 수</label><input id="trCount" type="number" min="0" value="${Number(t.count)||4}" oninput="updateTransformPreview()"></div>`;
+  }else if(type==='replace'){
+    el.innerHTML=`<div class="editor-row"><label>찾을 문자</label><input id="trFind" value="${esc(t.find??'')}" oninput="updateTransformPreview()"></div>
+      <div class="editor-row"><label>바꿀 문자</label><input id="trReplace" value="${esc(t.replace??'')}" oninput="updateTransformPreview()"></div>`;
+  }else if(type==='join'){
+    el.innerHTML=`<div class="editor-row"><label>열 사이 구분자</label><input id="trSeparator" value="${esc(t.separator??' ')}" oninput="updateTransformPreview()"></div>
+      <div class="editor-help">현재 연결된 원본 열의 순서대로 값을 합칩니다.</div>`;
+  }else if(type==='digits'){
+    el.innerHTML='<div class="editor-help">문자·기호를 제거하고 숫자만 이어 붙입니다. 예: A-03 → 03</div>';
+  }else if(type==='year'){
+    el.innerHTML='<div class="editor-help">값에서 처음 발견되는 4자리 연도(1800~2199)를 가져옵니다.</div>';
+  }else{
+    el.innerHTML='<div class="editor-help">첫 번째 원본 열의 값을 그대로 사용합니다. 여러 원본 열을 사용하려면 “합치기”를 선택하세요.</div>';
+  }
+}
+function transformPartChanged(){
+  editingTransform=readTransformForm();
+  renderTransformOptions();
+  updateTransformPreview();
+}
+function updateTransformPreview(){
+  if(!editingTarget)return;
+  editingTransform=readTransformForm();
+  const b=bindingFor(editingTarget);if(!b)return;
+  const temp={...b,transform:editingTransform};
+  $('transformPreviewRows').innerHTML=[0,1,2].map(i=>{
+    const row=dataRows[i]||[],before=(temp.sourceCols||[]).map(ci=>cleanString(row?.[ci])).filter(Boolean).join(' + ');
+    const out=cleanString(applyBinding(temp,row).value);
+    return `<div class="editor-preview-row"><div class="n">${i+1}</div><div>${before?esc(before):'(빈 값)'}</div><div class="arr">→</div><div class="out">${out?esc(out):'(빈 값)'}</div></div>`;
+  }).join('');
+}
+function saveTransformEditor(){
+  if(!editingTarget)return;
+  const b=bindingFor(editingTarget);if(!b)return;
+  b.transform=readTransformForm();b.manual=true;
+  closeTransformEditor();renderMapping();
+}
+function clearEditingTarget(){
+  if(!editingTarget)return;
+  const t=editingTarget;closeTransformEditor();delete bindings[t];renderMapping();
+}
+function resetMappings(){bindings=cloneObj(autoBindings);mapScrollLeft=0;renderMapping()}
+function summary(vals){return vals.map(x=>`<div class="stat"><div class="k">${x[0]}</div><div class="v">${x[1]}<span class="u">${x[2]||''}</span></div></div>`).join('')}
+
+function mappedSource(en){const b=bindingFor(en);return b?.sourceCols?.length?sourceByCol(b.sourceCols[0]):null}
+function canonRetention(v){if(v===null||v===undefined||String(v).trim()==='')return {value:null,valid:false,missing:true};let s=String(v).trim().replace(/\.0+$/,'');if(/^\d+$/.test(s))s=s+'년';if(s==='영구보존')s='영구';if(s==='준영구보존')s='준영구';return {value:s,valid:STANDARD_RETENTIONS.includes(s),missing:false}}
+function normalizeRetention(v){const c=canonRetention(v);if(c.missing)return {v:null,status:'missing'};if(!$('normRetention').checked)return {v,status:'source'};if(c.valid)return {v:c.value,status:String(v).trim()===c.value?'source':'norm'};return {v:c.value,status:'invalid'}}
+function normalizeDisclosure(v){if(v===null||v===undefined||String(v).trim()==='')return {v,status:'missing'};const s=String(v).replace(/\s+/g,'').trim();if(!$('normDisclosure').checked)return {v,status:'source'};if(['공개','비공개','부분공개'].includes(s))return {v:s,status:'source'};if(s==='부분')return {v:'부분공개',status:'norm'};return {v,status:'source'}}
+function stripTaskRetention(v){return String(v??'').replace(/\((?:미지정|\d+년|준영구|영구)\)\s*$/,'').replace(/[•·]/g,'').trim()}
+function taskNorm(v){return norm(stripTaskRetention(v)).replace(/과제카드추가활용/g,'')}
+function resolveStandardTask(original,title){
+  if(!$('normTaskStandard').checked||!STANDARD_TASKS.length)return null;
+  const o=taskNorm(original),t=taskNorm(title);let sourceBest=null,titleBest=null;
+  for(const task of STANDARD_TASKS){const aliases=[task.task,...task.cards].map(taskNorm).filter(Boolean);for(const a of aliases){let score=0,reason='';if(o&&o===a){score=100;reason='단위과제/카드명 정확일치'}else if(o&&a.length>=4&&(o.includes(a)||a.includes(o))){score=88;reason='단위과제/카드명 유사일치'}if(score&&(!sourceBest||score>sourceBest.score))sourceBest={task,score,reason}}
+    for(const phrase of task.examplePhrases||[]){const p=taskNorm(phrase);if(!p||p.length<4||!t.includes(p))continue;const owners=STANDARD_EXAMPLE_INDEX.get(p);if(!owners||owners.size!==1)continue;const score=Math.min(98,92+Math.floor(Math.min(p.length,24)/4));if(!titleBest||score>titleBest.score)titleBest={task,score,reason:`표준 단위과제표 등록·편철 예시 일치: ${phrase}`}}
+  }
+  const rawTitle=String(title??'');
+  const albumActual=/앨범/.test(rawTitle)&&!/(신청|제작|업체|선정|계약|구입|구매|품의|검수|회의|계획|촬영|동의서|견적|대금|납품)/.test(rawTitle);
+  if(albumActual){const x=STANDARD_TASKS.find(x=>taskNorm(x.task)==='학교역사기록물관리');if(x)return {task:x,score:100,reason:'표준 단위과제표: 실제 앨범은 학교역사기록물관리',sourceCandidate:sourceBest?.task?.task||''}}
+  const actualLifeRecord=/생활기록부/.test(rawTitle)&&!/(작성|점검|오류|누락|기재|연수|동의서|사전동의|지원|통계|자료제출)/.test(rawTitle);
+  if(actualLifeRecord){const x=STANDARD_TASKS.find(x=>taskNorm(x.task)==='학교생활기록부관리');if(x)return {task:x,score:99,reason:'표준 단위과제표 등록·편철 예시: 실제 생활기록부',sourceCandidate:sourceBest?.task?.task||''}}
+  if(sourceBest&&titleBest&&sourceBest.task.task!==titleBest.task.task&&titleBest.score>=96){return {...sourceBest,conflict:{candidate:titleBest.task.task,retention:titleBest.task.retention,reason:titleBest.reason,score:titleBest.score}}}
+  const best=sourceBest||titleBest;if(!best||best.score<85)return null;return best
+}
+function typeFromDetail(v){const s=norm(v);if(!s)return {};if(['문서','일반문서'].includes(s))return {type:'문서류',detail:'일반문서',media:'종이'};if(['대장','카드','도면'].includes(s))return {type:'문서류',detail:s,media:'종이'};if(s==='앨범')return {type:'시청각류',detail:'사진',media:'인화사진',reason:'앨범 → 사진/인화사진'};if(s==='사진')return {type:'시청각류',detail:'사진'};if(s==='영상')return {type:'시청각류',detail:'영상'};if(s==='음성')return {type:'시청각류',detail:'음성'};if(/사진.*(CD|시디)/i.test(s))return {type:'시청각류',detail:'사진',media:'사진CD'};if(/사진.*DVD/i.test(s))return {type:'시청각류',detail:'사진',media:'사진DVD'};return {}}
+function statusObj(v,status,sourceHeader,manual=false,original=null,transform='',reason=''){return {value:v,status:manual&&status==='source'?'manual':status,sourceHeader:sourceHeader||'',originalValue:original,transform:transform||'',reason:reason||''}}
+function rawValueByHeaders(row,names){const i=headerIndexFor(headers,names);return i>=0?row[i]:null}
+function expectedExpiry(endYear,ret){const y=Number(String(endYear??'').match(/\d{4}/)?.[0]),m=String(ret??'').match(/^(1|3|5|10|30)년$/);return y&&m?y+Number(m[1]):null}
+function buildRecord(row,rowIndex){
+  const fields={},issues=[],defs={keepOrgNm:$('defaultKeepOrg').value.trim(),creatOrgNm:$('defaultCreatOrg').value.trim()};
+  for(const c of STD){if(c.locked){fields[c.en]=statusObj(null,'formula','');continue}const b=bindingFor(c.en),applied=b?applyBinding(b,row):{value:null,originalValue:null,sourceHeader:'',transformed:false};let raw=applied.value,val=raw,status=(raw===null||raw===undefined||String(raw).trim()==='')?'missing':(applied.transformed?'transform':(b?.manual?'manual':'source'));if(c.en==='openDivNm'&&status!=='missing'){const z=normalizeDisclosure(raw);val=z.v;if(z.status==='norm')status='norm'}if(status==='missing'&&defs[c.en]){val=defs[c.en];status='profile'}fields[c.en]=statusObj(val,status,applied.sourceHeader,b?.manual,applied.originalValue,b?transformSummary(b.transform,b.sourceCols.length):'')}
+  if(fields.keepOrgNm?.status==='missing'&&metaInfo.institution)fields.keepOrgNm=statusObj(metaInfo.institution,'source','상단 기관(학교)명',false,metaInfo.institution);if(fields.creatOrgNm?.status==='missing'&&metaInfo.institution)fields.creatOrgNm=statusObj(metaInfo.institution,'source','상단 기관(학교)명',false,metaInfo.institution);if(fields.creatOrgNm?.status==='missing'&&metaInfo.productionOrg)fields.creatOrgNm=statusObj(metaInfo.productionOrg,'source','상단 생산부서',false,metaInfo.productionOrg);
+  const taskRes=resolveStandardTask(fields.clssNm?.value,fields.title?.value);if(taskRes){const stdTask=taskRes.task.task,stdRet=taskRes.task.retention;if(taskRes.conflict)issues.push({level:'error',code:'taskConflict',message:`단위과제 후보 충돌: ${stdTask} ↔ ${taskRes.conflict.candidate}`,reason:`원본 매핑과 표준 등록·편철 예시가 서로 다릅니다. ${taskRes.conflict.reason}`});if(!fields.clssNm||taskNorm(fields.clssNm.value)!==taskNorm(stdTask))fields.clssNm=statusObj(stdTask,'standard',fields.clssNm?.sourceHeader||'',false,fields.clssNm?.value??null,'',taskRes.reason);const cur=canonRetention(fields.presvTermNm?.value);if(stdRet&&(!cur.valid||cur.value!==stdRet)){issues.push({level:'standard',code:'retentionCorrected',message:`보존기간 ${cur.value||'(없음)'} → ${stdRet}`,reason:taskRes.reason});fields.presvTermNm=statusObj(stdRet,'standard',fields.presvTermNm?.sourceHeader||'',false,fields.presvTermNm?.value??null,'',`${taskRes.reason} · ${stdTask}=${stdRet}`)}}
+  if(!taskRes&&fields.presvTermNm?.status!=='missing'){const z=normalizeRetention(fields.presvTermNm.value);fields.presvTermNm=statusObj(z.v,z.status,fields.presvTermNm.sourceHeader,false,fields.presvTermNm.originalValue??fields.presvTermNm.value,fields.presvTermNm.transform,z.status==='invalid'?'표준 보존기간 허용값 아님':'');if(z.status==='invalid')issues.push({level:'error',code:'invalidRetention',message:`비표준 보존기간: ${z.v}`,reason:'표준 유효성검사 허용값 아님'})}
+  const detailRaw=fields.detailTypeNm?.value,typeRaw=fields.typeDivNm?.value,t=typeFromDetail(detailRaw);if($('normType').checked&&t.type){if(typeRaw!==t.type){issues.push({level:'standard',code:'typeHierarchy',message:`기록유형 ${typeRaw||'(없음)'} → ${t.type}`,reason:t.reason||`${detailRaw} 표준 계층`});fields.typeDivNm=statusObj(t.type,'standard',fields.typeDivNm?.sourceHeader||'',false,typeRaw,'',t.reason||`${detailRaw} 표준 계층`)}if(t.detail&&detailRaw!==t.detail)fields.detailTypeNm=statusObj(t.detail,'standard',fields.detailTypeNm?.sourceHeader||'',false,detailRaw,'',t.reason||'세부유형 표준화');if(t.media&&(!fields.mediaTypeNm||fields.mediaTypeNm.status==='missing'))fields.mediaTypeNm=statusObj(t.media,'standard',fields.detailTypeNm?.sourceHeader||'',false,null,'',t.reason||'문서형태 기반 매체 표준화')}
+  const expiryRaw=rawValueByHeaders(row,['보존기간 만료연도','보존기간만료연도','보존기간 만료년도','보존기간만료년도','만료연도','만료년도']),expected=expectedExpiry(fields.creatYyyyTo?.value,fields.presvTermNm?.value);let normalizedExpiry=expiryRaw;if(expected!==null){const got=Number(String(expiryRaw??'').match(/\d{4}/)?.[0]);normalizedExpiry=expected;if(got&&got!==expected)issues.push({level:'standard',code:'expiryCorrected',message:`만료연도 ${got} → ${expected}`,reason:`표준 산식: 종료연도 + 보존기간 = ${expected}`});else if(!got&&expiryRaw!==null&&expiryRaw!==undefined&&String(expiryRaw).trim()!=='')issues.push({level:'standard',code:'expiryCorrected',message:`만료연도 ${String(expiryRaw)} → ${expected}`,reason:`표준 산식: 종료연도 + 보존기간 = ${expected}`})}
+  const rawObj={};headers.forEach((h,i)=>{if(norm(h))rawObj[h]=row[i]});const rm=rowMeta[rowIndex]||{};if(rm.mergeConflict)issues.push({level:'error',code:'mergeConflict',message:'다중시트 동일자료의 핵심값이 서로 다름',reason:'자동 통합하지 않고 별도 행 유지'});return {sourceRow:rm.sourceRow??(headerIndex+(headerSpan2?2:1)+rowIndex+1),sourceSheet:rm.sourceSheet||sourceSheet,sourceSheets:rm.sourceSheets||[rm.sourceSheet||sourceSheet],sourceRows:rm.sourceRows||[rm.sourceRow??(rowIndex+1)],fields,raw:rawObj,issues,expectedExpiry:expected,originalExpiry:expiryRaw,normalizedExpiry};
+}
+function rebuildPreview(){previewRecords=dataRows.map(buildRecord);traceRecords=previewRecords;renderStatus();renderStandardIssues();renderPreviewHead();renderPreviewTable();renderCoverage();const det=[];if(metaInfo.institution)det.push(`상단 기관명: ${metaInfo.institution}`);if(metaInfo.productionOrg)det.push(`상단 생산부서: ${metaInfo.productionOrg}`);if(STANDARD_TASKS.length)det.push(`표준 단위과제 ${STANDARD_TASKS.length}개 로드`);$('metaDetected').textContent=det.length?det.join(' · '):'상단에서 별도 기관정보를 찾지 못했습니다.';setFoot('역사값은 보존하고, 표준화 대상 값의 보정근거와 검토필요 항목을 확인하세요.')}
+function countStatuses(){const c={source:0,norm:0,standard:0,invalid:0,profile:0,missing:0,manual:0,transform:0};previewRecords.forEach(r=>Object.values(r.fields).forEach(f=>{if(c[f.status]!==undefined)c[f.status]++}));return c}
+function renderStatus(){const c=countStatuses();$('statusSummary').innerHTML=summary([['원본값',c.source,'칸'],['표준기준보정',c.standard,'칸'],['표기정규화',c.norm,'칸'],['검토필요',c.invalid,'칸'],['기관설정',c.profile,'칸'],['정보없음',c.missing,'칸']])}
+function allIssues(){return previewRecords.flatMap((r,i)=>(r.issues||[]).map(x=>({...x,row:i+1,title:r.fields.title?.value||'',sourceSheet:r.sourceSheet})))}
+function renderStandardIssues(){const issues=allIssues(),errors=issues.filter(x=>x.level==='error'),std=issues.filter(x=>x.level==='standard');$('issueBadge').className='badge '+(errors.length?'bad':'good');$('issueBadge').textContent=errors.length?`검토필요 ${errors.length}건`:'표준검증 통과';const rows=issues.slice(0,30);$('issueBody').innerHTML=`<div class="issue-counts"><span class="issue-pill">표준보정 ${std.length}건</span><span class="issue-pill">검토필요 ${errors.length}건</span><span class="issue-pill">시트보충 ${mergeStats.merged||0}건</span><span class="issue-pill">빈 양식행 제외 ${mergeStats.templateRows||0}건</span></div>${rows.length?`<div class="issue-list">${rows.map(x=>`<div class="issue-row ${x.level==='error'?'bad':'ok'}"><b>${esc(x.sourceSheet||'')} · ${x.row}행</b><div>${esc(x.message)}<div class="muted">${esc(x.reason||'')} · ${esc(x.title)}</div></div></div>`).join('')}</div>`:'<div class="muted">표준기준 검토사항이 없습니다.</div>'}${issues.length>30?`<div class="muted" style="margin-top:8px">외 ${issues.length-30}건은 추적정보 JSON에 포함됩니다.</div>`:''}`}
+const PREVIEW_FIELDS=['mngNo','title','creatYyyyFrom','creatYyyyTo','presvTermNm','clssNm','typeDivNm','detailTypeNm','mediaTypeNm','openDivNm','excelPresvBoxNm','orgBoxNum','orgPresvLoc','stackNm','rackNm','docuConditionNm'];
+function visiblePreviewFields(){return PREVIEW_FIELDS.map(en=>STD.find(c=>c.en===en)).filter(Boolean)}
+function renderPreviewHead(){$('previewHead').innerHTML='<tr>'+visiblePreviewFields().map(c=>`<th>${esc(c.ko)}<div class="mono">${esc(c.en)}</div></th>`).join('')+'</tr>'}
+function tag(s){const label={source:'원본',norm:'표기정규화',standard:'표준보정',invalid:'검토필요',profile:'기관설정',missing:'정보없음',manual:'수동매핑',transform:'사용자변환',formula:'수식'}[s]||s;return `<span class="celltag ${s}">${label}</span>`}
+function renderPreviewTable(){const q=($('previewSearch').value||'').toLowerCase(),filter=$('previewFilter').value,fs=visiblePreviewFields();let rows=previewRecords.filter(r=>{const txt=fs.map(c=>String(r.fields[c.en]?.value??'')).join(' ').toLowerCase();if(q&&!txt.includes(q))return false;if(filter&&!Object.values(r.fields).some(f=>f.status===filter))return false;return true}).slice(0,80);$('previewBody').innerHTML=rows.map(r=>'<tr>'+fs.map(c=>{const f=r.fields[c.en]||{value:null,status:'missing'};return `<td><div>${esc(f.value??'')}</div><div class="origin">${tag(f.status)}</div></td>`}).join('')+'</tr>').join('')}
+function renderCoverage(){const el=$('fieldCoverage');el.innerHTML=STD.filter(c=>!c.locked).map(c=>{const filled=previewRecords.filter(r=>{const f=r.fields[c.en];return f&&f.status!=='missing'&&f.value!==null&&f.value!==''}).length;const pct=previewRecords.length?Math.round(filled/previewRecords.length*100):0;const hot=IMPORTANT.includes(c.en)&&pct<100;return `<span class="${hot?'hot':''}">${esc(c.ko)} ${filled}/${previewRecords.length} (${pct}%)</span>`}).join('')}
+function profilePayload(){
+  return {
+    version:6,
+    uiMode:'horizontal-mapping-standard-validation',
+    name:$('profileName').value.trim()||sourceSheet||'마이그레이션 프로필',
+    signature:headerSignature,
+    targetType,
+    sourceSheetHint:sourceSheet,
+    headers:[...headers],
+    bindings:Object.values(bindings).map(b=>({
+      targetEn:b.targetEn,
+      sourceHeaders:(b.sourceCols||[]).map(ci=>sourceByCol(ci)?.header||'').filter(Boolean),
+      transform:cloneObj(b.transform||defaultTransform()),
+      manual:!!b.manual,
+      score:b.score||0
+    })),
+    defaults:{keepOrg:$('defaultKeepOrg').value.trim(),creatOrg:$('defaultCreatOrg').value.trim()},
+    normalization:{standardTask:$('normTaskStandard').checked,retention:$('normRetention').checked,disclosure:$('normDisclosure').checked,type:$('normType').checked}
+  }
+}
+function saveProfileLocal(){if(!headerSignature)return;const p=profilePayload();profiles[headerSignature]=p;persistProfiles();alert('현재 열 매핑·변환규칙·표준검증 설정을 프로필로 저장했습니다. 다음부터 같은 헤더 구성이면 자동 적용합니다.')}
+function exportCurrentProfile(){if(!headerSignature){alert('먼저 대장을 불러오세요.');return}downloadBlob(new Blob([JSON.stringify(profilePayload(),null,2)],{type:'application/json;charset=utf-8'}),($('profileName').value.trim()||'기록물대장_마이그레이션프로필')+'.json')}
+function downloadTrace(){const p={schemaVersion:2,generatedAt:new Date().toISOString(),sourceFile:sourceFileName,sourceSheet,targetType,headerRow:headerIndex+1,headerSpan2,headerSignature,profileName:$('profileName').value.trim(),mergeStats,standardRetentionValues:STANDARD_RETENTIONS,summary:countStatuses(),records:traceRecords.map(r=>({sourceRow:r.sourceRow,sourceSheet:r.sourceSheet,sourceSheets:r.sourceSheets,sourceRows:r.sourceRows,raw:r.raw,expectedExpiry:r.expectedExpiry,originalExpiry:r.originalExpiry,normalizedExpiry:r.normalizedExpiry,issues:r.issues,fields:Object.fromEntries(Object.entries(r.fields).map(([k,f])=>[k,{sourceHeader:f.sourceHeader,originalValue:f.originalValue,outputValue:f.value,status:f.status,transform:f.transform||'',reason:f.reason||''}]))}))};downloadBlob(new Blob([JSON.stringify(p,null,2)],{type:'application/json;charset=utf-8'}),(sourceFileName.replace(/\.xlsx?$|\.xlsm?$|\.xls$/i,'')||'기록물대장')+'_마이그레이션추적.json')}
+function downloadBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},300)}
+function renderFinal(){if(!previewRecords.length)rebuildPreview();const c=countStatuses(),err=allIssues().filter(x=>x.level==='error').length;$('finalSummary').innerHTML=summary([['변환 행',previewRecords.length,'행'],['표준기준보정',c.standard,'칸'],['검토필요',err,'건'],['시트보충',mergeStats.merged||0,'건'],['빈 양식행 제외',mergeStats.templateRows||0,'건'],['정보없음',c.missing,'칸']]);setFoot(err?'검토필요 오류를 해결한 뒤 표준서식 Excel을 생성하세요.':'표준검증을 통과했습니다. Excel 또는 추적정보를 내려받을 수 있습니다.')}
+function formulaForRow(formula,row){return String(formula).replace(/(\$?)([A-Z]{1,3})(?<!\$)5\b/g,(m,d,col)=>d+col+row)}
+async function downloadStandardWorkbook(){if(!TPL_BUFFER){alert('표준서식 템플릿이 없습니다.');return}if(!previewRecords.length)rebuildPreview();const blocking=allIssues().filter(x=>x.level==='error');if(blocking.length){alert(`표준기준 검토필요 ${blocking.length}건이 남아 있습니다. 보존기간·단위과제 후보 충돌·다중시트 충돌을 먼저 확인해주세요.`);return}const btn=$('downloadStdBtn');btn.disabled=true;$('exportState').innerHTML='<b>생성 중</b> · 원본 표준양식에 변환값을 넣고 있습니다.';try{const wb=new ExcelJS.Workbook();await wb.xlsx.load(TPL_BUFFER);if(wb.definedNames&&Array.isArray(wb.definedNames.model))wb.definedNames.model=wb.definedNames.model.filter(d=>!(d.ranges||[]).some(r=>/\[|#REF!/.test(r)));const ws=wb.getWorksheet(LEDGER_SHEET)||wb.worksheets[0],proto=[];const base=ws.getRow(DATA_ROW);for(let c=1;c<=ws.columnCount;c++){const cell=base.getCell(c),v=cell.value;proto.push({style:cell.style,dv:cell.dataValidation||null,formula:(v&&typeof v==='object'&&v.formula!==undefined)?v.formula:null})}const need=DATA_ROW+previewRecords.length-1;for(let r=DATA_ROW;r<=Math.max(need,ws.rowCount);r++){const out=ws.getRow(r),rec=previewRecords[r-DATA_ROW];for(let c=1;c<=ws.columnCount;c++){const p=proto[c-1],cell=out.getCell(c);cell.style=p.style;if(p.dv)cell.dataValidation=p.dv;cell.value=p.formula?{formula:formulaForRow(p.formula,r)}:null}if(rec){STD.forEach(col=>{if(col.locked)return;const f=rec.fields[col.en];if(f&&f.status!=='missing'&&f.value!==null&&f.value!=='')out.getCell(col.index).value=f.value})}}const buffer=await wb.xlsx.writeBuffer();downloadBlob(new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),(sourceFileName.replace(/\.(xlsx|xlsm|xls)$/i,'')||'기록물관리대장')+'_'+TEMPLATE_DEF[targetType].title+'_표준변환.xlsx');$('exportState').innerHTML=`<b>완료</b> · ${previewRecords.length}행을 표준서식으로 만들었습니다. 역사값은 보존하고 표준기준 보정값은 근거와 함께 추적정보에 기록했습니다.`}catch(e){$('exportState').innerHTML=`<b>오류</b> · ${esc(e.message)}`}finally{btn.disabled=false}}
+initTypes();
+</script></body></html>
