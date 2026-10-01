@@ -16,18 +16,10 @@ h1{font-size:20px;margin:0 0 10px}.muted{color:#667085;font-size:13px;line-heigh
 (async()=>{
   const state=document.getElementById('state');
   try{
-    const urls=["../site-src/transfer-v0.3.part01.b64","../site-src/transfer-v0.3.part02.b64"];
-    const chunks=await Promise.all(urls.map(async u=>{
-      const r=await fetch(u,{cache:'no-store'});
-      if(!r.ok) throw new Error(u+' · HTTP '+r.status);
-      return (await r.text()).replace(/\s+/g,'');
-    }));
-    const bin=atob(chunks.join(''));
-    const bytes=new Uint8Array(bin.length);
-    for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
-    if(!('DecompressionStream' in window)) throw new Error('최신 Edge 또는 Chrome을 사용해주세요.');
-    const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
-    const page=await new Response(stream).text();
+    const src="../site-src/transfer-v0.3.source.html";
+    const r=await fetch(src,{cache:'no-store'});
+    if(!r.ok) throw new Error(src+' · HTTP '+r.status);
+    const page=await r.text();
     if(!page.includes('통합 Beta v0.3')) throw new Error('배포 파일 검증에 실패했습니다.');
     document.open();document.write(page);document.close();
   }catch(e){
