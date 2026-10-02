@@ -20,7 +20,7 @@ h1{font-size:20px;margin:0 0 10px}.muted{color:#667085;font-size:13px;line-heigh
     const r=await fetch(src,{cache:'no-store'});
     if(!r.ok) throw new Error(src+' · HTTP '+r.status);
     const html=await r.text();
-    if(!html.includes('보유기록물 관리')||!html.includes("const APP_VERSION='v0.8.4 Beta'")){
+    if(!html.includes('보유기록물 관리')||!html.includes("const APP_VERSION='v0.8.5 Beta'")){
       throw new Error('배포 파일 검증에 실패했습니다.');
     }
     document.open();
