@@ -530,10 +530,32 @@ function sanitizeWorkbookText(s){
  return s;
 }
 async function sanitizePackage(zip){
- Object.keys(zip.files).filter(n=>n.startsWith('xl/externalLinks/')).forEach(n=>zip.remove(n));
- const ct=zip.file('[Content_Types].xml');if(ct){let s=await ct.async('text');s=s.replace(/<Override\b[^>]*PartName="\/xl\/externalLinks\/[^\"]+"[^>]*\/>/gi,'');zip.file('[Content_Types].xml',s)}
- const rel=zip.file('xl/_rels/workbook.xml.rels');if(rel){let s=await rel.async('text');s=s.replace(/<Relationship\b(?=[^>]*(?:Type="[^"]*\/externalLink"|Target="externalLinks\/[^"]+"))[^>]*\/>/gi,'');zip.file('xl/_rels/workbook.xml.rels',s)}
- const wf=zip.file('xl/workbook.xml');if(wf){let s=await wf.async('text');s=sanitizeWorkbookText(s);zip.file('xl/workbook.xml',s)}
+ // 원본 템플릿의 외부연결과 계산체인은 데이터 주입 후 무효가 될 수 있으므로 제거한다.
+ Object.keys(zip.files).filter(n=>n.startsWith('xl/externalLinks/')||n==='xl/calcChain.xml').forEach(n=>zip.remove(n));
+ const ct=zip.file('[Content_Types].xml');if(ct){
+  let x=await ct.async('text');
+  x=x.replace(/<Override\b[^>]*PartName="\/xl\/externalLinks\/[^"]+"[^>]*\/>/gi,'');
+  x=x.replace(/<Override\b[^>]*PartName="\/xl\/calcChain\.xml"[^>]*\/>/gi,'');
+  zip.file('[Content_Types].xml',x)
+ }
+ const rel=zip.file('xl/_rels/workbook.xml.rels');if(rel){
+  let x=await rel.async('text');
+  x=x.replace(/<Relationship\b(?=[^>]*(?:Type="[^"]*\/externalLink"|Target="externalLinks\/[^"]+"))[^>]*\/>/gi,'');
+  x=x.replace(/<Relationship\b(?=[^>]*(?:Type="[^"]*\/calcChain"|Target="calcChain\.xml"))[^>]*\/>/gi,'');
+  zip.file('xl/_rels/workbook.xml.rels',x)
+ }
+ const wf=zip.file('xl/workbook.xml');if(wf){
+  let x=await wf.async('text');x=sanitizeWorkbookText(x);
+  if(/<calcPr\b/i.test(x)){
+   x=x.replace(/<calcPr\b([^>]*)\/?>(?:<\/calcPr>)?/i,(m,a)=>{
+    let attrs=String(a||'').replace(/\s+(?:calcMode|fullCalcOnLoad|forceFullCalc)="[^"]*"/gi,'');
+    return '<calcPr'+attrs+' calcMode="auto" fullCalcOnLoad="1" forceFullCalc="1"/>';
+   });
+  }else{
+   x=x.replace(/<\/workbook>/i,'<calcPr calcMode="auto" fullCalcOnLoad="1" forceFullCalc="1"/></workbook>');
+  }
+  zip.file('xl/workbook.xml',x)
+ }
 }
 async function fetchTemplateZip(kind){
  if(!window.JSZip)throw new Error('JSZip을 불러오지 못했습니다. 인터넷 연결을 확인해주세요.');
