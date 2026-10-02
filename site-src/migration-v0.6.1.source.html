@@ -452,7 +452,7 @@
           <div id="transformOptions"></div>
         </div>
       </div>
-      <div class="transform-note">원본 데이터는 수정하지 않습니다. 여기에서 정한 규칙은 표준서식으로 내보낼 값에만 적용되며, 규칙 자체도 마이그레이션 프로필에 저장됩니다.</div>
+      <div class="transform-note">원본 데이터는 수정하지 않습니다. 여기에서 정한 규칙은 표준서식으로 내보낼 값에만 적용되며, 규칙 자체도 표준 작업방식 JSON에 저장됩니다.</div>
       <div class="editor-preview">
         <div class="editor-preview-head">실시간 변환 예시 · 원본 앞 3건</div>
         <div id="transformPreviewRows"></div>
@@ -1206,7 +1206,7 @@ function profilePayload(){
   return {
     kind:'ddalkkak-records-migration-profile',
     schemaVersion:1,
-    version:6,
+    version:7,
     exportedAt:new Date().toISOString(),
     uiMode:'horizontal-mapping-standard-validation',
     name:$('profileName').value.trim()||sourceSheet||'마이그레이션 프로필',
