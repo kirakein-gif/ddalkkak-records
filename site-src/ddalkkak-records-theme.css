@@ -98,11 +98,18 @@ button{cursor:pointer}
  letter-spacing:-.035em!important;
  font-weight:900!important;
 }
-.brand p,.brand .sub,.sub,.subtitle{
+.brand p,.brand .sub{
  margin:3px 0 0!important;
  color:var(--dd-muted)!important;
  font-size:14.5px!important;
  line-height:1.45!important;
+ font-weight:650!important;
+}
+.sub,.subtitle{
+ margin:3px 0 0!important;
+ color:var(--dd-muted)!important;
+ font-size:14px!important;
+ line-height:1.5!important;
  font-weight:650!important;
 }
 .wrap,.app{
@@ -199,7 +206,7 @@ button{cursor:pointer}
  border-radius:9px!important;
  background:#fff!important;
  color:#24364f!important;
- font-size:14px!important;
+ font-size:14.5px!important;
  font-weight:900!important;
  box-shadow:0 1px 0 rgba(16,35,63,.02)!important;
  transition:.14s ease!important;
@@ -256,7 +263,7 @@ input:focus,select:focus,textarea:focus,.search:focus{
  display:inline-flex!important;
  align-items:center!important;
  justify-content:center!important;
- font-size:12.5px!important;
+ font-size:10.5px!important;
  font-weight:900!important;
 }
 .badge.info,.badge.blue,.proto{background:var(--dd-primary-soft)!important;color:var(--dd-primary)!important;border:1px solid #b9ddd5!important}
@@ -347,7 +354,8 @@ tbody tr:hover td{background:#fbfdfd!important}
  .wrap,.app{padding-left:14px!important;padding-right:14px!important}
  .brand h1,.brand .app-title,h1.app-title{font-size:30px!important}
  .brand-kicker{font-size:11.5px!important}
- .brand p,.brand .sub,.sub,.subtitle{font-size:13.5px!important}
+ .brand p,.brand .sub{font-size:13.5px!important}
+ .sub,.subtitle{font-size:13.5px!important}
  .logo{width:58px!important;height:58px!important}
 }
 @media(max-width:650px){
@@ -356,7 +364,8 @@ tbody tr:hover td{background:#fbfdfd!important}
  .mode-tab{flex:1!important}
  .brand h1,.brand .app-title,h1.app-title{font-size:27px!important}
  .brand-kicker{font-size:10.5px!important}
- .brand p,.brand .sub,.sub,.subtitle{font-size:12.5px!important}
+ .brand p,.brand .sub{font-size:12.5px!important}
+ .sub,.subtitle{font-size:12.5px!important}
  .steps{grid-template-columns:1fr!important}
 }
 /* Ddalkkak records desktop workbench: left steps + compact file controls */
@@ -505,7 +514,8 @@ tbody tr:hover td{background:#fbfdfd!important}
 @media(min-width:1200px){
  .brand h1,.brand .app-title,h1.app-title{font-size:36px!important}
  .brand-kicker{font-size:12.5px!important}
- .brand p,.brand .sub,.sub,.subtitle{font-size:15px!important}
+ .brand p,.brand .sub{font-size:15px!important}
+ .sub,.subtitle{font-size:14px!important}
  .topin>.badge,.topin>.top-actions .badge{font-size:13px!important;min-height:36px!important;padding:8px 12px!important}
 }
 .top-actions{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:8px!important;flex-wrap:wrap!important}
