@@ -25,9 +25,10 @@
 .modalback{display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:100;align-items:center;justify-content:center;padding:20px}.modalback.on{display:flex}.modal{width:min(850px,96vw);max-height:90vh;overflow:auto;background:#fff;border-radius:16px}.modalhead{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.modalbody{padding:18px}.formgrid{display:grid;grid-template-columns:150px 1fr;gap:9px;align-items:center}.formgrid label{font-weight:800;color:#475467}
 @media(max-width:1050px){.summary{grid-template-columns:repeat(3,1fr)}.grid2{grid-template-columns:1fr}.field-list{grid-template-columns:repeat(2,1fr)}}@media(max-width:650px){.summary{grid-template-columns:repeat(2,1fr)}.field-list,.grid3{grid-template-columns:1fr}.mode-tabs{flex-direction:column}.formgrid,.bulkrow{grid-template-columns:1fr}}
 </style>
+<link rel="stylesheet" href="../../site-src/ddalkkak-records-theme.css">
 </head>
 <body>
-<div class="top"><div class="topin"><div class="brand"><div class="logo">딸깍</div><div><h1>기록물관리 자동화</h1><div class="sub">완성된 표준대장을 검색·정비·폐기이력·부서검색까지 관리합니다</div></div></div><span class="badge info">v0.8.8 Beta</span></div></div>
+<div class="top"><div class="topin"><div class="brand"><div class="logo">딸깍</div><div><div class="brand-kicker">DDALKKAK RECORDS MANAGEMENT</div><h1>딸깍 기록물관리</h1><div class="sub">완성된 표준대장을 검색·정비·보존상자·폐기·부서검색까지 계속 관리합니다.</div></div></div><span class="badge info">v0.9.0 Beta</span></div></div>
 <main class="wrap">
 <div class="mode-tabs"><a class="mode-tab" href="../">신규자료 편입</a><a class="mode-tab active" href="./">보유기록물 관리</a></div>
 <div id="loadCard" class="card"><div class="head"><h2>표준 기록물관리대장</h2><span class="badge info">표준대장 관리</span></div><div class="body"><div class="loadbar"><input id="ledgerInput" type="file" accept=".xlsx" style="display:none"><button class="btn primary" onclick="document.getElementById('ledgerInput').click()">대장 불러오기</button><div class="loadcopy"><b id="loadFileName">완성된 표준 기록물관리대장을 선택하세요</b><p>마이그레이션 결과 또는 기록물관리 자동화에서 생성한 표준대장을 불러옵니다. 원본은 덮어쓰지 않습니다.</p></div><div id="loadState" class="muted">선택된 파일 없음</div></div></div></div>
@@ -61,7 +62,7 @@
 </main>
 <div id="recordModal" class="modalback" onclick="if(event.target===this)closeRecord()"><div class="modal"><div class="modalhead"><div><b id="recordTitle">기록물 상세</b><div class="sub" id="recordSub"></div></div><button class="btn" onclick="closeRecord()">닫기</button></div><div class="modalbody"><div id="recordForm" class="formgrid"></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button class="btn" onclick="closeRecord()">취소</button><button class="btn primary" onclick="saveRecord()">수정 저장</button></div></div></div></div>
 <script>
-const APP_VERSION='v0.8.8 Beta';
+const APP_VERSION='v0.9.0 Beta';
 const SHEET_NAME='기록물등록 기록물철 일괄등록서식',VALID_SHEET='(삭제금지)유효성검사',META_SHEET='_ddalkkak_meta';
 const FIELD_LABELS={mngNo:'관리번호',title:'철제목',clssNm:'단위과제',creatYyyyFrom:'생산연도(시작)',creatYyyyTo:'생산연도(끝)',presvTermNm:'보존기간',typeDivNm:'기록유형',detailTypeNm:'세부유형',mediaTypeNm:'매체유형',openDivNm:'공개구분',openGrade:'비공개호수',presvLocNm:'보존장소',operReadRangeNm:'열람구분',excelPresvBoxNm:'보존상자번호',excelBoxNo:'위치번호',orgBoxNum:'원상자번호',stackNm:'서고',rackNm:'서가',rowNm:'열',colNm:'층',orgPresvLoc:'위치정보',docuConditionNm:'기록물상태',rmsRegFlagNm:'DB등록여부',keepOrgNm:'보존기관명',creatOrgNm:'생산기관명'};
 const BULK_FIELDS=['presvTermNm','typeDivNm','detailTypeNm','mediaTypeNm','openDivNm','presvLocNm','operReadRangeNm','docuConditionNm','rmsRegFlagNm'];
