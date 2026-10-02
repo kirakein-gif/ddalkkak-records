@@ -195,6 +195,81 @@
 .migration-start-action .btn{min-width:210px}
 .migration-start-mini{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
 .sheet-choice{font-size:13px!important}
+
+/* Mapping readability / clear selection */
+.migration-page,.migration-page .records-main,.migration-page .card,.migration-page .body{color:#000!important}
+.migration-page .sub,.migration-page .notice,.migration-page .policy span,
+.migration-page .migration-start-desc,.migration-page .mapping-help,.migration-page .mapping-legend,
+.migration-page .map-bottom-note,.migration-page .formrow,.migration-page td,
+.migration-page .sourcecard .sv,.migration-page .editor-help,.migration-page .transform-note,
+.migration-page .muted{color:#000!important}
+
+.migration-page .type{position:relative!important;color:#000!important;transition:.16s ease!important}
+.migration-page .type.on{
+ border:2px solid var(--dd-primary)!important;
+ background:#e7f8f3!important;
+ box-shadow:0 0 0 3px rgba(15,118,110,.12),0 5px 14px rgba(15,118,110,.08)!important;
+ padding-right:92px!important;
+}
+.migration-page .type.on::after{
+ content:"✓ 선택됨";position:absolute;right:12px;top:12px;
+ padding:5px 8px;border-radius:999px;background:var(--dd-primary);color:#fff;
+ font-size:12px;font-weight:900;line-height:1;
+}
+.migration-page .type.on b{color:#000!important}
+
+#mapSummary{
+ display:grid!important;
+ grid-template-columns:repeat(6,minmax(0,1fr))!important;
+ gap:9px!important;
+ margin-bottom:13px!important;
+}
+#mapSummary .stat{min-width:0!important}
+#mapSummary .k{font-size:12.5px!important;color:#000!important}
+#mapSummary .v{font-size:26px!important;color:#000!important}
+#mapSummary .u{font-size:12px!important;color:#000!important}
+
+.migration-page .targetcol{width:240px!important;min-width:240px!important}
+.migration-page .targethead{height:94px!important;padding:11px 12px!important}
+.migration-page .targethead .colno{font-size:12px!important;color:#333!important}
+.migration-page .targethead .ko{font-size:14.5px!important;color:#000!important;line-height:1.35!important}
+.migration-page .targethead .en{font-size:12.5px!important;color:#4b5563!important;margin-top:5px!important}
+.migration-page .mapdrop{margin:9px!important;padding:9px!important;min-height:350px!important}
+.migration-page .sourcecard{padding:9px 29px 9px 10px!important}
+.migration-page .sourcecard .sh{font-size:13.5px!important;color:#000!important;line-height:1.35!important}
+.migration-page .sourcecard .sv{font-size:12.5px!important;line-height:1.5!important;max-height:42px!important}
+.migration-page .source-status,.migration-page .source-use{font-size:12px!important}
+.migration-page .map-actions{gap:6px!important}
+.migration-page .map-actions .mini{font-size:12.5px!important;padding:6px 9px!important;min-height:30px!important}
+.migration-page .rule-badge{font-size:12px!important;padding:5px 8px!important;min-height:30px!important}
+.migration-page .map-sample-title{font-size:12px!important}
+.migration-page .map-sample-no,.migration-page .map-sample-val{font-size:12px!important}
+.migration-page .map-sample-row{min-height:31px!important}
+.migration-page .sample-hint{font-size:11.5px!important}
+.migration-page .unmatched-title b{font-size:14px!important;color:#000!important}
+.migration-page .source-tray .sourcecard{width:210px!important;min-width:210px!important}
+.migration-page .mapping-help{font-size:13.5px!important}
+.migration-page .mapping-legend{font-size:12.5px!important}
+.migration-page .map-bottom-note{font-size:12.5px!important}
+
+.migration-page .mapping-scroll,.migration-page .source-tray{
+ scrollbar-width:auto;
+ scrollbar-color:#8192a6 #e9eef4;
+}
+.migration-page .mapping-scroll::-webkit-scrollbar,
+.migration-page .source-tray::-webkit-scrollbar{height:18px!important}
+.migration-page .mapping-scroll::-webkit-scrollbar-track,
+.migration-page .source-tray::-webkit-scrollbar-track{background:#e9eef4!important;border-radius:999px!important}
+.migration-page .mapping-scroll::-webkit-scrollbar-thumb,
+.migration-page .source-tray::-webkit-scrollbar-thumb{
+ background:#8192a6!important;border-radius:999px!important;border:4px solid #e9eef4!important;
+}
+.migration-page .mapping-scroll::-webkit-scrollbar-thumb:hover,
+.migration-page .source-tray::-webkit-scrollbar-thumb:hover{background:#607287!important}
+
+@media(max-width:1150px){
+ #mapSummary{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}
 @media(max-width:1050px){.migration-start-grid{grid-template-columns:1fr}.migration-start-action{align-items:stretch;flex-direction:column}.migration-start-action .btn{width:100%;min-width:0}}
 </style>
 </head><body class="migration-page">
