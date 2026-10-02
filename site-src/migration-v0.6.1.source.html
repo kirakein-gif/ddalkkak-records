@@ -447,7 +447,15 @@ function cleanTaskAlias(s){return String(s??'').replace(/^[•·\-\s]+/,'').repl
 function extractExamplePhrases(text){const out=[],generic=/^(신청서|계획|계획서|회의록|명단|대장|보고서|결과|자료|서류|관련서류|증빙자료|동의서|출석부|등록부|업무|관리)$/;for(let line of String(text??'').split(/[\r\n]+/)){line=line.replace(/^[•·*\-\s]+/,'').trim();if(!line)continue;const colon=line.indexOf(':');if(colon>=0)line=line.slice(colon+1);line=line.replace(/\([^)]*\)/g,' ');for(let p of line.split(/[,;/]/)){p=p.replace(/^[•·*\-\s]+/,'').trim();const n=taskNorm(p);if(n.length>=4&&!generic.test(n)&&!out.includes(p))out.push(p)}}return out}
 function candidatesFor(col){return [...(SYN[col.en]||[]),col.ko].filter(Boolean)}
 function matchHeader(h){const n=norm(h);let best={en:null,score:0};if(!n)return best;for(const c of STD){if(c.locked)continue;for(const s of candidatesFor(c)){const x=norm(s);let score=0;if(x===n)score=1;else if(x&& (n.includes(x)||x.includes(n)))score=Math.min(x.length,n.length)/Math.max(x.length,n.length);if(score>best.score)best={en:c.en,score}}}if(best.score<.5)best.en=null;return best}
-function scoreRow(row){const seen=new Set();let score=0;for(const v of row||[]){const m=matchHeader(v);if(m.en&&!seen.has(m.en)){seen.add(m.en);score+=m.score>=.999?1:.5}}return score}
+function importedProfileHeaderScore(row){
+ const p=importedProfileSignature?profiles[importedProfileSignature]:null;
+ const expected=new Set((Array.isArray(p?.headers)?p.headers:[]).map(norm).filter(Boolean));
+ if(!expected.size)return 0;
+ const seen=new Set();let hits=0;
+ for(const v of row||[]){const n=norm(v);if(n&&expected.has(n)&&!seen.has(n)){seen.add(n);hits++}}
+ return hits;
+}
+function scoreRow(row){const seen=new Set();let score=0;for(const v of row||[]){const m=matchHeader(v);if(m.en&&!seen.has(m.en)){seen.add(m.en);score+=m.score>=.999?1:.5}}return Math.max(score,importedProfileHeaderScore(row))}
 function span2(a,b,n){const out=[];for(let c=0;c<n;c++){const child=b?.[c],parent=a?.[c];out.push(child!==null&&child!==undefined&&String(child).trim()!==''?child:parent)}return out}
 function detectHeader(rows){let best={index:-1,span2:false,score:-1};for(let i=0;i<Math.min(18,rows.length);i++){const s1=scoreRow(rows[i]||[]);if(s1>best.score)best={index:i,span2:false,score:s1};if(i+1<rows.length){const s2=scoreRow(span2(rows[i],rows[i+1],Math.max(rows[i]?.length||0,rows[i+1]?.length||0)));if(s2>best.score)best={index:i,span2:true,score:s2}}}return best}
 function extractMeta(rows,until){const out={institution:'',productionOrg:'',raw:[]};for(let r=0;r<Math.min(until,15);r++){for(const cell of rows[r]||[]){if(cell===null||cell===undefined)continue;const s=String(cell).replace(/[\r\n]+/g,' ').trim();if(!s)continue;out.raw.push(s);let m=s.match(/기관\s*\(학교\)\s*명\s*[:：]?\s*(.+)$/i);if(m)out.institution=m[1].trim();m=s.match(/생산부서\s*[:：]\s*(.+)$/i);if(m)out.productionOrg=m[1].trim()}}return out}
