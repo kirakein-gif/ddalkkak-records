@@ -153,7 +153,7 @@
 </style>
 <link rel="stylesheet" href="../site-src/ddalkkak-records-theme.css">
 </head><body>
-<div class="top"><div class="topin"><div class="brand"><div class="logo">딸깍</div><div><div class="brand-kicker">DDALKKAK RECORDS MIGRATION</div><h1>딸깍 기록물관리 마이그레이션</h1><div class="sub">지역별·기관별로 다른 기존 기록물관리대장을 표준 구조로 맞춥니다.</div></div></div><span class="badge info">v0.6.8 Beta · 딸깍 UI</span></div></div>
+<div class="top"><div class="topin"><div class="brand"><div class="logo">딸깍</div><div><div class="brand-kicker">DDALKKAK RECORDS MIGRATION</div><h1>딸깍 기록물관리 마이그레이션</h1><div class="sub">지역별·기관별로 다른 기존 기록물관리대장을 표준 구조로 맞춥니다.</div></div></div><span class="badge info">v0.6.9 Beta · 딸깍 UI</span></div></div>
 <main class="wrap">
 <div class="records-workbench">
 <aside class="records-sidebar">
@@ -164,7 +164,7 @@
  <div class="records-side-card">
   <div class="records-side-title">자료 불러오기</div>
   <div class="records-file-stack">
-   <div class="records-file-row">
+   <div class="records-file-row" id="migrationDropZone">
     <input id="srcFile" type="file" accept=".xlsx,.xlsm,.xls" style="display:none">
     <button class="btn primary records-file-btn" onclick="document.getElementById('srcFile').click()">기존 대장 선택</button>
     <div id="migrationFileMeta" class="records-file-meta">Excel · XLS 1개</div>
@@ -275,7 +275,7 @@
 <section id="p5" class="panel">
 <div id="finalSummary" class="summary"></div>
 <div class="card"><div class="head"><h2>변환 결과</h2><span class="badge warn">표준 오류가 남으면 출력 차단</span></div><div class="body">
-<div class="notice"><b>v0.6.8 변환 규칙</b> · 관리번호·상자번호·위치정보·기존 철제목은 역사값으로 보존합니다. 단위과제·보존기간·기록유형은 표준양식의 기준정보로 검증하며, 확실한 근거가 있는 경우 표준값으로 보정합니다. 근거를 찾지 못한 비표준값은 출력 전에 검토가 필요합니다.</div>
+<div class="notice"><b>v0.6.9 변환 규칙</b> · 관리번호·상자번호·위치정보·기존 철제목은 역사값으로 보존합니다. 단위과제·보존기간·기록유형은 표준양식의 기준정보로 검증하며, 확실한 근거가 있는 경우 표준값으로 보정합니다. 근거를 찾지 못한 비표준값은 출력 전에 검토가 필요합니다.</div>
 
 <div class="muted" style="margin-top:10px;line-height:1.6">
   현재 구현범위: .xls/.xlsx 입력 · 숨김/다중시트 분석 · 후보 시트 통합 및 보충 · 빈 양식행 제외 · 자동/편집 매핑 · 표준 단위과제표 기반 과제/보존기간 검증 · 기록유형 계층 정규화 · 만료연도 오류 검증 · 원본/보정근거 추적 · 표준서식 변환.
@@ -509,8 +509,8 @@ function mergeCandidateSheets(cs){const extracted=cs.map(c=>({...c,...extractCan
   const groups=new Map(),result=[],metas=[];let merged=0,conflicts=0;const core=new Set([ti,mi,yi,ye,ri].filter(i=>i>=0));for(const x of recs){const k=keyOf(x.row);if(!k||bySheet.get(x.meta.sourceSheet+'|'+k)>1){result.push(x.row);metas.push(x.meta);continue}if(!groups.has(k)){groups.set(k,{row:[...x.row],meta:{...x.meta},index:result.length});result.push([...x.row]);metas.push({...x.meta});continue}const g=groups.get(k),base=result[g.index],m=metas[g.index];let bad=false;for(let i=0;i<union.length;i++){const a=base[i],b=x.row[i],ea=a===null||a===undefined||String(a).trim()==='',eb=b===null||b===undefined||String(b).trim()=='';if(ea&&!eb)base[i]=b;else if(!ea&&!eb&&norm(a)!==norm(b)&&core.has(i))bad=true}if(bad){conflicts++;result.push(x.row);metas.push({...x.meta,mergeConflict:true});continue}merged++;m.sourceSheets=[...new Set([...(m.sourceSheets||[m.sourceSheet]),x.meta.sourceSheet])];m.sourceRows=[...(m.sourceRows||[m.sourceRow]),x.meta.sourceRow]}
   const metaAgg={};for(const c of cs){const m=extractMeta(c.rows,c.index);if(m.institution&&!metaAgg.institution)metaAgg.institution=m.institution;if(m.productionOrg&&!metaAgg.productionOrg)metaAgg.productionOrg=m.productionOrg}return {headers:union,rows:result,rowMeta:metas,stats:{merged,conflicts,templateRows},metaInfo:metaAgg}}
 function applySheetMode(){if(!sourceCandidates.length)return;const mode=$('sheetMode').value;if(mode==='merge'&&sourceCandidates.length>1){const m=mergeCandidateSheets(sourceCandidates);processUnified(m.headers,m.rows,`통합 ${sourceCandidates.length}개 시트`,{rowMeta:m.rowMeta,metaInfo:m.metaInfo,mergeStats:m.stats});return}const c=sourceCandidates[Number($('sheetSelect').value)||0];processRows(c.rows,c.name,c)}
-$('srcFile').addEventListener('change',async e=>{
- const f=e.target.files[0];if(!f||migrationBusy)return;
+async function processMigrationSourceFile(f){
+ if(!f||migrationBusy)return;
  migrationBusy=true;sourceFileName=f.name;if($('migrationFileMeta'))$('migrationFileMeta').textContent=f.name;
  showMigrationProgress('기존 대장 읽기','파일을 메모리로 불러오고 있습니다.',3,f.name);
  await migrationYield();
@@ -536,7 +536,15 @@ $('srcFile').addEventListener('change',async e=>{
   await new Promise(resolve=>setTimeout(resolve,150));
  }catch(err){console.error(err);alert('대장 읽기 오류: '+(err.message||err))}
  finally{hideMigrationProgress();migrationBusy=false}
-});
+}
+$('srcFile').addEventListener('change',e=>{const f=e.target.files[0];if(f)processMigrationSourceFile(f)});
+function bindMigrationDropZone(){
+ const zone=$('migrationDropZone'),input=$('srcFile');if(!zone||!input)return;
+ const off=()=>zone.classList.remove('dragover');
+ ['dragenter','dragover'].forEach(t=>zone.addEventListener(t,e=>{e.preventDefault();e.stopPropagation();zone.classList.add('dragover')}));
+ ['dragleave','drop'].forEach(t=>zone.addEventListener(t,e=>{e.preventDefault();e.stopPropagation();if(t==='drop'){const f=e.dataTransfer?.files?.[0];if(f)processMigrationSourceFile(f)}off()}));
+}
+bindMigrationDropZone();
 $('profileFile').addEventListener('change',async e=>{
   const f=e.target.files[0];if(!f)return;
   try{
