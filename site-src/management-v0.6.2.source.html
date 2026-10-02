@@ -152,7 +152,7 @@ select,input[type=text],input[type=number]{border:1px solid var(--line);border-r
 </div></div></div>
 
 <script>
-const APP_VERSION='v0.7.8 Beta';
+const APP_VERSION='v0.7.9 Beta';
 document.title='딸깍 기록물관리 '+APP_VERSION;
 const appVersionBadge=document.getElementById('appVersionBadge');if(appVersionBadge)appVersionBadge.textContent='통합 '+APP_VERSION;
 
@@ -761,10 +761,11 @@ async function buildStandardLedgerFor(inst,arr){
  const matchedExisting=findLedgerInfo(inst),useExisting=!!(ledgerSourceBuffer&&matchedExisting&&insts().length===1);
  const zip=useExisting?await loadExistingLedgerZip():await fetchTemplateZip(key),doc=await sheetDocFromZip(zip),sd=direct(doc.documentElement,'sheetData'),src=rowMap(sd),styleRow=src.get(5);
  if(!styleRow)throw new Error('표준 기록물관리대장 원본의 5행 데이터 서식을 찾지 못했습니다.');
+ const dataRowHeight=styleRow.getAttribute('ht')||'40.15';
 
  const maxCol=kind==='archive'?32:31,cols=Array.from({length:maxCol},(_,i)=>colLetters(i+1));
  const writeRow=(r,rn,seq)=>{
-  const row=ensureRow(doc,sd,rn,styleRow);for(const col of cols)clearAt(doc,sd,rn,col);
+  const row=ensureRow(doc,sd,rn,styleRow);row.setAttribute('ht',dataRowHeight);row.setAttribute('customHeight','1');for(const col of cols)clearAt(doc,sd,rn,col);
   const put=(col,val,num=false)=>{if(val===undefined||val===null||val==='')return;num?setNumber(doc,row,col,val):setText(doc,row,col,val)};
   put('A',seq,true);put('C',official.code);put('D',official.fullName);put('E',official.code);put('F',official.fullName);put('G',r.yearFrom,true);put('H',r.yearTo||r.yearFrom,true);put('I',r.managementNo);put('J',r.finalTitle);put('K',r.unitTask);put('L',r.retention);put('M',r.recordType);put('N',r.detailType);put('O',r.mediaType);put('P',1,true);put('Q',r.disclosure);put('R',r.restrictionNos);put('S',kind==='archive'?'기록관':'처리과');put(kind==='archive'?'AD':'AC',new Date().getFullYear(),true);
   if(kind==='archive')put('AC',r.boxExcluded?'':r.boxNo);else put('AB',r.boxExcluded?'':r.boxNo);
@@ -785,13 +786,14 @@ async function buildStandardLedgerFor(inst,arr){
   const oldSd=sd;
   // local writer against fresh sheet data
   arr.forEach((r,i)=>{
-   const rn=5+i,row=ensureRow(doc,freshSd,rn,styleRow);for(const col of cols)clearAt(doc,freshSd,rn,col);
+   const rn=5+i,row=ensureRow(doc,freshSd,rn,styleRow);row.setAttribute('ht',dataRowHeight);row.setAttribute('customHeight','1');for(const col of cols)clearAt(doc,freshSd,rn,col);
    const put=(col,val,num=false)=>{if(val===undefined||val===null||val==='')return;num?setNumber(doc,row,col,val):setText(doc,row,col,val)};
    put('A',i+1,true);put('C',official.code);put('D',official.fullName);put('E',official.code);put('F',official.fullName);put('G',r.yearFrom,true);put('H',r.yearTo||r.yearFrom,true);put('I',r.managementNo);put('J',r.finalTitle);put('K',r.unitTask);put('L',r.retention);put('M',r.recordType);put('N',r.detailType);put('O',r.mediaType);put('P',1,true);put('Q',r.disclosure);put('R',r.restrictionNos);put('S',kind==='archive'?'기록관':'처리과');put(kind==='archive'?'AD':'AC',new Date().getFullYear(),true);
    if(kind==='archive')put('AC',r.boxExcluded?'':r.boxNo);else put('AB',r.boxExcluded?'':r.boxNo);
   });
   end=Math.max(5,4+arr.length);
  }
+ const finalSd=direct(doc.documentElement,'sheetData');for(const rr of directs(finalSd,'row')){const n=Number(rr.getAttribute('r')||0);if(n>=5&&n<=end){rr.setAttribute('ht',dataRowHeight);rr.setAttribute('customHeight','1')}}
  setDimension(doc,'A1:'+(kind==='archive'?'AF':'AE')+end);removeFreezePane(doc);normalizeLedgerDataValidations(doc,end);
  const suffix=useExisting?'_기존대장연계':'';
  return {buffer:await finishPatchedZip(zip,doc,null),filename:'표준기록물관리대장_'+ledgerSafeName(inst)+suffix+'.xlsx'};
