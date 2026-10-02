@@ -477,3 +477,19 @@ tbody tr:hover td{background:#fbfdfd!important}
  .records-sidebar .steps{grid-template-columns:1fr!important}
  .records-file-stack{grid-template-columns:1fr!important}
 }
+
+.logo.icon-logo{
+ width:54px!important;
+ height:54px!important;
+ border-radius:12px!important;
+ background:transparent!important;
+ box-shadow:none!important;
+ overflow:visible!important;
+ padding:0!important;
+}
+.logo.icon-logo img{
+ width:100%!important;
+ height:100%!important;
+ object-fit:contain!important;
+ display:block!important;
+}
