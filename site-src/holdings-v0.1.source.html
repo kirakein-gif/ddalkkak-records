@@ -27,7 +27,7 @@
 </style>
 </head>
 <body>
-<div class="top"><div class="topin"><div class="brand"><div class="logo">딸깍</div><div><h1>기록물관리 자동화</h1><div class="sub">완성된 표준대장을 검색·정비·폐기이력·부서검색까지 관리합니다</div></div></div><span class="badge info">v0.8.5 Beta</span></div></div>
+<div class="top"><div class="topin"><div class="brand"><div class="logo">딸깍</div><div><h1>기록물관리 자동화</h1><div class="sub">완성된 표준대장을 검색·정비·폐기이력·부서검색까지 관리합니다</div></div></div><span class="badge info">v0.8.6 Beta</span></div></div>
 <main class="wrap">
 <div class="mode-tabs"><a class="mode-tab" href="../">신규자료 편입</a><a class="mode-tab active" href="./">보유기록물 관리</a></div>
 <div id="loadCard" class="card"><div class="head"><h2>표준 기록물관리대장</h2><span class="badge info">표준대장 관리</span></div><div class="body"><div class="loadbar"><input id="ledgerInput" type="file" accept=".xlsx" style="display:none"><button class="btn primary" onclick="document.getElementById('ledgerInput').click()">대장 불러오기</button><div class="loadcopy"><b id="loadFileName">완성된 표준 기록물관리대장을 선택하세요</b><p>마이그레이션 결과 또는 기록물관리 자동화에서 생성한 표준대장을 불러옵니다. 원본은 덮어쓰지 않습니다.</p></div><div id="loadState" class="muted">선택된 파일 없음</div></div></div></div>
@@ -42,15 +42,15 @@
  <div id="boxSummary" class="summary"></div>
  <div class="box-manager">
   <div class="card">
-   <div class="head"><div><h2>보존상자 목록</h2><div class="sub">상자를 누르면 오른쪽에 박스스티커 형태로 미리봅니다.</div></div><span id="boxListCount" class="badge info"></span></div>
+   <div class="head"><div><h2>보존상자 목록</h2><div class="sub">상자를 누르면 오른쪽에서 상자 안의 기록물철 목록을 확인합니다.</div></div><span id="boxListCount" class="badge info"></span></div>
    <div class="toolbar"><input id="boxMgrSearch" class="search" placeholder="상자번호·철제목·관리번호 검색" oninput="renderBoxManager()"><select id="boxMgrRetention" onchange="renderBoxManager()"><option value="">보존기간 전체</option></select></div>
    <div class="bulk-selectbar"><label><input id="boxMgrAll" type="checkbox" onchange="toggleBoxVisible(this.checked)"> 현재 목록 전체 선택</label><button class="btn" onclick="clearBoxSelection()">선택 비우기</button><span id="boxSelectedCount" class="count"></span></div>
    <div id="boxList" class="box-list"></div>
   </div>
   <div class="card">
-   <div class="head"><div><h2>박스스티커 미리보기</h2><div class="sub">현재 상자 안의 기록물철을 실제 라벨 배치에 가깝게 확인합니다.</div></div><span id="boxPreviewBadge" class="badge info">상자 선택</span></div>
-   <div id="boxPreview" class="box-preview-wrap"><div class="notice">왼쪽에서 보존상자를 선택하세요.</div></div>
-   <div class="body box-preview-actions"><div class="muted">출력은 기존 기록물관리의 <b>상자라벨(서식).xlsx</b> 원본을 그대로 사용합니다.</div><button id="boxPrintBtn" class="btn primary" onclick="downloadSelectedBoxLabels(this)">선택 박스스티커 출력</button></div>
+   <div class="head"><div><h2>상자 내 기록물철</h2><div class="sub">선택한 보존상자에 실제로 들어 있는 기록물철을 확인합니다.</div></div><span id="boxPreviewBadge" class="badge info">상자 선택</span></div>
+   <div id="boxPreview" class="tablewrap" style="max-height:650px"><div class="notice" style="margin:14px">왼쪽에서 보존상자를 선택하세요.</div></div>
+   <div class="body box-preview-actions"><div class="muted">체크한 여러 상자는 기존 <b>상자라벨(서식).xlsx</b> 형식으로 한 번에 출력합니다.</div><button id="boxPrintBtn" class="btn primary" onclick="downloadSelectedBoxLabels(this)">선택 박스스티커 출력</button></div>
   </div>
  </div>
 </section>
@@ -61,7 +61,7 @@
 </main>
 <div id="recordModal" class="modalback" onclick="if(event.target===this)closeRecord()"><div class="modal"><div class="modalhead"><div><b id="recordTitle">기록물 상세</b><div class="sub" id="recordSub"></div></div><button class="btn" onclick="closeRecord()">닫기</button></div><div class="modalbody"><div id="recordForm" class="formgrid"></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button class="btn" onclick="closeRecord()">취소</button><button class="btn primary" onclick="saveRecord()">수정 저장</button></div></div></div></div>
 <script>
-const APP_VERSION='v0.8.5 Beta';
+const APP_VERSION='v0.8.6 Beta';
 const SHEET_NAME='기록물등록 기록물철 일괄등록서식',VALID_SHEET='(삭제금지)유효성검사',META_SHEET='_ddalkkak_meta';
 const FIELD_LABELS={mngNo:'관리번호',title:'철제목',clssNm:'단위과제',creatYyyyFrom:'생산연도(시작)',creatYyyyTo:'생산연도(끝)',presvTermNm:'보존기간',typeDivNm:'기록유형',detailTypeNm:'세부유형',mediaTypeNm:'매체유형',openDivNm:'공개구분',openGrade:'비공개호수',presvLocNm:'보존장소',operReadRangeNm:'열람구분',excelPresvBoxNm:'보존상자번호',excelBoxNo:'위치번호',orgBoxNum:'원상자번호',stackNm:'서고',rackNm:'서가',rowNm:'열',colNm:'층',orgPresvLoc:'위치정보',docuConditionNm:'기록물상태',rmsRegFlagNm:'DB등록여부',keepOrgNm:'보존기관명',creatOrgNm:'생산기관명'};
 const BULK_FIELDS=['presvTermNm','typeDivNm','detailTypeNm','mediaTypeNm','openDivNm','presvLocNm','operReadRangeNm','docuConditionNm','rmsRegFlagNm'];
@@ -236,19 +236,24 @@ function renderBoxManager(){
  $('boxSummary').innerHTML=stats([['보존상자',groups.length,'개'],['현재 목록',visible.length,'개'],['선택',H.boxSelection.size,'개'],['상자 내 기록물철',groups.reduce((s,g)=>s+g.records.length,0),'권'],['상자 미지정',unboxed,'권'],['8권 초과',over,'개']]);
  $('boxListCount').textContent=visible.length.toLocaleString()+'개';$('boxSelectedCount').textContent='선택 '+H.boxSelection.size.toLocaleString()+'개';
  $('boxMgrAll').checked=visible.length>0&&visible.every(g=>H.boxSelection.has(g.key));
- $('boxList').innerHTML=visible.map(g=>'<div class="box-item '+(H.boxFocus===g.key?'focus':'')+'" onclick="focusHoldingBox('+JSON.stringify(g.key)+')"><div onclick="event.stopPropagation()"><input type="checkbox" '+(H.boxSelection.has(g.key)?'checked':'')+' onchange="toggleHoldingBox('+JSON.stringify(g.key)+',this.checked)"></div><div class="bn">'+esc(g.no)+'</div><div><div class="title">'+esc(g.records[0]?.title||'')+'</div><div class="bm">'+esc(g.institution)+' · '+esc(holdingBoxYears(g))+(g.records.length>1?' · 외 '+(g.records.length-1)+'권':'')+'</div></div><div>'+esc(g.retention||'-')+'</div><div>'+(g.records.length>8?'<span class="warntext">'+g.records.length+'권</span>':g.records.length+'권')+'</div></div>').join('')||'<div class="notice" style="margin:12px">조건에 맞는 보존상자가 없습니다.</div>';
+ $('boxList').innerHTML=visible.map(g=>'<div class="box-item '+(H.boxFocus===g.key?'focus':'')+'" data-key="'+esc(g.key)+'" onclick="focusHoldingBox('+JSON.stringify(g.key)+')"><div onclick="event.stopPropagation()"><input type="checkbox" '+(H.boxSelection.has(g.key)?'checked':'')+' onchange="toggleHoldingBox('+JSON.stringify(g.key)+',this.checked)"></div><div class="bn">'+esc(g.no)+'</div><div><div class="title">'+esc(g.records[0]?.title||'')+'</div><div class="bm">'+esc(g.institution)+' · '+esc(holdingBoxYears(g))+(g.records.length>1?' · 외 '+(g.records.length-1)+'권':'')+'</div></div><div>'+esc(g.retention||'-')+'</div><div>'+(g.records.length>8?'<span class="warntext">'+g.records.length+'권</span>':g.records.length+'권')+'</div></div>').join('')||'<div class="notice" style="margin:12px">조건에 맞는 보존상자가 없습니다.</div>';
  if(!H.boxFocus||!groups.some(g=>g.key===H.boxFocus))H.boxFocus=visible[0]?.key||'';
- renderHoldingBoxPreview()
+ renderHoldingBoxDetails()
 }
-function focusHoldingBox(key){H.boxFocus=key;renderBoxManager()}
+function focusHoldingBox(key){
+ H.boxFocus=key;
+ document.querySelectorAll('.box-item').forEach(x=>x.classList.toggle('focus',x.dataset.key===key));
+ renderHoldingBoxDetails()
+}
 function toggleHoldingBox(key,on){on?H.boxSelection.add(key):H.boxSelection.delete(key);renderBoxManager()}
 function toggleBoxVisible(on){boxManagerFiltered().forEach(g=>on?H.boxSelection.add(g.key):H.boxSelection.delete(g.key));renderBoxManager()}
 function clearBoxSelection(){H.boxSelection.clear();renderBoxManager()}
-function renderHoldingBoxPreview(){
- const g=holdingBoxGroups().find(x=>x.key===H.boxFocus);if(!g){$('boxPreviewBadge').textContent='상자 선택';$('boxPreview').innerHTML='<div class="notice">왼쪽에서 보존상자를 선택하세요.</div>';return}
- $('boxPreviewBadge').textContent=g.no+' · '+g.records.length+'권';
- const rows=Array.from({length:8},(_,i)=>{const r=g.records[i];return '<tr><td>'+(r?esc(r.creatYyyyTo||r.creatYyyyFrom||''):'')+'</td><td>'+(r?esc(r.title||''):'')+'</td></tr>'}).join('');
- $('boxPreview').innerHTML='<div class="box-label-preview"><div class="box-label-head"><div class="lab">상자번호</div><div>'+esc(g.no)+'</div><div class="lab">보존기간</div><div>'+esc(g.retention||'')+'</div><div class="lab">생산연도</div><div>'+esc(holdingBoxYears(g))+'</div><div class="lab">학교명</div><div>'+esc(g.institution)+'</div></div><table class="box-label-table"><thead><tr><th>연도</th><th>철제목</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+(g.records.length>8?'<div class="notice alert" style="margin-top:10px"><b>확인 필요</b> · 이 상자는 '+g.records.length+'권입니다. 현재 원본 라벨은 최대 8권까지 표기하므로 출력 대상에서 제외됩니다.</div>':'')
+function renderHoldingBoxDetails(){
+ const g=holdingBoxGroups().find(x=>x.key===H.boxFocus);
+ if(!g){$('boxPreviewBadge').textContent='상자 선택';$('boxPreview').innerHTML='<div class="notice" style="margin:14px">왼쪽에서 보존상자를 선택하세요.</div>';return}
+ $('boxPreviewBadge').textContent=g.no+' · '+g.records.length+'권 · '+(g.retention||'-');
+ const rows=g.records.map((r,i)=>'<tr><td>'+(i+1)+'</td><td class="mono">'+esc(r.mngNo||'')+'</td><td><div class="title">'+esc(r.title||'')+'</div></td><td>'+esc(r.creatYyyyTo||r.creatYyyyFrom||'')+'</td><td>'+esc(r.clssNm||'')+'</td><td>'+esc(locationText(r)||'-')+'</td></tr>').join('');
+ $('boxPreview').innerHTML='<table><thead><tr><th style="width:52px">순번</th><th style="width:140px">관리번호</th><th>기록물철 제목</th><th style="width:90px">생산연도</th><th style="width:170px">단위과제</th><th style="width:160px">위치</th></tr></thead><tbody>'+rows+'</tbody></table>'+(g.records.length>8?'<div class="notice alert" style="margin:10px 14px"><b>확인 필요</b> · 이 상자는 '+g.records.length+'권입니다. 원본 박스스티커는 최대 8권까지 표기할 수 있어 출력 대상에서 제외됩니다.</div>':'')
 }
 function disposalRows(){const q=$('dispSearch').value;return H.records.filter(r=>matches(r,q)&&(isDueCandidate(r)||activeState(r)!=='active')).sort((a,b)=>(dueYear(a)||9999)-(dueYear(b)||9999))}
 function renderDisposal(){const rows=disposalRows(),cand=H.records.filter(isDueCandidate).length,review=H.records.filter(r=>activeState(r)==='review').length,done=H.records.filter(r=>activeState(r)==='done').length;$('disposalSummary').innerHTML=stats([['검토 후보',cand,'권'],['폐기검토',review,'권'],['폐기완료',done,'권'],['보유중',H.records.filter(r=>activeState(r)==='active').length,'권'],['선택',H.dispSelection.size,'권'],['전체',H.records.length,'권']]);$('disposalBody').innerHTML=rows.slice(0,500).map(r=>'<tr><td><input class="dispChk" type="checkbox" value="'+esc(r._key)+'" '+(H.dispSelection.has(r._key)?'checked':'')+' onchange="toggleDisp(this.value,this.checked)"></td><td class="mono">'+esc(r.mngNo)+'</td><td class="title">'+esc(r.title)+'</td><td>'+esc(r.creatYyyyTo||r.creatYyyyFrom)+'</td><td>'+esc(r.presvTermNm)+'</td><td>'+esc(dueYear(r)||'-')+'</td><td>'+esc(r.excelPresvBoxNm||r.orgBoxNum)+'</td><td>'+stateChip(activeState(r))+'</td></tr>').join('')}
