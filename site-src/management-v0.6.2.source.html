@@ -73,10 +73,13 @@ select,input[type=text],input[type=number]{border:1px solid var(--line);border-r
  #p4 th:nth-child(5),#p4 td:nth-child(5){width:160px!important;white-space:normal!important}
 }
 </style>
+<style id="management-mode-tabs">
+.mode-tabs{display:flex;gap:8px;margin-bottom:14px}.mode-tab{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--muted);font-weight:900;text-decoration:none}.mode-tab.active{background:var(--blue);border-color:var(--blue);color:#fff}@media(max-width:650px){.mode-tabs{flex-direction:column}}
+</style>
 </head>
 <body>
-<div class="top"><div class="topin"><div class="brand"><div class="logo">딸깍</div><div><h1>기록물관리 자동화</h1><div class="sub">이관신청서 취합부터 상자배정·관리번호·최종 출력까지</div></div></div><span id="appVersionBadge" class="badge info"></span></div></div>
-<main class="wrap">
+<div class="top"><div class="topin"><div class="brand"><div class="logo">딸깍</div><div><h1>기록물관리 자동화</h1><div class="sub">신규자료 편입부터 보유기록물 관리까지</div></div></div><span id="appVersionBadge" class="badge info"></span></div></div>
+<main class="wrap"><div id="management-mode-tabs" class="mode-tabs"><a class="mode-tab active" href="./">신규자료 편입</a><a class="mode-tab" href="holdings/">보유기록물 관리</a></div>
 <div class="steps">
  <div class="step on" data-step="1" onclick="go(1)">1. 자료 불러오기</div>
  <div class="step" data-step="2" onclick="go(2)">2. 검증·상자배정</div>
@@ -152,7 +155,7 @@ select,input[type=text],input[type=number]{border:1px solid var(--line);border-r
 </div></div></div>
 
 <script>
-const APP_VERSION='v0.7.9 Beta';
+const APP_VERSION='v0.8.0 Beta';
 document.title='딸깍 기록물관리 '+APP_VERSION;
 const appVersionBadge=document.getElementById('appVersionBadge');if(appVersionBadge)appVersionBadge.textContent='통합 '+APP_VERSION;
 
