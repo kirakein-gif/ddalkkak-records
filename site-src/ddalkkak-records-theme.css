@@ -5,12 +5,12 @@
  --dd-line-soft:#e7edf5;
  --dd-ink:#10233f;
  --dd-muted:#66758a;
- --dd-brand:#2563eb;
- --dd-brand-2:#4f8cff;
+ --dd-brand:#0f766e;
+ --dd-brand-2:#14b8a6;
  --dd-primary:#0f766e;
  --dd-primary-strong:#0b5f59;
  --dd-primary-soft:#eaf8f4;
- --dd-info-soft:#eef5ff;
+ --dd-info-soft:#edf9f6;
  --dd-success:#0f8f69;
  --dd-success-soft:#e9f8f1;
  --dd-warn:#9a6700;
@@ -60,7 +60,7 @@ button{cursor:pointer}
  margin:0 auto!important;
  min-height:88px!important;
  padding:16px 20px!important;
- background:linear-gradient(135deg,#f8fbff 0%,#f0f8f6 100%)!important;
+ background:linear-gradient(135deg,#f7fcfa 0%,#eef8f5 100%)!important;
  border:1px solid #cbdceb!important;
  border-radius:18px!important;
  box-shadow:var(--dd-shadow-soft)!important;
@@ -77,7 +77,7 @@ button{cursor:pointer}
  flex:0 0 auto!important;
  color:#fff!important;
  background:linear-gradient(135deg,var(--dd-brand),var(--dd-brand-2))!important;
- box-shadow:0 5px 14px rgba(37,99,235,.22)!important;
+ box-shadow:0 5px 14px rgba(15,118,110,.22)!important;
  font-size:16px!important;font-weight:900!important;
  letter-spacing:-1px!important;
 }
