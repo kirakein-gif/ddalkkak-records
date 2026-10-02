@@ -267,13 +267,72 @@
 .migration-page .mapping-scroll::-webkit-scrollbar-thumb:hover,
 .migration-page .source-tray::-webkit-scrollbar-thumb:hover{background:#607287!important}
 
+#statusSummary,#finalSummary{
+ display:grid!important;
+ grid-template-columns:repeat(6,minmax(0,1fr))!important;
+ gap:10px!important;
+ margin-bottom:14px!important;
+}
+#statusSummary .stat,#finalSummary .stat{min-width:0!important;padding:14px 12px!important}
+#statusSummary .k,#finalSummary .k{font-size:13px!important;color:#000!important}
+#statusSummary .v,#finalSummary .v{font-size:27px!important;color:#000!important}
+#statusSummary .u,#finalSummary .u{font-size:12.5px!important;color:#000!important}
+
+.migration-page #p3 .formrow{font-size:14.5px!important}
+.migration-page #p3 .formrow label{font-size:14px!important;color:#000!important}
+.migration-page #p3 .checks{gap:12px!important}
+.migration-page #p3 .checks label{font-size:14px!important;line-height:1.6!important;color:#000!important}
+.migration-page #p3 .checks .muted{font-size:12.5px!important;color:#000!important}
+.migration-page #p3 .issue-row{font-size:13.5px!important;line-height:1.55!important}
+.migration-page #p3 .issue-row b{font-size:13px!important}
+.migration-page #p3 .issue-pill{font-size:12.5px!important}
+.migration-page #p3 table{font-size:14px!important}
+.migration-page #p3 th{font-size:13px!important}
+.migration-page #p3 td{font-size:14px!important;color:#000!important}
+.migration-page #p3 .missing span{font-size:12.5px!important;padding:6px 9px!important;color:#000!important}
+
+.review-guide{
+ display:flex;align-items:center;justify-content:space-between;gap:14px;
+ margin-bottom:14px;padding:14px 16px;border:1px solid #bcded5;border-radius:14px;
+ background:#eef9f5;color:#000;
+}
+.review-guide strong{font-size:16px;line-height:1.35}
+.review-guide span{font-size:13.5px;line-height:1.5;color:#000}
+.review-steps{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.review-step{padding:7px 10px;border:1px solid #cbd8e6;border-radius:999px;background:#fff;font-size:12.5px;font-weight:800;color:#000;white-space:nowrap}
+.review-guide.warn-state{background:#fff7e8;border-color:#ecd18b}
+
+.result-guide{
+ margin-bottom:14px;padding:14px 16px;border:1px solid #bcded5;border-radius:14px;
+ background:#eef9f5;color:#000;font-size:14.5px;line-height:1.55;font-weight:700;
+}
+.result-guide.warn-state{background:#fff7e8;border-color:#ecd18b}
+.result-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.result-action{
+ border:1px solid var(--dd-line);border-radius:14px;background:#fff;padding:15px;
+ display:flex;flex-direction:column;gap:8px;min-height:142px;
+}
+.result-action b{font-size:16px;color:#000}
+.result-action p{margin:0;color:#000;font-size:13.5px;line-height:1.5;flex:1}
+.result-action .btn{width:100%}
+.result-note{margin-top:10px;font-size:13px;color:#000;line-height:1.5}
+#exportState{font-size:13.5px!important;color:#000!important}
+
 @media(max-width:1150px){
  #mapSummary{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ #statusSummary,#finalSummary{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 }
-@media(max-width:1050px){.migration-start-grid{grid-template-columns:1fr}.migration-start-action{align-items:stretch;flex-direction:column}.migration-start-action .btn{width:100%;min-width:0}}
+@media(max-width:1050px){
+ .migration-start-grid{grid-template-columns:1fr}
+ .migration-start-action{align-items:stretch;flex-direction:column}
+ .migration-start-action .btn{width:100%;min-width:0}
+ .result-actions{grid-template-columns:1fr}
+ .review-guide{align-items:flex-start;flex-direction:column}
+ .review-steps{justify-content:flex-start}
+}
 </style>
 </head><body class="migration-page">
-<div class="top"><div class="topin"><div class="brand"><div class="logo icon-logo"><img src="../templates/기록물대장마이그레이션%20아이콘.png" alt="기록물대장마이그레이션 아이콘"></div><div><div class="brand-kicker">DDALKKAK RECORDS MIGRATION</div><h1>딸깍 기록물대장마이그레이션</h1><div class="sub">지역별·기관별로 다른 기존 기록물관리대장을 표준 구조로 맞춥니다.</div></div></div><div class="top-actions"><a class="home-btn" href="../">⌂ 홈</a><span class="badge info">v0.6.13 Beta · 딸깍 UI</span></div></div></div>
+<div class="top"><div class="topin"><div class="brand"><div class="logo icon-logo"><img src="../templates/기록물대장마이그레이션%20아이콘.png" alt="기록물대장마이그레이션 아이콘"></div><div><div class="brand-kicker">DDALKKAK RECORDS MIGRATION</div><h1>딸깍 기록물대장마이그레이션</h1><div class="sub">지역별·기관별로 다른 기존 기록물관리대장을 표준 구조로 맞춥니다.</div></div></div><div class="top-actions"><a class="home-btn" href="../">⌂ 홈</a><span class="badge info">v0.6.14 Beta · 딸깍 UI</span></div></div></div>
 <main class="wrap">
 <div class="records-workbench">
 <aside class="records-sidebar">
@@ -389,9 +448,13 @@
 
 
 <section id="p3" class="panel">
+<div id="reviewGuide" class="review-guide">
+ <div><strong>자동 검증 결과를 확인하세요.</strong><br><span id="reviewGuideText">검토필요가 없으면 바로 다음 단계로 진행할 수 있습니다.</span></div>
+ <div class="review-steps"><span class="review-step">1. 검토필요 확인</span><span class="review-step">2. 필요할 때만 수정</span><span class="review-step">3. 다음 단계</span></div>
+</div>
 <div class="grid"><aside class="side">
-<div class="card"><div class="head"><h2>기관 공통값</h2></div><div class="body"><div class="formrow"><label>보존/관리기관명</label><input id="defaultKeepOrg" type="text" placeholder="원본에 없을 때만 사용"></div><div class="formrow"><label>생산기관명</label><input id="defaultCreatOrg" type="text" placeholder="원본에 없을 때만 사용"></div><div class="muted" id="metaDetected"></div></div></div>
-<div class="card"><div class="head"><h2>표준기준 자동 검증·보정</h2></div><div class="body"><div class="checks">
+<div class="card"><div class="head"><div><h2>기관 공통값</h2><div class="sub">원본에 기관명이 없을 때만 입력합니다.</div></div></div><div class="body"><div class="formrow"><label>보존/관리기관명</label><input id="defaultKeepOrg" type="text" placeholder="필요할 때만 입력"></div><div class="formrow"><label>생산기관명</label><input id="defaultCreatOrg" type="text" placeholder="필요할 때만 입력"></div><div class="muted" id="metaDetected"></div></div></div>
+<div class="card"><div class="head"><div><h2>자동 검증 기준</h2><div class="sub">보통은 그대로 두면 됩니다.</div></div></div><div class="body"><div class="checks">
 <label><input id="normTaskStandard" type="checkbox" checked> <span>표준 단위과제표 적용<br><span class="muted">단위과제·카드명·등록/편철 예시를 비교해 확실한 경우 과제와 보존기간을 표준값으로 맞춤</span></span></label>
 <label><input id="normRetention" type="checkbox" checked> <span>보존기간 유효성검사<br><span class="muted">허용값: 1·3·5·10·30년, 준영구, 영구. 비표준값은 검토필요</span></span></label>
 <label><input id="normDisclosure" type="checkbox" checked> <span>공개구분 표기 정규화</span></label>
@@ -407,14 +470,31 @@
 
 <section id="p4" class="panel">
 <div id="finalSummary" class="summary"></div>
-<div class="card"><div class="head"><h2>변환 결과</h2><span class="badge warn">표준 오류가 남으면 출력 차단</span></div><div class="body">
-<div class="notice"><b>v0.6.13 변환 규칙</b> · 관리번호·상자번호·위치정보·기존 철제목은 역사값으로 보존합니다. 단위과제·보존기간·기록유형은 표준양식의 기준정보로 검증하며, 확실한 근거가 있는 경우 표준값으로 보정합니다. 근거를 찾지 못한 비표준값은 출력 전에 검토가 필요합니다.</div>
-
-<div class="muted" style="margin-top:10px;line-height:1.6">
-  현재 구현범위: .xls/.xlsx 입력 · 숨김/다중시트 분석 · 후보 시트 통합 및 보충 · 빈 양식행 제외 · 자동/편집 매핑 · 표준 단위과제표 기반 과제/보존기간 검증 · 기록유형 계층 정규화 · 만료연도 오류 검증 · 원본/보정근거 추적 · 표준서식 변환.
+<div class="card">
+ <div class="head"><h2>변환 결과</h2><span id="finalIssueBadge" class="badge warn">검증 결과 확인</span></div>
+ <div class="body">
+  <div id="finalGuide" class="result-guide">검증 결과를 확인한 뒤 필요한 파일을 내려받으세요.</div>
+  <div class="result-actions">
+   <div class="result-action">
+    <b>표준대장 Excel</b>
+    <p>학교에서 실제로 사용할 최종 변환 대장입니다.</p>
+    <button id="downloadStdBtn" class="btn primary" onclick="downloadStandardWorkbook()">표준대장 Excel 생성</button>
+   </div>
+   <div class="result-action">
+    <b>표준 작업방식 JSON</b>
+    <p>같은 매핑·변환·검증 규칙을 다른 학교에 배포합니다.</p>
+    <button class="btn" onclick="exportCurrentProfile()">표준 작업방식 JSON</button>
+   </div>
+   <div class="result-action">
+    <b>변환 추적정보 JSON</b>
+    <p>원본값과 보정 근거를 확인·보관할 때 사용합니다.</p>
+    <button class="btn" onclick="downloadTrace()">변환 추적정보 JSON</button>
+   </div>
+  </div>
+  <div class="result-note"><b>보존 원칙</b> · 기존 관리번호·상자번호·위치정보는 그대로 유지합니다.</div>
+  <div id="exportState" class="notice" style="margin-top:10px">아직 파일을 생성하지 않았습니다.</div>
+ </div>
 </div>
-<div class="notice" style="margin-top:12px"><b>표준 작업방식 배포</b> · 기록연구사는 검토가 끝난 현재 설정을 ‘표준 작업방식 JSON’으로 내려받아 학교에 배포할 수 있습니다. 학교는 첫 단계에서 이 JSON을 불러오면 같은 매핑·변환·검증 기준을 재사용합니다.</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button id="downloadStdBtn" class="btn primary" onclick="downloadStandardWorkbook()">표준서식 Excel 생성</button><button class="btn" onclick="downloadTrace()">변환 추적정보 JSON</button><button class="btn" onclick="exportCurrentProfile()">표준 작업방식 JSON</button></div><div id="exportState" class="notice" style="margin-top:10px">아직 파일을 생성하지 않았습니다.</div></div></div>
-<div class="card"><div class="head"><h2>향후 관리프로그램 연결</h2></div><div class="body"><div class="muted">이 변환본의 기존 관리번호·상자번호·위치정보는 보존한 채 딸깍 기록물대장관리의 기준 데이터로 사용할 수 있습니다. 신규 이관기록만 이후 번호부터 추가하는 구조입니다.</div></div></div>
 </section>
 
 
@@ -1195,7 +1275,7 @@ async function rebuildPreview(){
 function countStatuses(){const c={source:0,norm:0,standard:0,invalid:0,profile:0,missing:0,manual:0,transform:0};previewRecords.forEach(r=>Object.values(r.fields).forEach(f=>{if(c[f.status]!==undefined)c[f.status]++}));return c}
 function renderStatus(){const c=countStatuses();$('statusSummary').innerHTML=summary([['원본값',c.source,'칸'],['표준기준보정',c.standard,'칸'],['표기정규화',c.norm,'칸'],['검토필요',c.invalid,'칸'],['기관설정',c.profile,'칸'],['정보없음',c.missing,'칸']])}
 function allIssues(){return previewRecords.flatMap((r,i)=>(r.issues||[]).map(x=>({...x,row:i+1,title:r.fields.title?.value||'',sourceSheet:r.sourceSheet})))}
-function renderStandardIssues(){const issues=allIssues(),errors=issues.filter(x=>x.level==='error'),std=issues.filter(x=>x.level==='standard');$('issueBadge').className='badge '+(errors.length?'bad':'good');$('issueBadge').textContent=errors.length?`검토필요 ${errors.length}건`:'표준검증 통과';const rows=issues.slice(0,30);$('issueBody').innerHTML=`<div class="issue-counts"><span class="issue-pill">표준보정 ${std.length}건</span><span class="issue-pill">검토필요 ${errors.length}건</span><span class="issue-pill">시트보충 ${mergeStats.merged||0}건</span><span class="issue-pill">빈 양식행 제외 ${mergeStats.templateRows||0}건</span></div>${rows.length?`<div class="issue-list">${rows.map(x=>`<div class="issue-row ${x.level==='error'?'bad':'ok'}"><b>${esc(x.sourceSheet||'')} · ${x.row}행</b><div>${esc(x.message)}<div class="muted">${esc(x.reason||'')} · ${esc(x.title)}</div></div></div>`).join('')}</div>`:'<div class="muted">표준기준 검토사항이 없습니다.</div>'}${issues.length>30?`<div class="muted" style="margin-top:8px">외 ${issues.length-30}건은 추적정보 JSON에 포함됩니다.</div>`:''}`}
+function renderStandardIssues(){const issues=allIssues(),errors=issues.filter(x=>x.level==='error'),std=issues.filter(x=>x.level==='standard');$('issueBadge').className='badge '+(errors.length?'bad':'good');$('issueBadge').textContent=errors.length?`검토필요 ${errors.length}건`:'표준검증 통과';const guide=$('reviewGuide'),guideText=$('reviewGuideText');if(guide)guide.classList.toggle('warn-state',errors.length>0);if(guideText)guideText.textContent=errors.length?`검토필요 ${errors.length}건이 있습니다. 아래 항목을 확인한 뒤 다음 단계로 진행하세요.`:'검토필요가 없습니다. 자동 보정 내용을 확인하고 바로 다음 단계로 진행할 수 있습니다.';const rows=issues.slice(0,30);$('issueBody').innerHTML=`<div class="issue-counts"><span class="issue-pill">자동 보정 ${std.length}건</span><span class="issue-pill">검토필요 ${errors.length}건</span><span class="issue-pill">시트보충 ${mergeStats.merged||0}건</span></div>${rows.length?`<div class="issue-list">${rows.map(x=>`<div class="issue-row ${x.level==='error'?'bad':'ok'}"><b>${esc(x.sourceSheet||'')} · ${x.row}행</b><div>${esc(x.message)}<div class="muted">${esc(x.reason||'')} · ${esc(x.title)}</div></div></div>`).join('')}</div>`:'<div class="muted">별도로 확인할 항목이 없습니다.</div>'}${issues.length>30?`<div class="muted" style="margin-top:8px">외 ${issues.length-30}건은 추적정보 JSON에 포함됩니다.</div>`:''}`}
 const PREVIEW_FIELDS=['mngNo','title','creatYyyyFrom','creatYyyyTo','presvTermNm','clssNm','typeDivNm','detailTypeNm','mediaTypeNm','openDivNm','excelPresvBoxNm','orgBoxNum','orgPresvLoc','stackNm','rackNm','docuConditionNm'];
 function visiblePreviewFields(){return PREVIEW_FIELDS.map(en=>STD.find(c=>c.en===en)).filter(Boolean)}
 function renderPreviewHead(){$('previewHead').innerHTML='<tr>'+visiblePreviewFields().map(c=>`<th>${esc(c.ko)}<div class="mono">${esc(c.en)}</div></th>`).join('')+'</tr>'}
@@ -1262,7 +1342,7 @@ function saveProfileLocal(){if(!headerSignature)return;const p=profilePayload();
 function exportCurrentProfile(){if(!headerSignature){alert('먼저 대장을 불러오세요.');return}downloadBlob(new Blob([JSON.stringify(profilePayload(),null,2)],{type:'application/json;charset=utf-8'}),($('profileName').value.trim()||'기록물대장_표준작업방식')+'.json')}
 function downloadTrace(){const p={schemaVersion:2,generatedAt:new Date().toISOString(),sourceFile:sourceFileName,sourceSheet,targetType,headerRow:headerIndex+1,headerSpan2,headerSignature,profileName:$('profileName').value.trim(),mergeStats,standardRetentionValues:STANDARD_RETENTIONS,summary:countStatuses(),records:traceRecords.map(r=>({sourceRow:r.sourceRow,sourceSheet:r.sourceSheet,sourceSheets:r.sourceSheets,sourceRows:r.sourceRows,raw:r.raw,expectedExpiry:r.expectedExpiry,originalExpiry:r.originalExpiry,normalizedExpiry:r.normalizedExpiry,issues:r.issues,fields:Object.fromEntries(Object.entries(r.fields).map(([k,f])=>[k,{sourceHeader:f.sourceHeader,originalValue:f.originalValue,outputValue:f.value,status:f.status,transform:f.transform||'',reason:f.reason||''}]))}))};downloadBlob(new Blob([JSON.stringify(p,null,2)],{type:'application/json;charset=utf-8'}),(sourceFileName.replace(/\.xlsx?$|\.xlsm?$|\.xls$/i,'')||'기록물대장')+'_마이그레이션추적.json')}
 function downloadBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},300)}
-function renderFinal(){if(!previewRecords.length){setFoot('먼저 보정·검토 단계를 계산해주세요.');return}const c=countStatuses(),err=allIssues().filter(x=>x.level==='error').length;$('finalSummary').innerHTML=summary([['변환 행',previewRecords.length,'행'],['표준기준보정',c.standard,'칸'],['검토필요',err,'건'],['시트보충',mergeStats.merged||0,'건'],['빈 양식행 제외',mergeStats.templateRows||0,'건'],['정보없음',c.missing,'칸']]);setFoot(err?'검토필요 오류를 해결한 뒤 표준서식 Excel을 생성하세요.':'표준검증을 통과했습니다. Excel 또는 추적정보를 내려받을 수 있습니다.')}
+function renderFinal(){if(!previewRecords.length){setFoot('먼저 보정·검토 단계를 계산해주세요.');return}const c=countStatuses(),err=allIssues().filter(x=>x.level==='error').length;$('finalSummary').innerHTML=summary([['변환 대상',previewRecords.length,'행'],['자동 보정',c.standard,'칸'],['검토필요',err,'건'],['시트보충',mergeStats.merged||0,'건'],['빈 양식 제외',mergeStats.templateRows||0,'건'],['미입력',c.missing,'칸']]);const guide=$('finalGuide'),badge=$('finalIssueBadge');if(guide){guide.classList.toggle('warn-state',err>0);guide.textContent=err?`검토필요 ${err}건이 남아 있습니다. 이전 단계에서 확인한 뒤 표준대장을 생성하세요.`:'검증을 통과했습니다. 필요한 파일만 내려받으세요.'}if(badge){badge.className='badge '+(err?'warn':'ok');badge.textContent=err?`검토필요 ${err}건`:'검증 완료'}setFoot(err?'검토필요 항목을 확인해주세요.':'검증 완료 · 필요한 결과 파일을 내려받으세요.')}
 function formulaForRow(formula,row){return String(formula).replace(/(\$?)([A-Z]{1,3})(?<!\$)5\b/g,(m,d,col)=>d+col+row)}
 
 function migEscXml(v){return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
