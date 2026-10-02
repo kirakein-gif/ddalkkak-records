@@ -96,14 +96,14 @@ select,input[type=text],input[type=number]{border:1px solid var(--line);border-r
  <div class="records-side-card">
   <div class="records-side-title">자료 불러오기</div>
   <div class="records-file-stack">
-   <div class="records-file-row">
+   <div class="records-file-row" id="managementTransferDropZone">
     <input id="transferFiles" type="file" accept=".xlsx,.xlsm" multiple style="display:none">
     <button class="btn primary records-file-btn" onclick="document.getElementById('transferFiles').click()">이관신청서 선택</button>
     <div id="transferFileMeta" class="records-file-meta">이관신청서 Excel</div>
    </div>
-   <div class="records-file-row">
+   <div class="records-file-row" id="managementLedgerDropZone">
     <input id="ledgerFile" type="file" accept=".xlsx" style="display:none">
-    <button class="btn records-file-btn" onclick="document.getElementById('ledgerFile').click()">기존 대장 선택</button>
+    <button class="btn primary records-file-btn" onclick="document.getElementById('ledgerFile').click()">기존 대장 선택</button>
     <div id="ledgerState" class="records-file-meta">선택 안 함 · 없으면 신규대장으로 진행</div>
    </div>
   </div>
@@ -176,7 +176,7 @@ select,input[type=text],input[type=number]{border:1px solid var(--line);border-r
 </div></div></div>
 
 <script>
-const APP_VERSION='v0.9.2 Beta';
+const APP_VERSION='v0.9.3 Beta';
 document.title='딸깍 기록물관리 '+APP_VERSION;
 const appVersionBadge=document.getElementById('appVersionBadge');if(appVersionBadge)appVersionBadge.textContent='통합 '+APP_VERSION;
 
@@ -356,6 +356,14 @@ async function parseLedger(file){
 }
 document.getElementById('ledgerFile').addEventListener('change',e=>{if(e.target.files[0])parseLedger(e.target.files[0]).catch(err=>alert('기존 대장 읽기 오류: '+err.message))});
 document.getElementById('profileFile').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const x=JSON.parse(await f.text());profiles=x.profiles||x;saveProfiles();alert('기관 프로필을 불러왔습니다.')}catch(err){alert('프로필 JSON을 읽지 못했습니다.')}});
+function bindManagementDropZone(zoneId,inputId,fallback){
+ const zone=document.getElementById(zoneId),input=document.getElementById(inputId);if(!zone||!input)return;
+ const off=()=>zone.classList.remove('dragover');
+ ['dragenter','dragover'].forEach(t=>zone.addEventListener(t,e=>{e.preventDefault();e.stopPropagation();zone.classList.add('dragover')}));
+ ['dragleave','drop'].forEach(t=>zone.addEventListener(t,e=>{e.preventDefault();e.stopPropagation();if(t==='drop'){const files=[...(e.dataTransfer?.files||[])];if(files.length){const chosen=input.multiple?files:files.slice(0,1);try{const dt=new DataTransfer();chosen.forEach(f=>dt.items.add(f));input.files=dt.files;input.dispatchEvent(new Event('change',{bubbles:true}))}catch(err){fallback(chosen)}}}off()}));
+}
+bindManagementDropZone('managementTransferDropZone','transferFiles',files=>parseTransferFiles(files).catch(err=>alert('Excel 읽기 오류: '+err.message)));
+bindManagementDropZone('managementLedgerDropZone','ledgerFile',files=>parseLedger(files[0]).catch(err=>alert('기존 대장 읽기 오류: '+err.message)));
 
 function autoReason(r){
  const p=profile(r.institution),form=(r.recordType+' '+r.detailType),title=r.title;
