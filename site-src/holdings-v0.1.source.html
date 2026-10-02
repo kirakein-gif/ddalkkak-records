@@ -148,9 +148,10 @@ async function sheetInfo(zip,name){
  let target=rel.getAttribute('Target')||'';target=target.replace(/^\.\//,'');let p=target.startsWith('/')?target.slice(1):'xl/'+target;p=p.replace(/\/+/g,'/');
  return {wd,rd,sheet,rid,rel,path:p}
 }
+function colNum(s){let n=0;for(const ch of String(s||'').toUpperCase())n=n*26+(ch.charCodeAt(0)-64);return n}
 function setCell(doc,sd,rowNo,col,value){
- let row=directs(sd,'row').find(x=>Number(x.getAttribute('r'))===rowNo);if(!row){row=el(doc,'row');row.setAttribute('r',String(rowNo));sd.appendChild(row)}
- const ref=col+rowNo;let cell=directs(row,'c').find(x=>x.getAttribute('r')===ref);if(!cell){cell=el(doc,'c');cell.setAttribute('r',ref);row.appendChild(cell)}
+ let row=directs(sd,'row').find(x=>Number(x.getAttribute('r'))===rowNo);if(!row){row=el(doc,'row');row.setAttribute('r',String(rowNo));const rows=directs(sd,'row'),after=rows.find(x=>Number(x.getAttribute('r'))>rowNo);after?sd.insertBefore(row,after):sd.appendChild(row)}
+ const ref=col+rowNo;let cell=directs(row,'c').find(x=>x.getAttribute('r')===ref);if(!cell){cell=el(doc,'c');cell.setAttribute('r',ref);const target=colNum(col),next=directs(row,'c').find(x=>{const m=String(x.getAttribute('r')||'').match(/^([A-Z]+)/);return m&&colNum(m[1])>target});next?row.insertBefore(cell,next):row.appendChild(cell)}
  for(const ch of [...cell.childNodes])if(ch.nodeType===1&&['f','v','is'].includes(ch.localName))cell.removeChild(ch);cell.removeAttribute('t');
  const s=String(value??'');if(!s)return;cell.setAttribute('t','inlineStr');const is=el(doc,'is'),t=el(doc,'t');t.textContent=s;is.appendChild(t);cell.appendChild(is)
 }
