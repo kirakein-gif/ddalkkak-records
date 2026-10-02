@@ -45,6 +45,34 @@ select,input[type=text],input[type=number]{border:1px solid var(--line);border-r
 @media(max-width:900px){#p2 .rec{grid-template-columns:28px minmax(220px,1fr) 58px 120px!important}#p2 .rec>*:nth-child(4){display:none}}
 </style>
 <script src="../site-src/org-resolver.js"></script>
+<style id="management-review-tables">
+#p3 table,#p4 table{width:100%!important;table-layout:fixed!important}
+#p3 th,#p3 td,#p4 th,#p4 td{vertical-align:middle!important}
+#p3 th:nth-child(1),#p3 td:nth-child(1){width:132px!important;white-space:nowrap!important}
+#p3 th:nth-child(2),#p3 td:nth-child(2){width:132px!important;white-space:nowrap!important}
+#p3 th:nth-child(3),#p3 td:nth-child(3){width:30%!important}
+#p3 th:nth-child(4),#p3 td:nth-child(4){width:30%!important}
+#p3 th:nth-child(5),#p3 td:nth-child(5){width:76px!important;white-space:nowrap!important;text-align:center!important}
+#p3 th:nth-child(6),#p3 td:nth-child(6){width:92px!important;white-space:nowrap!important;text-align:center!important}
+#p3 th:nth-child(7),#p3 td:nth-child(7){width:70px!important;white-space:nowrap!important;text-align:center!important}
+#p3 th:nth-child(8),#p3 td:nth-child(8){width:80px!important;white-space:nowrap!important;text-align:center!important}
+#p3 td:nth-child(1),#p4 td:nth-child(1){font-weight:800!important}
+#p3 td:nth-child(3),#p3 td:nth-child(4),#p4 td:nth-child(3){line-height:1.45!important;overflow-wrap:anywhere!important}
+
+#p4 th:nth-child(1),#p4 td:nth-child(1){width:132px!important;white-space:nowrap!important}
+#p4 th:nth-child(2),#p4 td:nth-child(2){width:132px!important;white-space:nowrap!important}
+#p4 th:nth-child(3),#p4 td:nth-child(3){width:38%!important}
+#p4 th:nth-child(4),#p4 td:nth-child(4){width:190px!important}
+#p4 th:nth-child(5),#p4 td:nth-child(5){width:205px!important;white-space:nowrap!important}
+#p4 th:nth-child(6),#p4 td:nth-child(6){width:76px!important;white-space:nowrap!important;text-align:center!important}
+#p4 th:nth-child(7),#p4 td:nth-child(7){width:92px!important;white-space:nowrap!important;text-align:center!important}
+#p4 th:nth-child(8),#p4 td:nth-child(8){width:112px!important;white-space:nowrap!important;text-align:center!important}
+#p4 td:nth-child(4){line-height:1.4!important}
+@media(max-width:1150px){
+ #p3 th:nth-child(4),#p3 td:nth-child(4){display:none!important}
+ #p4 th:nth-child(5),#p4 td:nth-child(5){width:160px!important;white-space:normal!important}
+}
+</style>
 </head>
 <body>
 <div class="top"><div class="topin"><div class="brand"><div class="logo">딸깍</div><div><h1>기록물관리 자동화</h1><div class="sub">이관신청서 취합부터 상자배정·관리번호·최종 출력까지</div></div></div><span id="appVersionBadge" class="badge info"></span></div></div>
@@ -124,7 +152,7 @@ select,input[type=text],input[type=number]{border:1px solid var(--line);border-r
 </div></div></div>
 
 <script>
-const APP_VERSION='v0.7.3 Beta';
+const APP_VERSION='v0.7.4 Beta';
 document.title='딸깍 기록물관리 '+APP_VERSION;
 const appVersionBadge=document.getElementById('appVersionBadge');if(appVersionBadge)appVersionBadge.textContent='통합 '+APP_VERSION;
 
@@ -393,7 +421,7 @@ function recalcFinal(){renumberTitles();assignManagementNos();finalReady=true;re
 function renderSummary3(){const noPattern=records.filter(r=>r.titlePatternMissing).length;document.getElementById('summary3').innerHTML=summaryHtml([['기관',insts().length,'개'],['최종 철제목',records.length,'권'],['관리번호',records.filter(r=>r.managementNo).length,'개'],['상자 제외',records.filter(r=>r.boxExcluded).length,'권'],['제목패턴 확인',noPattern,'권'],['수기수정',records.filter(r=>r.userModified).length,'권']])}
 function fillInstFilter(id){const s=document.getElementById(id),v=s.value;s.innerHTML='<option value="">기관 전체</option>'+insts().map(i=>`<option>${esc(i)}</option>`).join('');s.value=v}
 function renderFinal(){if(!finalReady)recalcFinal();renderSummary3();fillInstFilter('filterInst3');const q=(document.getElementById('q3').value||'').toLowerCase(),fi=document.getElementById('filterInst3').value;let arr=records.filter(r=>(!fi||r.institution===fi)&&(!q||(r.managementNo+' '+r.finalTitle+' '+r.unitTask).toLowerCase().includes(q)));document.getElementById('finalBody').innerHTML=arr.map(r=>`<tr><td><b>${esc(r.managementNo)}</b></td><td>${esc(r.institution)}</td><td class="title">${esc(r.finalTitle)}${r.titlePatternMissing?'<div><span class="badge warn">번호패턴 없음</span></div>':''}</td><td class="muted">${esc(r.originalTitle)}</td><td>${esc(r.retention)}</td><td>${r.boxExcluded?'<span class="badge warn">상자제외</span>':esc(r.boxNo)}</td><td>${r.sheetCount.toLocaleString()}</td><td>${r.userModified?'<span class="badge warn">수기수정</span>':'<span class="badge ok">완료</span>'}</td></tr>`).join('');setFoot('최종 철제목과 관리번호를 확인하세요. 제목 본문은 유지하고 권차 부분만 재번호했습니다.')}
-function renderReview(){if(!finalReady)recalcFinal();document.getElementById('summary4').innerHTML=summaryHtml([['기록물철',records.length,'권'],['색인 원본문서',documentRows.length||records.reduce((s,r)=>s+r.documentCount,0),'건'],['총 쪽수',records.reduce((s,r)=>s+r.sheetCount,0).toLocaleString(),'쪽'],['보존상자',new Set(records.filter(r=>!r.boxExcluded).map(r=>r.institution+'|'+r.boxNo)).size,'개'],['상자 제외',records.filter(r=>r.boxExcluded).length,'권'],['관리번호',records.filter(r=>r.managementNo).length,'개']]);const boxes=[...new Set(records.filter(r=>r.boxNo).map(r=>r.boxNo))].sort();const fb=document.getElementById('filterBox4'),v=fb.value;fb.innerHTML='<option value="">상자 전체</option>'+boxes.map(b=>`<option>${esc(b)}</option>`).join('');fb.value=v;const q=(document.getElementById('q4').value||'').toLowerCase(),box=fb.value,st=document.getElementById('filterState4').value;let arr=records.filter(r=>(!box||r.boxNo===box)&&(!q||(r.finalTitle+' '+r.managementNo+' '+r.unitTask).toLowerCase().includes(q))&&(!st||(st==='box'?r.boxExcluded:r.userModified)));document.getElementById('reviewBody').innerHTML=arr.map(r=>`<tr><td><b>${esc(r.managementNo)}</b></td><td>${esc(r.institution)}</td><td class="title">${esc(r.finalTitle)}</td><td>${esc(r.unitTask)}</td><td>${esc(r.recordType)} / ${esc(r.detailType)} / ${esc(r.mediaType)}</td><td>${esc(r.retention)}</td><td>${r.boxExcluded?'<span class="badge warn">제외</span>':esc(r.boxNo)}</td><td>${r.documentCount}건 / ${r.sheetCount.toLocaleString()}쪽</td></tr>`).join('');setFoot('이 데이터 한 세트가 표지·색인·스티커·상자라벨·표준관리대장의 공통 원본이 됩니다.')}
+function renderReview(){if(!finalReady)recalcFinal();document.getElementById('summary4').innerHTML=summaryHtml([['기록물철',records.length,'권'],['색인 원본문서',documentRows.length||records.reduce((s,r)=>s+r.documentCount,0),'건'],['총 쪽수',records.reduce((s,r)=>s+r.sheetCount,0).toLocaleString(),'쪽'],['보존상자',new Set(records.filter(r=>!r.boxExcluded).map(r=>r.institution+'|'+r.boxNo)).size,'개'],['상자 제외',records.filter(r=>r.boxExcluded).length,'권'],['관리번호',records.filter(r=>r.managementNo).length,'개']]);const boxes=[...new Set(records.filter(r=>r.boxNo).map(r=>r.boxNo))].sort();const fb=document.getElementById('filterBox4'),v=fb.value;fb.innerHTML='<option value="">상자 전체</option>'+boxes.map(b=>`<option>${esc(b)}</option>`).join('');fb.value=v;const q=(document.getElementById('q4').value||'').toLowerCase(),box=fb.value,st=document.getElementById('filterState4').value;let arr=records.filter(r=>(!box||r.boxNo===box)&&(!q||(r.finalTitle+' '+r.managementNo+' '+r.unitTask).toLowerCase().includes(q))&&(!st||(st==='box'?r.boxExcluded:r.userModified)));document.getElementById('reviewBody').innerHTML=arr.map(r=>`<tr><td><b>${esc(r.managementNo)}</b></td><td>${esc(r.institution)}</td><td class="title">${esc(r.finalTitle)}</td><td>${esc(r.unitTask)}</td><td>${esc(r.recordType)} · ${esc(r.detailType)} · ${esc(r.mediaType)}</td><td>${esc(r.retention)}</td><td>${r.boxExcluded?'<span class="badge warn">제외</span>':esc(r.boxNo)}</td><td>${r.documentCount}건 · ${r.sheetCount.toLocaleString()}쪽</td></tr>`).join('');setFoot('이 데이터 한 세트가 표지·색인·스티커·상자라벨·표준관리대장의 공통 원본이 됩니다.')}
 function splitFinalTitle(t){
  const s=String(t||'').trim(),i=s.indexOf(':');
  return i>=0?{main:s.slice(0,i).trim(),sub:s.slice(i+1).trim()}:{main:s,sub:''}
