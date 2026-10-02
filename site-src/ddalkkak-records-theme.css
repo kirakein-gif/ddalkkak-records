@@ -434,7 +434,7 @@ tbody tr:hover td{background:#fbfdfd!important}
  padding:7px 9px!important;
  justify-content:flex-start!important;
  text-align:left!important;
- font-size:12.5px!important;
+ font-size:13.5px!important;
 }
 .records-file-btn.primary{
  background:var(--dd-primary)!important;
@@ -458,7 +458,7 @@ tbody tr:hover td{background:#fbfdfd!important}
 .records-file-mini .btn{
  min-height:31px!important;
  padding:5px 8px!important;
- font-size:10.5px!important;
+ font-size:11.5px!important;
 }
 .records-start{
  min-height:160px!important;
@@ -467,8 +467,8 @@ tbody tr:hover td{background:#fbfdfd!important}
  justify-content:center!important;
  text-align:center!important;
 }
-.records-start h2{margin:0 0 6px!important;font-size:18px!important}
-.records-start p{margin:0!important;color:var(--dd-muted)!important;font-size:12px!important}
+.records-start h2{margin:0 0 6px!important;font-size:19px!important}
+.records-start p{margin:0!important;color:var(--dd-muted)!important;font-size:14px!important}
 .records-main .panel.on{min-width:0!important}
 
 @media(max-width:1000px){
