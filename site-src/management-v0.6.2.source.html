@@ -152,7 +152,7 @@ select,input[type=text],input[type=number]{border:1px solid var(--line);border-r
 </div></div></div>
 
 <script>
-const APP_VERSION='v0.7.5 Beta';
+const APP_VERSION='v0.7.6 Beta';
 document.title='딸깍 기록물관리 '+APP_VERSION;
 const appVersionBadge=document.getElementById('appVersionBadge');if(appVersionBadge)appVersionBadge.textContent='통합 '+APP_VERSION;
 
@@ -274,31 +274,59 @@ async function parseLedger(file){
  const buf=await file.arrayBuffer(),wb=XLSX.read(buf,{type:'array'});let found=[];
  for(const sn of wb.SheetNames){
   const matrix=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,defval:''});
-  let codeRow=-1,mngCol=-1,instCol=-1,boxCol=-1;
+  let codeRow=-1,mngCol=-1,instCol=-1,orgCodeCol=-1,boxCol=-1;
   for(let r=0;r<Math.min(matrix.length,15);r++){
-   for(let c=0;c<matrix[r].length;c++){
-    const v=String(matrix[r][c]).trim();
-    if(v==='mngNo'||v==='관리번호'){codeRow=r;mngCol=c}
-    if(v==='keepOrgNm'||v==='creatOrgNm'||v==='기관명'||v==='보존기관명'){if(instCol<0)instCol=c}
-    if(v==='excelPresvBoxNm'||v==='보존상자번호'||v==='상자번호'||v==='보존상자'){if(boxCol<0)boxCol=c}
+   for(let cc=0;cc<matrix[r].length;cc++){
+    const v=String(matrix[r][cc]).trim();
+    if(v==='mngNo'||v==='관리번호'){codeRow=r;mngCol=cc}
+    if(v==='keepOrgNm'||v==='creatOrgNm'||v==='기관명'||v==='보존기관명'){if(instCol<0)instCol=cc}
+    if(v==='keepOrgCd'||v==='creatOrgCd'||v==='기관코드'||v==='보존기관코드'){if(orgCodeCol<0)orgCodeCol=cc}
+    if(v==='excelPresvBoxNm'||v==='보존상자번호'||v==='상자번호'||v==='보존상자'){if(boxCol<0)boxCol=cc}
    }
   }
   if(mngCol<0)continue;
   for(let r=codeRow+1;r<matrix.length;r++){
    const no=String(matrix[r][mngCol]||'').trim();if(!no)continue;
-   found.push({no,inst:instCol>=0?String(matrix[r][instCol]||'').trim():'',box:boxCol>=0?String(matrix[r][boxCol]||'').trim():''})
+   found.push({
+    no,
+    inst:instCol>=0?String(matrix[r][instCol]||'').trim():'',
+    orgCode:orgCodeCol>=0?String(matrix[r][orgCodeCol]||'').trim():'',
+    box:boxCol>=0?String(matrix[r][boxCol]||'').trim():''
+   })
   }
  }
  const groups={};
  for(const x of found){
   const inst=x.inst||'__UNKNOWN__';
-  if(!groups[inst])groups[inst]={prefix:'',max:10000,count:0,boxMax:{}};
-  const g=groups[inst],mm=x.no.match(/^(.*?)-(\d+)$/);
+  if(!groups[inst])groups[inst]={prefix:'',max:10000,count:0,boxMax:{},orgCode:x.orgCode||'',officialFullName:'',officialLeafName:'',officialStatus:''};
+  const g=groups[inst];if(!g.orgCode&&x.orgCode)g.orgCode=x.orgCode;
+  const mm=x.no.match(/^(.*?)-(\d+)$/);
   if(mm){const num=Number(mm[2]);if(!g.prefix)g.prefix=mm[1];if(num>g.max){g.max=num;g.prefix=mm[1]}g.count++}
   const bm=String(x.box||'').match(/^(.*?)-0*(\d+)$/);
-  if(bm){const pref=bm[1],seq=Number(bm[2]);g.boxMax[pref]=Math.max(Number(g.boxMax[pref]||0),seq)}
+  if(bm){
+   let pref=bm[1].trim();
+   if(pref==='30')pref='30년';
+   const seq=Number(bm[2]);g.boxMax[pref]=Math.max(Number(g.boxMax[pref]||0),seq)
+  }
  }
- ledgerInfo=groups;document.getElementById('ledgerState').innerHTML=`<span class="badge ok">읽기 완료</span> 관리번호 ${found.length.toLocaleString()}건 · 기존 상자번호도 이어서 사용`;finalReady=false
+
+ // 표준 기관코드표를 이용해 기존 대장의 긴 공식기관명과 현재 작업의 짧은 기관명을 같은 기관으로 연결한다.
+ try{
+  const kind=selectedInst?profile(selectedInst).template:'school',dir=await loadOfficialOrgDirectory(kind);
+  for(const [name,g] of Object.entries(groups)){
+   if(name==='__UNKNOWN__')continue;
+   let match=null;
+   if(g.orgCode)match=dir.find(x=>String(x.code)===String(g.orgCode))||null;
+   if(!match){const res=window.DdalkkakOrgResolver?.resolve(name,dir);if(res&&!res.ambiguous)match=res.match}
+   if(match){g.officialFullName=match.fullName||'';g.officialLeafName=match.leafName||'';g.officialStatus=match.status||'';if(!g.orgCode)g.orgCode=match.code||''}
+  }
+ }catch(e){console.warn('기존 대장 기관명 정규화 생략:',e)}
+
+ ledgerInfo=groups;
+ const matched=selectedInst?findLedgerInfo(selectedInst):null;
+ const detail=matched?(' · '+(matched.prefix||'접두어 없음')+'-'+String((matched.max||10000)+1).padStart(5,'0')+'부터'):'';
+ document.getElementById('ledgerState').innerHTML=`<span class="badge ok">읽기 완료</span> 관리번호 ${found.length.toLocaleString()}건 · 기존 상자번호도 이어서 사용${detail}`;
+ finalReady=false
 }
 document.getElementById('ledgerFile').addEventListener('change',e=>{if(e.target.files[0])parseLedger(e.target.files[0]).catch(err=>alert('기존 대장 읽기 오류: '+err.message))});
 document.getElementById('profileFile').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const x=JSON.parse(await f.text());profiles=x.profiles||x;saveProfiles();alert('기관 프로필을 불러왔습니다.')}catch(err){alert('프로필 JSON을 읽지 못했습니다.')}});
@@ -415,7 +443,24 @@ function renderBoxes(){
 }
 function parseTitle(t){const m=String(t).match(/^(.*?)\s*\(\s*\d+\s*-\s*0*\d+\s*\)(.*)$/);return m?{base:m[1].trim(),tail:m[2]}:null}
 function renumberTitles(){insts().forEach(inst=>{const by={};records.filter(r=>r.institution===inst).forEach(r=>(by[r.unitTask||'__NO_TASK__']??=[]).push(r));Object.values(by).forEach(arr=>{arr.sort((a,b)=>(retentionRank[a.retention]||4)-(retentionRank[b.retention]||4)||String(a.boxNo).localeCompare(String(b.boxNo),'ko')||a._order-b._order);const total=arr.length,pad=String(total).length;arr.forEach((r,i)=>{const p=parseTitle(r.title);r.originalTitle=r.originalTitle||r.title;if(p)r.finalTitle=`${p.base} (${total}-${String(i+1).padStart(pad,'0')})${p.tail}`;else r.finalTitle=r.title;r.titlePatternMissing=!p})})})}
-function findLedgerInfo(inst){if(ledgerInfo[inst])return ledgerInfo[inst];const keys=Object.keys(ledgerInfo);if(keys.length===1&&keys[0]==='__UNKNOWN__')return ledgerInfo[keys[0]];return null}
+function findLedgerInfo(inst){
+ if(ledgerInfo[inst])return ledgerInfo[inst];
+ const norm=window.DdalkkakOrgResolver?.norm||((v)=>String(v??'').replace(/\s+/g,'').trim().toLowerCase()),n=norm(inst);
+ const keys=Object.keys(ledgerInfo).filter(k=>k!=='__UNKNOWN__');
+ const candidates=keys.map(k=>({key:k,g:ledgerInfo[k]})).filter(x=>{
+  const full=norm(x.g.officialFullName||x.key),leaf=norm(x.g.officialLeafName||'');
+  return n&&(n===full||n===leaf||(n.length>=4&&full.endsWith(n))||(leaf.length>=4&&n.endsWith(leaf)))
+ });
+ if(candidates.length){
+  const rank=window.DdalkkakOrgResolver?.statusRank||((v)=>/현존|운영|active/i.test(String(v))?0:/폐지|폐교|closed/i.test(String(v))?2:1);
+  candidates.sort((a,b)=>rank(a.g.officialStatus)-rank(b.g.officialStatus)||b.g.count-a.g.count||b.g.max-a.g.max);
+  const bestRank=rank(candidates[0].g.officialStatus),ties=candidates.filter(x=>rank(x.g.officialStatus)===bestRank);
+  if(ties.length===1||ties[0].g.count!==ties[1]?.g.count)return candidates[0].g;
+ }
+ if(keys.length===1)return ledgerInfo[keys[0]];
+ const allKeys=Object.keys(ledgerInfo);if(allKeys.length===1&&allKeys[0]==='__UNKNOWN__')return ledgerInfo[allKeys[0]];
+ return null
+}
 function assignManagementNos(){insts().forEach(inst=>{const p=profile(inst),li=findLedgerInfo(inst);let max=li?li.max:10000;const pref=li?.prefix||p.prefix||shortPrefix(inst);records.filter(r=>r.institution===inst).sort((a,b)=>a._order-b._order).forEach(r=>{max++;r.managementNo=`${pref}-${String(max).padStart(5,'0')}`})})}
 function recalcFinal(){renumberTitles();assignManagementNos();finalReady=true;renderFinal()}
 function renderSummary3(){const noPattern=records.filter(r=>r.titlePatternMissing).length;document.getElementById('summary3').innerHTML=summaryHtml([['기관',insts().length,'개'],['최종 철제목',records.length,'권'],['관리번호',records.filter(r=>r.managementNo).length,'개'],['상자 제외',records.filter(r=>r.boxExcluded).length,'권'],['제목패턴 확인',noPattern,'권'],['수기수정',records.filter(r=>r.userModified).length,'권']])}
