@@ -52,6 +52,85 @@ function setFoot(s){$('foot').textContent=s}
 function setDirty(v=true){H.dirty=v;$('dirtyState').style.display=v?'inline-flex':'none'}
 function quickGo(){$('qSearch').value=$('quickSearch').value;showTab('search');renderSearch()}
 function showTab(name){document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('on',x.id==='tab-'+name));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.dataset.tab===name));if(name==='dashboard')renderDashboard();if(name==='cleanup')renderCleanup();if(name==='search')renderSearch();if(name==='disposal')renderDisposal();window.scrollTo({top:0,behavior:'smooth'})}
-/*__LOGIC__*/
+
+function activeState(r){return H.meta.disposals[r._key]?.status||'active'}
+function stateLabel(s){return s==='review'?'폐기검토':s==='done'?'폐기완료':'보유중'}
+function stateChip(s){return '<span class="status-chip '+(s==='review'?'review':s==='done'?'done':'')+'">'+stateLabel(s)+'</span>'}
+function recordText(r){return [r.mngNo,r.title,r.clssNm,r.excelPresvBoxNm,r.orgBoxNum,r.stackNm,r.rackNm,r.rowNm,r.colNm,r.orgPresvLoc].join(' ')}
+function cho(s){const start=0xAC00,end=0xD7A3,arr='ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';return Array.from(String(s||'')).map(ch=>{const n=ch.charCodeAt(0);return n>=start&&n<=end?arr[Math.floor((n-start)/588)]:ch}).join('')}
+function matches(r,q){q=String(q||'').trim().toLowerCase();if(!q)return true;const t=recordText(r).toLowerCase();return t.includes(q)||cho(recordText(r)).toLowerCase().includes(q)}
+function numYear(v){const m=String(v??'').match(/(?:19|20|21)\d{2}/);return m?Number(m[0]):0}
+function retentionYears(v){const m=String(v??'').match(/^(1|3|5|10|30)년$/);return m?Number(m[1]):null}
+function dueYear(r){const n=retentionYears(r.presvTermNm),y=numYear(r.creatYyyyTo||r.creatYyyyFrom);return n&&y?y+n:null}
+function isDueCandidate(r){const y=dueYear(r);return y!==null&&y<=new Date().getFullYear()&&activeState(r)!=='done'}
+function locationText(r){return [r.stackNm,r.rackNm,r.rowNm,r.colNm,r.orgPresvLoc].map(x=>String(x||'').trim()).filter(Boolean).join(' · ')}
+
+$('ledgerInput').addEventListener('change',async e=>{
+ const file=e.target.files[0];if(!file)return;$('loadState').style.display='block';$('loadState').innerHTML='<b>읽는 중...</b> 표준대장 구조와 관리정보를 확인하고 있습니다.';
+ try{
+  const buf=await file.arrayBuffer(),wb=XLSX.read(buf,{type:'array',cellDates:false});
+  let sn=wb.SheetNames.find(n=>n===SHEET_NAME);
+  if(!sn)sn=wb.SheetNames.find(n=>{const ws=wb.Sheets[n],rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''}).slice(0,6);return rows.some(row=>row.includes('mngNo'))&&rows.some(row=>row.includes('title'))});
+  if(!sn)throw new Error('표준 기록물관리대장 시트를 찾지 못했습니다.');
+  const ws=wb.Sheets[sn],rg=XLSX.utils.decode_range(ws['!ref']||'A1:A1'),cols={};
+  for(let cc=rg.s.c;cc<=rg.e.c;cc++){const cell=ws[XLSX.utils.encode_cell({r:3,c:cc})],v=cell?.v;if(v!==undefined&&v!==null&&String(v).trim())cols[String(v).trim()]={index:cc+1,letter:excelCol(cc+1)}}
+  if(!cols.mngNo||!cols.title)throw new Error('표준대장 영문 필드행(4행)을 확인할 수 없습니다.');
+  const records=[];
+  for(let rr=4;rr<=rg.e.r;rr++){const obj={_row:rr+1};let any=false;Object.keys(FIELD_LABELS).forEach(k=>{const m=cols[k];if(!m)return;const cell=ws[XLSX.utils.encode_cell({r:rr,c:m.index-1})],v=cell?cell.v:'';obj[k]=v??'';if(String(v??'').trim())any=true});if(!any)continue;obj._key=String(obj.mngNo||('ROW-'+obj._row));records.push(obj)}
+  H.buffer=buf.slice(0);H.fileName=file.name;H.wb=wb;H.sheetName=sn;H.records=records;H.cols=cols;H.valid=parseValidations(wb);H.meta=parseMeta(wb);H.dirty=false;H.dispSelection=new Set();
+  $('holdApp').style.display='block';$('loadState').innerHTML='<span class="badge ok">완료</span> '+records.length.toLocaleString()+'건 · '+esc(sn)+' · 변경이력 '+(H.meta.history||[]).length.toLocaleString()+'건';
+  setFoot(records.length.toLocaleString()+'건의 보유기록물을 불러왔습니다.');setDirty(false);populateFilters();showTab('dashboard')
+ }catch(err){console.error(err);$('loadState').innerHTML='<span class="badge bad">오류</span> '+esc(err.message||err)}
+});
+function parseValidations(wb){
+ const out={},names=wb.Workbook?.Names||[];
+ names.forEach(n=>{const name=String(n.Name||''),ref=String(n.Ref||''),m=ref.match(/^'?(.+?)'?!\$?([A-Z]+)\$?(\d+):\$?([A-Z]+)\$?(\d+)$/);if(!name||!m)return;const ws=wb.Sheets[m[1]];if(!ws)return;const a=XLSX.utils.decode_cell(m[2]+m[3]),b=XLSX.utils.decode_cell(m[4]+m[5]),vals=[];for(let r=a.r;r<=b.r;r++)for(let cc=a.c;cc<=b.c;cc++){const v=ws[XLSX.utils.encode_cell({r,c:cc})]?.v;if(v!==undefined&&v!==null&&String(v).trim()&&!vals.includes(String(v).trim()))vals.push(String(v).trim())}if(vals.length)out[name]=vals});
+ const vws=wb.Sheets[VALID_SHEET];if(vws){const collect=col=>{const vals=[],r=XLSX.utils.decode_range(vws['!ref']||'A1:A1');for(let rr=2;rr<=r.e.r;rr++){const v=vws[XLSX.utils.encode_cell({r:rr,c:col})]?.v;if(v!==undefined&&v!==null&&String(v).trim()&&!vals.includes(String(v).trim()))vals.push(String(v).trim())}return vals};if(!out['철기록유형'])out['철기록유형']=collect(0);if(!out['보존기간'])out['보존기간']=collect(8)}
+ return out
+}
+function parseMeta(wb){
+ try{const ws=wb.Sheets[META_SHEET];if(!ws||String(ws.A1?.v||'')!=='DDALKKAK_META_V1')return {version:1,history:[],disposals:{}};let s='';for(let r=2;r<5000;r++){const v=ws['A'+r]?.v;if(v===undefined)break;s+=String(v||'')}const x=JSON.parse(s||'{}');return {version:1,history:Array.isArray(x.history)?x.history:[],disposals:x.disposals||{}}}catch(e){console.warn(e);return {version:1,history:[],disposals:{}}}
+}
+function optionsFor(field,r){
+ const v=H.valid;if(field==='detailTypeNm')return v['철세부유형_'+String(r.typeDivNm||'')]||[];if(field==='mediaTypeNm')return v['철매체유형_'+String(r.typeDivNm||'')+'_'+String(r.detailTypeNm||'')]||[];
+ const map={presvTermNm:'보존기간',typeDivNm:'철기록유형',openDivNm:'공개구분',presvLocNm:'보존장소',operReadRangeNm:'기록물철열람구분',docuConditionNm:'기록물상태',rmsRegFlagNm:'DB등록여부'};return v[map[field]]||[]
+}
+function missingCount(field){return H.records.filter(r=>activeState(r)!=='done'&&!String(r[field]??'').trim()).length}
+function stats(items){return items.map(x=>'<div class="stat"><div class="k">'+esc(x[0])+'</div><div class="v">'+Number(x[1]||0).toLocaleString()+'<span class="u">'+esc(x[2]||'')+'</span></div></div>').join('')}
+function fieldCard(f,quick){const n=missingCount(f),go=quick?"showTab('cleanup');selectBulkField('"+f+"')":"selectBulkField('"+f+"')";return '<div class="field-card" onclick="'+go+'"><b>'+esc(FIELD_LABELS[f]||f)+'</b><div class="n">'+n.toLocaleString()+'</div><div class="m">빈칸</div></div>'}
+function renderDashboard(){
+ const active=H.records.filter(r=>activeState(r)!=='done'),boxes=new Set(active.map(r=>String(r.excelPresvBoxNm||r.orgBoxNum||'').trim()).filter(Boolean)),missing=BULK_FIELDS.reduce((s,f)=>s+missingCount(f),0),review=H.records.filter(r=>activeState(r)==='review').length,done=H.records.filter(r=>activeState(r)==='done').length,due=H.records.filter(isDueCandidate).length;
+ $('dashSummary').innerHTML=stats([['보유 기록물철',active.length,'권'],['보존상자',boxes.size,'개'],['빈 표준필드',missing,'칸'],['폐기검토 후보',due,'권'],['폐기검토',review,'권'],['폐기완료',done,'권']]);
+ const order=['영구','준영구','30년','10년','5년','3년','1년','미지정'];$('retentionGrid').innerHTML=order.map(x=>{const n=active.filter(r=>String(r.presvTermNm||'')===x).length;return '<div class="mini"><h3>'+esc(x)+'</h3><div class="big">'+n.toLocaleString()+'</div><p>현재 보유 기록물철</p></div>'}).join('');
+ $('missingQuick').innerHTML=BULK_FIELDS.slice().sort((a,b)=>missingCount(b)-missingCount(a)).slice(0,6).map(f=>fieldCard(f,true)).join('')
+}
+function populateFilters(){
+ const vals=field=>[...new Set(H.records.map(r=>String(r[field]??'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko'));
+ $('fRetention').innerHTML='<option value="">보존기간 전체</option>'+vals('presvTermNm').map(x=>'<option>'+esc(x)+'</option>').join('');
+ $('fYear').innerHTML='<option value="">생산연도 전체</option>'+[...new Set(H.records.map(r=>numYear(r.creatYyyyTo||r.creatYyyyFrom)).filter(Boolean))].sort((a,b)=>b-a).map(x=>'<option>'+x+'</option>').join('');
+ $('fBox').innerHTML='<option value="">상자 전체</option>'+vals('excelPresvBoxNm').map(x=>'<option>'+esc(x)+'</option>').join('')
+}
+function renderCleanup(){$('cleanupFields').innerHTML=BULK_FIELDS.map(f=>fieldCard(f,false)).join('');renderHistory();if(H.bulkField)selectBulkField(H.bulkField,false)}
+function selectBulkField(field,scroll=true){
+ H.bulkField=field;$('bulkEmpty').style.display='none';$('bulkEditor').style.display='block';$('bulkFieldBadge').textContent=FIELD_LABELS[field]||field;$('bulkFieldName').textContent=FIELD_LABELS[field]||field;let opts=[];
+ if(field==='detailTypeNm'||field==='mediaTypeNm'){const set=new Set();H.records.filter(r=>activeState(r)!=='done').forEach(r=>optionsFor(field,r).forEach(x=>set.add(x)));opts=[...set]}else opts=optionsFor(field,H.records[0]||{});
+ $('bulkValue').innerHTML='<option value="">값을 선택하세요</option>'+opts.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');previewBulk();if(scroll)window.scrollTo({top:0,behavior:'smooth'})
+}
+function previewBulk(){if(!H.bulkField)return;const field=H.bulkField,val=$('bulkValue').value,over=$('bulkOverwrite').checked,targets=H.records.filter(r=>activeState(r)!=='done'&&(over||!String(r[field]??'').trim())),valid=val?targets.filter(r=>optionsFor(field,r).includes(val)):[],bad=val?targets.length-valid.length:0;$('bulkPreview').innerHTML='<b>대상 '+targets.length.toLocaleString()+'건</b> · '+(val?('적용 가능 '+valid.length.toLocaleString()+'건 · 조건 불일치 '+bad.toLocaleString()+'건'):'지정 값을 선택하세요.')+(field==='detailTypeNm'||field==='mediaTypeNm'?'<div class="muted">기록유형·세부유형 종속관계에 맞는 기록에만 적용됩니다.</div>':'')}
+function applyBulk(){const field=H.bulkField,val=$('bulkValue').value;if(!field||!val){alert('지정 값을 선택해주세요.');return}const over=$('bulkOverwrite').checked,items=[];H.records.forEach(r=>{if(activeState(r)==='done'||(!over&&String(r[field]??'').trim())||!optionsFor(field,r).includes(val))return;items.push({key:r._key,old:r[field]??'',new:val});r[field]=val});if(!items.length){alert('적용 가능한 기록이 없습니다.');return}pushHistory('일괄지정',field,items,(FIELD_LABELS[field]||field)+' → '+val);setDirty();renderCleanup();renderDashboard();populateFilters();alert(items.length.toLocaleString()+'건에 적용했습니다.')}
+function pushHistory(action,field,items,note){H.meta.history=H.meta.history||[];H.meta.history.push({at:new Date().toISOString(),action,field,items:items.slice(0,3000),count:items.length,note:note||''});if(H.meta.history.length>500)H.meta.history=H.meta.history.slice(-500)}
+function renderHistory(){const a=(H.meta.history||[]).slice().reverse().slice(0,80);$('historyCount').textContent=(H.meta.history||[]).length+'건';$('historyBody').innerHTML=a.map(h=>'<tr><td>'+esc(new Date(h.at).toLocaleString())+'</td><td>'+esc(h.action)+'</td><td>'+esc(FIELD_LABELS[h.field]||h.field||'-')+'</td><td>'+Number(h.count||h.items?.length||0).toLocaleString()+'건</td><td>'+esc(h.note||'')+'</td></tr>').join('')}
+function filteredSearch(){const q=$('qSearch').value,ret=$('fRetention').value,yr=$('fYear').value,box=$('fBox').value,st=$('fStatus').value;return H.records.filter(r=>matches(r,q)&&(!ret||String(r.presvTermNm)===ret)&&(!yr||String(numYear(r.creatYyyyTo||r.creatYyyyFrom))===yr)&&(!box||String(r.excelPresvBoxNm)===box)&&(!st||(st==='active'?activeState(r)==='active':activeState(r)===st)))}
+function renderSearch(){const rows=filteredSearch(),show=rows.slice(0,300);$('searchCount').innerHTML='<b>'+rows.length.toLocaleString()+'건</b> 검색됨'+(rows.length>300?' · 화면에는 앞 300건만 표시':'');$('searchBody').innerHTML=show.map(r=>'<tr><td class="mono">'+esc(r.mngNo)+'</td><td><div class="title">'+esc(r.title)+'</div></td><td>'+esc(r.creatYyyyFrom)+(String(r.creatYyyyTo||'')&&String(r.creatYyyyTo)!==String(r.creatYyyyFrom)?'~'+esc(r.creatYyyyTo):'')+'</td><td>'+esc(r.presvTermNm)+'</td><td>'+esc(r.clssNm)+'</td><td><b>'+esc(r.excelPresvBoxNm||r.orgBoxNum)+'</b></td><td>'+esc(locationText(r))+'</td><td>'+stateChip(activeState(r))+'</td><td><button class="btn" onclick="openRecord('+JSON.stringify(r._key)+')">보기</button></td></tr>').join('')}
+function openRecord(key){const r=H.records.find(x=>x._key===key);if(!r)return;H.editKey=key;$('recordTitle').textContent=r.title||'기록물 상세';$('recordSub').textContent=(r.mngNo||'')+' · '+stateLabel(activeState(r));let h='<label>관리번호</label><div>'+esc(r.mngNo)+'</div><label>단위과제</label><div>'+esc(r.clssNm)+'</div>';EDIT_FIELDS.forEach(f=>{const opts=optionsFor(f,r),v=String(r[f]??'');h+='<label>'+esc(FIELD_LABELS[f]||f)+'</label>';if(opts.length)h+='<select data-edit="'+f+'"><option value=""></option>'+opts.map(x=>'<option value="'+esc(x)+'" '+(x===v?'selected':'')+'>'+esc(x)+'</option>').join('')+'</select>';else h+='<input data-edit="'+f+'" type="text" value="'+esc(v)+'">'});$('recordForm').innerHTML=h;$('recordModal').classList.add('on')}
+function closeRecord(){$('recordModal').classList.remove('on');H.editKey=''}
+function saveRecord(){const r=H.records.find(x=>x._key===H.editKey);if(!r)return;const items=[];document.querySelectorAll('[data-edit]').forEach(x=>{const f=x.dataset.edit,n=x.value,o=String(r[f]??'');if(n!==o){items.push({key:r._key,old:o,new:n,field:f});r[f]=n}});items.forEach(x=>pushHistory('개별수정',x.field,[{key:x.key,old:x.old,new:x.new}],(FIELD_LABELS[x.field]||x.field)+' 수정'));if(items.length){setDirty();populateFilters();renderDashboard();renderSearch();renderCleanup()}closeRecord()}
+function disposalRows(){const q=$('dispSearch').value;return H.records.filter(r=>matches(r,q)&&(isDueCandidate(r)||activeState(r)!=='active')).sort((a,b)=>(dueYear(a)||9999)-(dueYear(b)||9999))}
+function renderDisposal(){const rows=disposalRows(),cand=H.records.filter(isDueCandidate).length,review=H.records.filter(r=>activeState(r)==='review').length,done=H.records.filter(r=>activeState(r)==='done').length;$('disposalSummary').innerHTML=stats([['검토 후보',cand,'권'],['폐기검토',review,'권'],['폐기완료',done,'권'],['보유중',H.records.filter(r=>activeState(r)==='active').length,'권'],['선택',H.dispSelection.size,'권'],['전체',H.records.length,'권']]);$('disposalBody').innerHTML=rows.slice(0,500).map(r=>'<tr><td><input class="dispChk" type="checkbox" value="'+esc(r._key)+'" '+(H.dispSelection.has(r._key)?'checked':'')+' onchange="toggleDisp(this.value,this.checked)"></td><td class="mono">'+esc(r.mngNo)+'</td><td class="title">'+esc(r.title)+'</td><td>'+esc(r.creatYyyyTo||r.creatYyyyFrom)+'</td><td>'+esc(r.presvTermNm)+'</td><td>'+esc(dueYear(r)||'-')+'</td><td>'+esc(r.excelPresvBoxNm||r.orgBoxNum)+'</td><td>'+stateChip(activeState(r))+'</td></tr>').join('')}
+function toggleDisp(key,on){on?H.dispSelection.add(key):H.dispSelection.delete(key);renderDisposal()}
+function toggleDispAll(on){disposalRows().forEach(r=>on?H.dispSelection.add(r._key):H.dispSelection.delete(r._key));renderDisposal()}
+function markDisposal(status){if(!H.dispSelection.size){alert('대상을 선택해주세요.');return}const date=$('dispDate').value.trim()||today(),reason=$('dispReason').value.trim(),items=[];H.dispSelection.forEach(k=>{const r=H.records.find(x=>x._key===k);if(!r)return;const old=activeState(r);if(status==='active')delete H.meta.disposals[k];else H.meta.disposals[k]={status,date,reason,at:new Date().toISOString(),title:r.title,mngNo:r.mngNo};items.push({key:k,old,new:status})});pushHistory(status==='done'?'폐기완료':status==='review'?'폐기검토':'보유복원','disposal',items,(reason?reason+' · ':'')+date);H.dispSelection.clear();setDirty();renderDisposal();renderDashboard();renderSearch()}
+/*__EXPORT__*/
+
 </script>
 </body></html>
