@@ -48,9 +48,10 @@ html{font-size:16px}body{font-size:15px;line-height:1.55;letter-spacing:-.15px}
 #transferOutputStatus{margin-top:10px}
 @media(max-width:1050px){.outgrid{grid-template-columns:repeat(2,1fr)}}@media(max-width:650px){.outgrid{grid-template-columns:1fr}}
 </style>
+<link rel="stylesheet" href="../site-src/ddalkkak-records-theme.css">
 </head>
 <body>
-<div class="top"><div class="topin"><div class="brand"><h1>딸깍 기록물이관신청서 자동화</h1><p>문서등록대장 → 유형분류 → 편철 → 이관신청서 · 관리연계 데이터</p></div><span class="badge blue">통합 Beta v0.3</span></div></div>
+<div class="top"><div class="topin"><div class="brand"><div class="logo">딸깍</div><div><div class="brand-kicker">DDALKKAK RECORDS TRANSFER</div><h1>딸깍 기록물이관신청서</h1><p>문서등록대장 → 유형분류 → 편철 → 이관신청서 · 관리연계 데이터를 한 흐름으로 처리합니다.</p></div></div><span class="badge info">Beta v0.3.1 · 딸깍 UI</span></div></div>
 <main class="app">
 <div class="steps"><div class="step on" data-s="1" onclick="go(1)">1. 문서등록대장</div><div class="step" data-s="2" onclick="go(2)">2. 기록유형</div><div class="step" data-s="3" onclick="go(3)">3. 편철</div><div class="step" data-s="4" onclick="go(4)">4. 최종 확인</div><div class="step" data-s="5" onclick="go(5)">5. 이관신청서</div></div>
 <section id="p1" class="panel on"><div class="card"><div class="head"><h2>문서등록대장 불러오기</h2><span class="badge">브라우저 내부 처리</span></div><div class="body"><div class="drop"><strong>문서등록대장 Excel 또는 CSV를 선택하세요</strong><p>K-에듀파인 문서등록대장의 제목, 문서번호, 등록일자, 과제카드명, 쪽수, 공개구분 등을 읽습니다.<br>업로드한 파일은 서버로 전송하지 않고 현재 브라우저에서만 처리합니다.</p><input id="srcFile" type="file" accept=".xlsx,.xls,.xlsm,.csv" hidden><button class="btn primary" onclick="document.getElementById('srcFile').click()">문서등록대장 선택</button> <button class="btn" onclick="loadSample()">샘플로 시험</button></div><div id="loadResult" style="display:none;margin-top:14px"></div></div></div></section>
