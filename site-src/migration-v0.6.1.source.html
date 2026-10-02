@@ -1030,7 +1030,7 @@ function readTransformForm(){
   }else if(type==='between'){
     t.startDelimiter=$('trStartDelimiter')?.value??'';
     t.endDelimiter=$('trEndDelimiter')?.value??'';
-else if(type==='slice'){
+  }else if(type==='slice'){
     t.side=$('trSide')?.value||'first';t.count=Math.max(0,Number($('trCount')?.value)||0);
   }else if(type==='replace'){
     t.find=$('trFind')?.value??'';t.replace=$('trReplace')?.value??'';
@@ -1055,7 +1055,7 @@ function renderTransformOptions(){
       <div class="editor-help">시작 구분자 뒤부터 끝 구분자 앞까지만 가져옵니다. 한쪽을 비우면 문자열의 처음 또는 끝까지 사용합니다.</div>
       <div class="editor-help" style="margin-top:7px"><b>예시</b> · <code>49. 졸업대장관리(영구)</code><br>단위과제: 시작 <b>.</b> / 끝 <b>(</b> → <b>졸업대장관리</b><br>보존기간: 시작 <b>(</b> / 끝 <b>)</b> → <b>영구</b></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="btn" type="button" onclick="setBetweenPreset('.', '(')">번호 뒤 ~ 괄호 앞</button><button class="btn" type="button" onclick="setBetweenPreset('(', ')')">괄호 안</button></div>`;
-else if(type==='slice'){
+  }else if(type==='slice'){
     el.innerHTML=`<div class="editor-row"><label>방향</label><select id="trSide" onchange="updateTransformPreview()"><option value="first" ${t.side!=='last'?'selected':''}>앞에서</option><option value="last" ${t.side==='last'?'selected':''}>뒤에서</option></select></div>
       <div class="editor-row"><label>글자 수</label><input id="trCount" type="number" min="0" value="${Number(t.count)||4}" oninput="updateTransformPreview()"></div>`;
   }else if(type==='replace'){
