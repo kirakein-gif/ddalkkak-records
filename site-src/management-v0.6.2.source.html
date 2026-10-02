@@ -81,24 +81,43 @@ select,input[type=text],input[type=number]{border:1px solid var(--line);border-r
 <body>
 <div class="top"><div class="topin"><div class="brand"><div class="logo">딸깍</div><div><div class="brand-kicker">DDALKKAK RECORDS MANAGEMENT</div><h1>딸깍 기록물관리</h1><div class="sub">신규자료 편입부터 보유기록물 관리까지, 비전자 기록물 업무를 한 흐름으로 처리합니다.</div></div></div><span id="appVersionBadge" class="badge info"></span></div></div>
 <main class="wrap"><div id="management-mode-tabs" class="mode-tabs"><a class="mode-tab active" href="./">신규자료 편입</a><a class="mode-tab" href="holdings/">보유기록물 관리</a></div>
-<div class="steps">
- <div class="step on" data-step="1" onclick="go(1)">1. 자료 불러오기</div>
- <div class="step" data-step="2" onclick="go(2)">2. 검증·상자배정</div>
- <div class="step" data-step="3" onclick="go(3)">3. 철제목·관리번호</div>
- <div class="step" data-step="4" onclick="go(4)">4. 최종 확인</div>
- <div class="step" data-step="5" onclick="go(5)">5. 출력</div>
-</div>
-
-<section id="p1" class="panel on">
- <div class="card"><div class="head"><h2>이관신청서 불러오기</h2><span class="badge info">_handoff 읽기</span></div><div class="body">
-  <div class="drop"><strong>이관신청서 Excel을 선택하세요</strong><p>여러 파일을 한꺼번에 선택할 수 있습니다. `_handoff` 시트의 current 값을 우선 사용합니다.<br>이 시제품의 파일처리는 브라우저 안에서만 수행됩니다.</p>
-  <input id="transferFiles" type="file" accept=".xlsx,.xlsm" multiple style="display:none"><button class="btn primary" onclick="document.getElementById('transferFiles').click()">이관신청서 선택</button> <button class="btn" onclick="loadSample()">샘플자료로 시험</button></div>
- </div></div>
- <div class="files">
-  <div class="filebox"><h3>기존 기록물관리대장</h3><p>있으면 업로드해서 기관별 마지막 관리번호 다음부터 자동 부여합니다. 없어도 진행 가능합니다.</p><input id="ledgerFile" type="file" accept=".xlsx" style="display:none"><button class="btn" onclick="document.getElementById('ledgerFile').click()">기존 대장 선택</button><div id="ledgerState" class="meta" style="margin-top:7px">선택 안 함 · 신규 기관은 10001부터</div></div>
-  <div class="filebox"><h3>기관 프로필</h3><p>상자 제외규칙·관리번호 접두어 등을 저장한 설정파일입니다. 이전에 저장한 설정이 있으면 불러올 수 있습니다.</p><input id="profileFile" type="file" accept=".json" style="display:none"><button class="btn" onclick="document.getElementById('profileFile').click()">프로필 불러오기</button> <button class="btn" onclick="exportProfiles()">프로필 내보내기</button><div class="meta" style="margin-top:7px">브라우저 저장 설정도 자동으로 사용합니다.</div></div>
+<div class="records-workbench">
+<aside class="records-sidebar">
+ <div class="records-side-card">
+  <div class="records-side-title">처리 단계</div>
+  <div class="steps">
+   <div class="step on" data-step="1" onclick="go(1)">1. 자료 불러오기</div>
+   <div class="step" data-step="2" onclick="go(2)">2. 검증·상자배정</div>
+   <div class="step" data-step="3" onclick="go(3)">3. 철제목·관리번호</div>
+   <div class="step" data-step="4" onclick="go(4)">4. 최종 확인</div>
+   <div class="step" data-step="5" onclick="go(5)">5. 출력</div>
+  </div>
  </div>
- <div id="loadResult" class="card" style="display:none;margin-top:12px"><div class="head"><h2>불러온 자료</h2></div><div class="body" id="loadBody"></div></div>
+ <div class="records-side-card">
+  <div class="records-side-title">자료 불러오기</div>
+  <div class="records-file-stack">
+   <div class="records-file-row">
+    <input id="transferFiles" type="file" accept=".xlsx,.xlsm" multiple style="display:none">
+    <button class="btn primary records-file-btn" onclick="document.getElementById('transferFiles').click()">이관신청서 선택</button>
+    <div id="transferFileMeta" class="records-file-meta">이관신청서 Excel</div>
+   </div>
+   <div class="records-file-row">
+    <input id="ledgerFile" type="file" accept=".xlsx" style="display:none">
+    <button class="btn records-file-btn" onclick="document.getElementById('ledgerFile').click()">기존 대장 선택</button>
+    <div id="ledgerState" class="records-file-meta">선택 안 함 · 없으면 신규대장으로 진행</div>
+   </div>
+  </div>
+  <input id="profileFile" type="file" accept=".json" style="display:none">
+  <div class="records-file-mini"><button class="btn" onclick="loadSample()">샘플자료</button></div>
+ </div>
+</aside>
+<div class="records-main">
+<section id="p1" class="panel on">
+ <div class="card records-start"><div class="body">
+  <h2>이관신청서를 준비해주세요.</h2>
+  <p>왼쪽에서 <b>이관신청서</b>를 선택하고, 기존 대장이 있으면 함께 넣어 번호와 상자를 이어갑니다.</p>
+ </div></div>
+ <div id="loadResult" class="card" style="display:none"><div class="head"><h2>불러온 자료</h2></div><div class="body" id="loadBody"></div></div>
 </section>
 
 <section id="p2" class="panel">
@@ -142,6 +161,7 @@ select,input[type=text],input[type=number]{border:1px solid var(--line);border-r
  </div></div>
 </section>
 
+</div></div>
 <div class="footer"><div class="footerin"><div id="foot" class="foot">이관신청서를 불러오거나 샘플자료로 시험해보세요.</div><div><button id="prevBtn" class="btn" onclick="go(currentStep-1)" style="display:none">이전</button> <button id="nextBtn" class="btn primary" onclick="nextStep()">다음 단계</button></div></div></div>
 </main>
 
@@ -156,7 +176,7 @@ select,input[type=text],input[type=number]{border:1px solid var(--line);border-r
 </div></div></div>
 
 <script>
-const APP_VERSION='v0.9.1 Beta';
+const APP_VERSION='v0.9.2 Beta';
 document.title='딸깍 기록물관리 '+APP_VERSION;
 const appVersionBadge=document.getElementById('appVersionBadge');if(appVersionBadge)appVersionBadge.textContent='통합 '+APP_VERSION;
 
@@ -184,6 +204,7 @@ function afterLoad(msg){
  applyAllAutoExclusions();assignBoxes();document.getElementById('loadResult').style.display='block';
  const docBadge=documentRows.length?'<span class="badge ok">색인 연계 준비</span>':'<span class="badge warn">_handoff_docs 없음</span>';
  document.getElementById('loadBody').innerHTML=`<span class="badge ok">불러오기 완료</span> ${docBadge} <b style="margin-left:6px">${esc(msg)}</b><div class="meta">${insts().map(i=>`${esc(i)} ${records.filter(r=>r.institution===i).length}권`).join(' · ')}</div>`;
+ if(document.getElementById('transferFileMeta'))document.getElementById('transferFileMeta').innerHTML='<span class="badge ok">완료</span> '+records.length+'권 · '+packages.length+'개 패키지';
  setFoot(`${records.length}권을 불러왔습니다.${documentRows.length?` 원본문서 ${documentRows.length}건도 색인용으로 연결되었습니다.`:' 색인 재생성을 위해서는 v3 이관신청서의 _handoff_docs가 필요합니다.'}`)
 }
 function alias(obj,names){for(const n of names){if(obj[n]!==undefined&&obj[n]!==null&&obj[n]!=='')return obj[n]}return ''}
