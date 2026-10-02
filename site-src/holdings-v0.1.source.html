@@ -18,7 +18,7 @@
 .field-list{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.field-card{border:1px solid var(--line);border-radius:11px;padding:12px;cursor:pointer;background:#fff}.field-card:hover,.field-card.on{border-color:#9bb8f5;background:#fbfdff}.field-card b{font-size:13px}.field-card .n{font-size:20px;font-weight:900;margin-top:5px}.field-card .m{font-size:11px;color:var(--muted)}.bulkbox{border:1px solid var(--line);border-radius:12px;padding:14px;background:#fbfcfe}.bulkrow{display:grid;grid-template-columns:130px 1fr;gap:10px;align-items:center;margin:9px 0}.bulkrow label{font-weight:800;color:#475467}.bulk-preview{margin-top:11px;padding:11px 12px;border-radius:10px;background:#fff;border:1px solid var(--line);font-size:12px}
 .status-chip{display:inline-flex;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:900;background:#f2f4f7;color:#475467}.status-chip.review{background:var(--warnbg);color:var(--warn)}.status-chip.done{background:var(--redbg);color:var(--red)}
 .box-manager{display:grid;grid-template-columns:minmax(410px,.9fr) minmax(520px,1.35fr);gap:12px;align-items:start}
-.box-list{max-height:650px;overflow:auto}.box-item{display:grid;grid-template-columns:34px 92px minmax(0,1fr) 82px 72px;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid #edf0f4;cursor:pointer}.box-item:hover{background:#f8faff}.box-item.focus{background:#eef4ff}.box-item .bn{font-weight:900;color:#174ea6}.box-item .bm{font-size:11px;color:var(--muted)}.box-item .warntext{font-size:10px;color:var(--red);font-weight:900}
+.box-list{max-height:650px;overflow:auto}.box-item{display:grid;grid-template-columns:34px 92px minmax(0,1fr) 82px 72px;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid #edf0f4;cursor:pointer}.box-item:hover{background:#f8faff}.box-item.focus{background:#eef4ff}.box-item .bn{font-weight:900;color:#174ea6}.box-item .bm{font-size:11px;color:var(--muted)}.box-item .warntext{font-size:10px;color:var(--red);font-weight:900}.box-item.held{background:#eef6ff;border-left:3px solid var(--blue)}.box-list-section{padding:7px 11px;background:#f7f9fc;border-bottom:1px solid var(--line);font-size:11px;font-weight:900;color:#475467;position:sticky;top:0;z-index:2}.box-list-section.pinned{background:#eaf2ff;color:#174ea6}.box-list-section .small{font-weight:500;color:var(--muted);margin-left:6px}
 .box-preview-wrap{padding:18px;background:#f7f9fc}.box-label-preview{max-width:760px;margin:auto;background:#fff;border:2px solid #1f2937;box-shadow:0 4px 16px rgba(16,24,40,.06)}.box-label-head{display:grid;grid-template-columns:110px 1fr}.box-label-head>div{min-height:42px;border-right:1px solid #1f2937;border-bottom:1px solid #1f2937;padding:9px 10px;display:flex;align-items:center}.box-label-head>div:nth-child(2n){border-right:0;font-weight:900;font-size:15px}.box-label-head .lab{background:#f4f6f8;font-weight:800;justify-content:center}
 .box-label-table{width:100%;border-collapse:collapse;table-layout:fixed}.box-label-table th,.box-label-table td{position:static;background:#fff;border-bottom:1px solid #8d99a8;padding:8px 9px;font-size:12px;vertical-align:middle}.box-label-table th{background:#f4f6f8}.box-label-table th:first-child,.box-label-table td:first-child{width:82px;text-align:center;border-right:1px solid #8d99a8}.box-label-table tr:last-child td{border-bottom:0}.box-preview-actions{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
 @media(max-width:1050px){.box-manager{grid-template-columns:1fr}}.panel{display:none}.panel.on{display:block}.footer{position:sticky;bottom:0;z-index:30;background:rgba(245,247,251,.95);border-top:1px solid var(--line);padding:10px 24px;margin:18px -24px -90px}.footerin{max-width:1500px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:10px}.foot{font-size:12px;color:var(--muted)}
@@ -27,7 +27,7 @@
 </style>
 </head>
 <body>
-<div class="top"><div class="topin"><div class="brand"><div class="logo">딸깍</div><div><h1>기록물관리 자동화</h1><div class="sub">완성된 표준대장을 검색·정비·폐기이력·부서검색까지 관리합니다</div></div></div><span class="badge info">v0.8.6 Beta</span></div></div>
+<div class="top"><div class="topin"><div class="brand"><div class="logo">딸깍</div><div><h1>기록물관리 자동화</h1><div class="sub">완성된 표준대장을 검색·정비·폐기이력·부서검색까지 관리합니다</div></div></div><span class="badge info">v0.8.7 Beta</span></div></div>
 <main class="wrap">
 <div class="mode-tabs"><a class="mode-tab" href="../">신규자료 편입</a><a class="mode-tab active" href="./">보유기록물 관리</a></div>
 <div id="loadCard" class="card"><div class="head"><h2>표준 기록물관리대장</h2><span class="badge info">표준대장 관리</span></div><div class="body"><div class="loadbar"><input id="ledgerInput" type="file" accept=".xlsx" style="display:none"><button class="btn primary" onclick="document.getElementById('ledgerInput').click()">대장 불러오기</button><div class="loadcopy"><b id="loadFileName">완성된 표준 기록물관리대장을 선택하세요</b><p>마이그레이션 결과 또는 기록물관리 자동화에서 생성한 표준대장을 불러옵니다. 원본은 덮어쓰지 않습니다.</p></div><div id="loadState" class="muted">선택된 파일 없음</div></div></div></div>
@@ -61,7 +61,7 @@
 </main>
 <div id="recordModal" class="modalback" onclick="if(event.target===this)closeRecord()"><div class="modal"><div class="modalhead"><div><b id="recordTitle">기록물 상세</b><div class="sub" id="recordSub"></div></div><button class="btn" onclick="closeRecord()">닫기</button></div><div class="modalbody"><div id="recordForm" class="formgrid"></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button class="btn" onclick="closeRecord()">취소</button><button class="btn primary" onclick="saveRecord()">수정 저장</button></div></div></div></div>
 <script>
-const APP_VERSION='v0.8.6 Beta';
+const APP_VERSION='v0.8.7 Beta';
 const SHEET_NAME='기록물등록 기록물철 일괄등록서식',VALID_SHEET='(삭제금지)유효성검사',META_SHEET='_ddalkkak_meta';
 const FIELD_LABELS={mngNo:'관리번호',title:'철제목',clssNm:'단위과제',creatYyyyFrom:'생산연도(시작)',creatYyyyTo:'생산연도(끝)',presvTermNm:'보존기간',typeDivNm:'기록유형',detailTypeNm:'세부유형',mediaTypeNm:'매체유형',openDivNm:'공개구분',openGrade:'비공개호수',presvLocNm:'보존장소',operReadRangeNm:'열람구분',excelPresvBoxNm:'보존상자번호',excelBoxNo:'위치번호',orgBoxNum:'원상자번호',stackNm:'서고',rackNm:'서가',rowNm:'열',colNm:'층',orgPresvLoc:'위치정보',docuConditionNm:'기록물상태',rmsRegFlagNm:'DB등록여부',keepOrgNm:'보존기관명',creatOrgNm:'생산기관명'};
 const BULK_FIELDS=['presvTermNm','typeDivNm','detailTypeNm','mediaTypeNm','openDivNm','presvLocNm','operReadRangeNm','docuConditionNm','rmsRegFlagNm'];
@@ -232,12 +232,24 @@ function populateBoxFilters(){
 }
 function renderBoxManager(){
  populateBoxFilters();
- const groups=holdingBoxGroups(),visible=boxManagerFiltered(),unboxed=H.records.filter(r=>activeState(r)!=='done'&&!holdingBoxNo(r)).length,over=groups.filter(g=>g.records.length>8).length;
- $('boxSummary').innerHTML=stats([['보존상자',groups.length,'개'],['현재 목록',visible.length,'개'],['선택',H.boxSelection.size,'개'],['상자 내 기록물철',groups.reduce((s,g)=>s+g.records.length,0),'권'],['상자 미지정',unboxed,'권'],['8권 초과',over,'개']]);
- $('boxListCount').textContent=visible.length.toLocaleString()+'개';$('boxSelectedCount').textContent='선택 '+H.boxSelection.size.toLocaleString()+'개';
+ const groups=holdingBoxGroups(),visible=boxManagerFiltered(),held=groups.filter(g=>H.boxSelection.has(g.key)),normal=visible.filter(g=>!H.boxSelection.has(g.key)),unboxed=H.records.filter(r=>activeState(r)!=='done'&&!holdingBoxNo(r)).length,over=groups.filter(g=>g.records.length>8).length;
+ $('boxSummary').innerHTML=stats([['보존상자',groups.length,'개'],['현재 검색',visible.length,'개'],['선택',H.boxSelection.size,'개'],['상자 내 기록물철',groups.reduce((s,g)=>s+g.records.length,0),'권'],['상자 미지정',unboxed,'권'],['8권 초과',over,'개']]);
+ $('boxListCount').textContent='검색 '+visible.length.toLocaleString()+' · 선택 '+held.length.toLocaleString();
+ $('boxSelectedCount').textContent='선택 '+H.boxSelection.size.toLocaleString()+'개';
  $('boxMgrAll').checked=visible.length>0&&visible.every(g=>H.boxSelection.has(g.key));
- $('boxList').innerHTML=visible.map(g=>'<div class="box-item '+(H.boxFocus===g.key?'focus':'')+'" data-key="'+esc(g.key)+'" onclick="focusHoldingBox('+JSON.stringify(g.key)+')"><div onclick="event.stopPropagation()"><input type="checkbox" '+(H.boxSelection.has(g.key)?'checked':'')+' onchange="toggleHoldingBox('+JSON.stringify(g.key)+',this.checked)"></div><div class="bn">'+esc(g.no)+'</div><div><div class="title">'+esc(g.records[0]?.title||'')+'</div><div class="bm">'+esc(g.institution)+' · '+esc(holdingBoxYears(g))+(g.records.length>1?' · 외 '+(g.records.length-1)+'권':'')+'</div></div><div>'+esc(g.retention||'-')+'</div><div>'+(g.records.length>8?'<span class="warntext">'+g.records.length+'권</span>':g.records.length+'권')+'</div></div>').join('')||'<div class="notice" style="margin:12px">조건에 맞는 보존상자가 없습니다.</div>';
- if(!H.boxFocus||!groups.some(g=>g.key===H.boxFocus))H.boxFocus=visible[0]?.key||'';
+ const itemHtml=(g,isHeld)=>'<div class="box-item '+(isHeld?'held ':'')+(H.boxFocus===g.key?'focus':'')+'" data-key="'+esc(g.key)+'" onclick="focusHoldingBox('+JSON.stringify(g.key)+')"><div onclick="event.stopPropagation()"><input type="checkbox" '+(H.boxSelection.has(g.key)?'checked':'')+' onchange="toggleHoldingBox('+JSON.stringify(g.key)+',this.checked)"></div><div class="bn">'+esc(g.no)+'</div><div><div class="title">'+esc(g.records[0]?.title||'')+'</div><div class="bm">'+esc(g.institution)+' · '+esc(holdingBoxYears(g))+(g.records.length>1?' · 외 '+(g.records.length-1)+'권':'')+'</div></div><div>'+esc(g.retention||'-')+'</div><div>'+(g.records.length>8?'<span class="warntext">'+g.records.length+'권</span>':g.records.length+'권')+'</div></div>';
+ let html='';
+ if(held.length){
+   html+='<div class="box-list-section pinned">선택한 상자 '+held.length.toLocaleString()+'개 <span class="small">검색·필터와 무관하게 상단에 유지됩니다.</span></div>';
+   html+=held.map(g=>itemHtml(g,true)).join('');
+ }
+ if(normal.length){
+   html+='<div class="box-list-section">검색 결과 '+normal.length.toLocaleString()+'개</div>';
+   html+=normal.map(g=>itemHtml(g,false)).join('');
+ }
+ if(!held.length&&!normal.length)html='<div class="notice" style="margin:12px">조건에 맞는 보존상자가 없습니다.</div>';
+ $('boxList').innerHTML=html;
+ if(!H.boxFocus||!groups.some(g=>g.key===H.boxFocus))H.boxFocus=(held[0]||normal[0])?.key||'';
  renderHoldingBoxDetails()
 }
 function focusHoldingBox(key){
