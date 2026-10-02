@@ -153,19 +153,28 @@
 </style>
 <link rel="stylesheet" href="../site-src/ddalkkak-records-theme.css">
 </head><body>
-<div class="top"><div class="topin"><div class="brand"><div class="logo">딸깍</div><div><div class="brand-kicker">DDALKKAK RECORDS MIGRATION</div><h1>딸깍 기록물관리 마이그레이션</h1><div class="sub">지역별·기관별로 다른 기존 기록물관리대장을 표준 구조로 맞춥니다.</div></div></div><span class="badge info">v0.6.7 Beta · 딸깍 UI</span></div></div>
+<div class="top"><div class="topin"><div class="brand"><div class="logo">딸깍</div><div><div class="brand-kicker">DDALKKAK RECORDS MIGRATION</div><h1>딸깍 기록물관리 마이그레이션</h1><div class="sub">지역별·기관별로 다른 기존 기록물관리대장을 표준 구조로 맞춥니다.</div></div></div><span class="badge info">v0.6.8 Beta · 딸깍 UI</span></div></div>
 <main class="wrap">
-<div class="steps"><div class="step on" onclick="go(1)">1. 기준 선택</div><div class="step" onclick="go(2)">2. 대장 읽기</div><div class="step" onclick="go(3)">3. 열 매핑</div><div class="step" onclick="go(4)">4. 보정·검토</div><div class="step" onclick="go(5)">5. 변환</div></div>
-<div class="flowline">
-  <div class="flowitem done"><b>① 표준서식 선택</b>학교·직속·기록관</div>
-  <div class="flowitem done"><b>② 기존 대장 읽기</b>헤더·시트 자동탐지</div>
-  <div class="flowitem done"><b>③ 자동 + 편집 매핑</b>복제·나누기·자르기·합치기</div>
-  <div class="flowitem done"><b>④ 표준기준 보정</b>단위과제·보존기간·유형 검증</div>
-  <div class="flowitem done"><b>⑤ 프로필 저장</b>다음 같은 서식에 재사용</div>
-  <div class="flowitem done"><b>⑥ 표준 변환</b>원본·보정근거 함께 추적</div>
-</div>
-
-
+<div class="records-workbench">
+<aside class="records-sidebar">
+ <div class="records-side-card">
+  <div class="records-side-title">변환 단계</div>
+  <div class="steps"><div class="step on" onclick="go(1)">1. 기준 선택</div><div class="step" onclick="go(2)">2. 대장 읽기</div><div class="step" onclick="go(3)">3. 열 매핑</div><div class="step" onclick="go(4)">4. 보정·검토</div><div class="step" onclick="go(5)">5. 변환</div></div>
+ </div>
+ <div class="records-side-card">
+  <div class="records-side-title">자료 불러오기</div>
+  <div class="records-file-stack">
+   <div class="records-file-row">
+    <input id="srcFile" type="file" accept=".xlsx,.xlsm,.xls" style="display:none">
+    <button class="btn primary records-file-btn" onclick="document.getElementById('srcFile').click()">기존 대장 선택</button>
+    <div id="migrationFileMeta" class="records-file-meta">Excel · XLS 1개</div>
+   </div>
+  </div>
+  <input id="profileFile" type="file" accept=".json" style="display:none">
+  <div class="records-file-mini"><button class="btn" onclick="loadSample()">샘플자료</button></div>
+ </div>
+</aside>
+<div class="records-main">
 <section id="p1" class="panel on">
 <div class="card"><div class="head"><h2>어떤 표준 구조로 맞출까요?</h2><span class="badge info">GitHub 표준양식</span></div><div class="body"><div id="typePick" class="typepick"></div><div id="tplState" class="notice" style="margin-top:10px">표준서식 종류를 선택하세요.</div><input id="manualTpl" type="file" accept=".xlsx" style="display:none"></div></div>
 
@@ -180,8 +189,8 @@
 </section>
 
 <section id="p2" class="panel">
-<div class="card"><div class="head"><h2>기존 기록물관리대장 불러오기</h2><span class="badge purple">지역별 서식 자동분석</span></div><div class="body">
-<div class="drop"><strong>기존 기록물관리대장 Excel을 선택하세요</strong><p>.xlsx · .xlsm · 구형 .xls를 읽습니다. 여러 시트가 파편화되어 있으면 후보 시트를 통합하고, 숨김 시트도 표시해 누락을 막습니다.<br>처음 테스트는 샘플자료로 바로 확인할 수 있습니다.</p><input id="srcFile" type="file" accept=".xlsx,.xlsm,.xls" style="display:none"><button class="btn primary" onclick="document.getElementById('srcFile').click()">대장 선택</button> <button class="btn" onclick="loadSample()">샘플자료로 시험</button></div>
+<div class="card"><div class="head"><h2>기존 대장 읽기</h2><span class="badge info">지역별 서식 자동분석</span></div><div class="body">
+<div class="notice"><b>왼쪽에서 기존 기록물관리대장을 선택하세요.</b> 여러 시트·숨김 시트를 자동 분석하고 후보 시트를 찾아줍니다.</div>
 <div id="sourceState" class="notice" style="display:none;margin-top:10px"></div>
 <div id="sheetChooser" class="sheet-choice" style="display:none;margin-top:10px">
   <div class="formrow"><label>처리 방식</label><select id="sheetMode"><option value="single">선택한 시트만 변환</option><option value="merge">후보 시트 통합 · 중복 보충</option></select></div>
@@ -189,7 +198,6 @@
   <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" onclick="applySheetMode()">이 방식으로 읽기</button><span id="sheetHint" class="muted"></span></div>
 </div>
 </div></div>
-<div class="card"><div class="head"><h2>저장된 마이그레이션 프로필</h2></div><div class="body"><div class="formrow"><label>프로필 JSON</label><div><input id="profileFile" type="file" accept=".json" style="display:none"><button class="btn" onclick="document.getElementById('profileFile').click()">프로필 불러오기</button> <button class="btn" onclick="exportCurrentProfile()">현재 프로필 내보내기</button></div></div><div class="muted">같은 지역·기관 서식을 다시 넣으면 헤더 구성값을 기준으로 저장된 매핑을 자동 적용합니다. 실제 기록물 내용은 프로필에 저장하지 않습니다.</div></div></div>
 </section>
 
 
@@ -267,7 +275,7 @@
 <section id="p5" class="panel">
 <div id="finalSummary" class="summary"></div>
 <div class="card"><div class="head"><h2>변환 결과</h2><span class="badge warn">표준 오류가 남으면 출력 차단</span></div><div class="body">
-<div class="notice"><b>v0.6.7 변환 규칙</b> · 관리번호·상자번호·위치정보·기존 철제목은 역사값으로 보존합니다. 단위과제·보존기간·기록유형은 표준양식의 기준정보로 검증하며, 확실한 근거가 있는 경우 표준값으로 보정합니다. 근거를 찾지 못한 비표준값은 출력 전에 검토가 필요합니다.</div>
+<div class="notice"><b>v0.6.8 변환 규칙</b> · 관리번호·상자번호·위치정보·기존 철제목은 역사값으로 보존합니다. 단위과제·보존기간·기록유형은 표준양식의 기준정보로 검증하며, 확실한 근거가 있는 경우 표준값으로 보정합니다. 근거를 찾지 못한 비표준값은 출력 전에 검토가 필요합니다.</div>
 
 <div class="muted" style="margin-top:10px;line-height:1.6">
   현재 구현범위: .xls/.xlsx 입력 · 숨김/다중시트 분석 · 후보 시트 통합 및 보충 · 빈 양식행 제외 · 자동/편집 매핑 · 표준 단위과제표 기반 과제/보존기간 검증 · 기록유형 계층 정규화 · 만료연도 오류 검증 · 원본/보정근거 추적 · 표준서식 변환.
@@ -277,6 +285,7 @@
 </section>
 
 
+</div></div>
 <div id="transformModal" class="modalback" onclick="if(event.target===this)closeTransformEditor()">
   <div class="modaldialog">
     <div class="modalhead">
@@ -502,7 +511,7 @@ function mergeCandidateSheets(cs){const extracted=cs.map(c=>({...c,...extractCan
 function applySheetMode(){if(!sourceCandidates.length)return;const mode=$('sheetMode').value;if(mode==='merge'&&sourceCandidates.length>1){const m=mergeCandidateSheets(sourceCandidates);processUnified(m.headers,m.rows,`통합 ${sourceCandidates.length}개 시트`,{rowMeta:m.rowMeta,metaInfo:m.metaInfo,mergeStats:m.stats});return}const c=sourceCandidates[Number($('sheetSelect').value)||0];processRows(c.rows,c.name,c)}
 $('srcFile').addEventListener('change',async e=>{
  const f=e.target.files[0];if(!f||migrationBusy)return;
- migrationBusy=true;sourceFileName=f.name;
+ migrationBusy=true;sourceFileName=f.name;if($('migrationFileMeta'))$('migrationFileMeta').textContent=f.name;
  showMigrationProgress('기존 대장 읽기','파일을 메모리로 불러오고 있습니다.',3,f.name);
  await migrationYield();
  try{
@@ -523,7 +532,7 @@ $('srcFile').addEventListener('change',async e=>{
   $('sheetChooser').style.display=cs.length>1?'block':'none';$('sheetMode').value=cs.length>1?'merge':'single';$('sheetHint').textContent=cs.length>1?`대장 후보 ${cs.length}개 · 통합 모드는 중복 자료의 빈 위치·상자값을 보충합니다.`:'';
   updateMigrationProgress(90,'열 매핑 화면을 구성하고 있습니다.',`후보 시트 ${cs.length}개`);await migrationYield();
   applySheetMode();
-  updateMigrationProgress(100,'대장 읽기가 완료되었습니다.',`후보 시트 ${cs.length}개`);
+  updateMigrationProgress(100,'대장 읽기가 완료되었습니다.',`후보 시트 ${cs.length}개`);if($('migrationFileMeta'))$('migrationFileMeta').innerHTML='<span class="badge ok">완료</span> '+esc(f.name)+' · 후보 '+cs.length+'개';
   await new Promise(resolve=>setTimeout(resolve,150));
  }catch(err){console.error(err);alert('대장 읽기 오류: '+(err.message||err))}
  finally{hideMigrationProgress();migrationBusy=false}
