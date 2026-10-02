@@ -152,7 +152,7 @@ select,input[type=text],input[type=number]{border:1px solid var(--line);border-r
 </div></div></div>
 
 <script>
-const APP_VERSION='v0.7.7 Beta';
+const APP_VERSION='v0.7.8 Beta';
 document.title='딸깍 기록물관리 '+APP_VERSION;
 const appVersionBadge=document.getElementById('appVersionBadge');if(appVersionBadge)appVersionBadge.textContent='통합 '+APP_VERSION;
 
@@ -729,6 +729,28 @@ async function loadExistingLedgerZip(){
  if(!window.JSZip)throw new Error('JSZip을 불러오지 못했습니다.');
  const zip=await JSZip.loadAsync(ledgerSourceBuffer.slice(0));await sanitizePackage(zip);return zip
 }
+function normalizeLedgerDataValidations(sheetDoc,endRow){
+ const root=sheetDoc.documentElement;
+ let old=direct(root,'dataValidations');if(old)root.removeChild(old);
+ const dvs=makeEl(sheetDoc,'dataValidations');
+ const defs=[
+  {sqref:'M5:M'+endRow,formula:'철기록유형'},
+  {sqref:'N5:N'+endRow,formula:'INDIRECT("철세부유형_"&$M5)'},
+  {sqref:'O5:O'+endRow,formula:'INDIRECT("철매체유형_"&$M5&"_"&$N5)'},
+  {sqref:'Q5:Q'+endRow,formula:'공개구분'},
+  {sqref:'S5:S'+endRow,formula:'보존장소'},
+  {sqref:'T5:T'+endRow,formula:'기록물철열람구분'},
+  {sqref:'AD5:AD'+endRow,formula:'기록물상태'},
+  {sqref:'AE5:AE'+endRow,formula:'DB등록여부'}
+ ];
+ defs.forEach(d=>{
+  const dv=makeEl(sheetDoc,'dataValidation');dv.setAttribute('type','list');dv.setAttribute('allowBlank','1');dv.setAttribute('showInputMessage','1');dv.setAttribute('showErrorMessage','1');dv.setAttribute('sqref',d.sqref);
+  const f1=makeEl(sheetDoc,'formula1');f1.textContent=d.formula;dv.appendChild(f1);dvs.appendChild(dv)
+ });
+ dvs.setAttribute('count',String(defs.length));
+ const before=direct(root,'hyperlinks')||direct(root,'printOptions')||direct(root,'pageMargins')||direct(root,'pageSetup')||direct(root,'headerFooter')||direct(root,'rowBreaks')||direct(root,'colBreaks')||direct(root,'customProperties')||direct(root,'cellWatches')||direct(root,'ignoredErrors')||direct(root,'drawing')||direct(root,'legacyDrawing')||direct(root,'tableParts')||direct(root,'extLst');
+ if(before)root.insertBefore(dvs,before);else root.appendChild(dvs);
+}
 function rowHasStoredValue(row){
  return allLocal(row,'c').some(cell=>!!direct(cell,'v')||!!direct(cell,'is')||!!direct(cell,'f'))
 }
@@ -770,7 +792,7 @@ async function buildStandardLedgerFor(inst,arr){
   });
   end=Math.max(5,4+arr.length);
  }
- setDimension(doc,'A1:'+(kind==='archive'?'AF':'AE')+end);removeFreezePane(doc);
+ setDimension(doc,'A1:'+(kind==='archive'?'AF':'AE')+end);removeFreezePane(doc);normalizeLedgerDataValidations(doc,end);
  const suffix=useExisting?'_기존대장연계':'';
  return {buffer:await finishPatchedZip(zip,doc,null),filename:'표준기록물관리대장_'+ledgerSafeName(inst)+suffix+'.xlsx'};
 }
