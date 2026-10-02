@@ -2,9 +2,10 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>딸깍 기록물관리대장 마이그레이션 v0.6.2 · 기관코드 정규화</title>
+<title>딸깍 기록물관리대장 마이그레이션 v0.6.3 · 유효성검사 보정</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <style>
 :root{--bg:#f4f7fb;--card:#fff;--line:#dfe5ec;--ink:#1f2937;--muted:#667085;--blue:#316bd6;--bluebg:#eef4ff;--green:#17795b;--greenbg:#eaf7f2;--warn:#966400;--warnbg:#fff4d6;--red:#b42318;--redbg:#fff0ef;--purple:#6842c2;--purplebg:#f3efff;--gray:#64748b;--graybg:#f1f5f9}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Malgun Gothic","Noto Sans KR",sans-serif}button,input,select{font-family:inherit}
@@ -253,7 +254,7 @@
 <section id="p5" class="panel">
 <div id="finalSummary" class="summary"></div>
 <div class="card"><div class="head"><h2>변환 결과</h2><span class="badge warn">표준 오류가 남으면 출력 차단</span></div><div class="body">
-<div class="notice"><b>v0.6.1 변환 규칙</b> · 관리번호·상자번호·위치정보·기존 철제목은 역사값으로 보존합니다. 단위과제·보존기간·기록유형은 표준양식의 기준정보로 검증하며, 확실한 근거가 있는 경우 표준값으로 보정합니다. 근거를 찾지 못한 비표준값은 출력 전에 검토가 필요합니다.</div>
+<div class="notice"><b>v0.6.3 변환 규칙</b> · 관리번호·상자번호·위치정보·기존 철제목은 역사값으로 보존합니다. 단위과제·보존기간·기록유형은 표준양식의 기준정보로 검증하며, 확실한 근거가 있는 경우 표준값으로 보정합니다. 근거를 찾지 못한 비표준값은 출력 전에 검토가 필요합니다.</div>
 
 <div class="muted" style="margin-top:10px;line-height:1.6">
   현재 구현범위: .xls/.xlsx 입력 · 숨김/다중시트 분석 · 후보 시트 통합 및 보충 · 빈 양식행 제외 · 자동/편집 매핑 · 표준 단위과제표 기반 과제/보존기간 검증 · 기록유형 계층 정규화 · 만료연도 오류 검증 · 원본/보정근거 추적 · 표준서식 변환.
@@ -824,7 +825,7 @@ function resolveStandardTask(original,title){
   if(sourceBest&&titleBest&&sourceBest.task.task!==titleBest.task.task&&titleBest.score>=96){return {...sourceBest,conflict:{candidate:titleBest.task.task,retention:titleBest.task.retention,reason:titleBest.reason,score:titleBest.score}}}
   const best=sourceBest||titleBest;if(!best||best.score<85)return null;return best
 }
-function typeFromDetail(v){const s=norm(v);if(!s)return {};if(['문서','일반문서'].includes(s))return {type:'문서류',detail:'일반문서',media:'종이'};if(['대장','카드','도면'].includes(s))return {type:'문서류',detail:s,media:'종이'};if(s==='앨범')return {type:'시청각류',detail:'사진',media:'인화사진',reason:'앨범 → 사진/인화사진'};if(s==='사진')return {type:'시청각류',detail:'사진'};if(s==='영상')return {type:'시청각류',detail:'영상'};if(s==='음성')return {type:'시청각류',detail:'음성'};if(/사진.*(CD|시디)/i.test(s))return {type:'시청각류',detail:'사진',media:'사진CD'};if(/사진.*DVD/i.test(s))return {type:'시청각류',detail:'사진',media:'사진DVD'};return {}}
+function typeFromDetail(v){const s=norm(v).replace(/^(?:\(?\d+\)?[.)\-_:]*)+/,'');if(!s)return {};if(['문서','문서류','일반문서'].includes(s))return {type:'문서류',detail:'일반문서',media:'종이'};if(['대장','카드','도면'].includes(s))return {type:'문서류',detail:s,media:'종이'};if(s==='앨범')return {type:'시청각류',detail:'사진',media:'인화사진',reason:'앨범 → 사진/인화사진'};if(s==='사진')return {type:'시청각류',detail:'사진'};if(s==='영상')return {type:'시청각류',detail:'영상'};if(s==='음성')return {type:'시청각류',detail:'음성'};if(/사진.*(CD|시디)/i.test(s))return {type:'시청각류',detail:'사진',media:'사진CD'};if(/사진.*DVD/i.test(s))return {type:'시청각류',detail:'사진',media:'사진DVD'};return {}}
 function statusObj(v,status,sourceHeader,manual=false,original=null,transform='',reason=''){return {value:v,status:manual&&status==='source'?'manual':status,sourceHeader:sourceHeader||'',originalValue:original,transform:transform||'',reason:reason||''}}
 function rawValueByHeaders(row,names){const i=headerIndexFor(headers,names);return i>=0?row[i]:null}
 function expectedExpiry(endYear,ret){const y=Number(String(endYear??'').match(/\d{4}/)?.[0]),m=String(ret??'').match(/^(1|3|5|10|30)년$/);return y&&m?y+Number(m[1]):null}
@@ -892,6 +893,35 @@ function downloadTrace(){const p={schemaVersion:2,generatedAt:new Date().toISOSt
 function downloadBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},300)}
 function renderFinal(){if(!previewRecords.length)rebuildPreview();const c=countStatuses(),err=allIssues().filter(x=>x.level==='error').length;$('finalSummary').innerHTML=summary([['변환 행',previewRecords.length,'행'],['표준기준보정',c.standard,'칸'],['검토필요',err,'건'],['시트보충',mergeStats.merged||0,'건'],['빈 양식행 제외',mergeStats.templateRows||0,'건'],['정보없음',c.missing,'칸']]);setFoot(err?'검토필요 오류를 해결한 뒤 표준서식 Excel을 생성하세요.':'표준검증을 통과했습니다. Excel 또는 추적정보를 내려받을 수 있습니다.')}
 function formulaForRow(formula,row){return String(formula).replace(/(\$?)([A-Z]{1,3})(?<!\$)5\b/g,(m,d,col)=>d+col+row)}
-async function downloadStandardWorkbook(){if(!TPL_BUFFER){alert('표준서식 템플릿이 없습니다.');return}if(!previewRecords.length)rebuildPreview();const blocking=allIssues().filter(x=>x.level==='error');if(blocking.length){alert(`표준기준 검토필요 ${blocking.length}건이 남아 있습니다. 보존기간·단위과제 후보 충돌·다중시트 충돌을 먼저 확인해주세요.`);return}const btn=$('downloadStdBtn');btn.disabled=true;$('exportState').innerHTML='<b>생성 중</b> · 원본 표준양식에 변환값을 넣고 있습니다.';try{const wb=new ExcelJS.Workbook();await wb.xlsx.load(TPL_BUFFER);if(wb.definedNames&&Array.isArray(wb.definedNames.model))wb.definedNames.model=wb.definedNames.model.filter(d=>!(d.ranges||[]).some(r=>/\[|#REF!/.test(r)));const ws=wb.getWorksheet(LEDGER_SHEET)||wb.worksheets[0],proto=[];const base=ws.getRow(DATA_ROW);for(let c=1;c<=ws.columnCount;c++){const cell=base.getCell(c),v=cell.value;proto.push({style:cell.style,dv:cell.dataValidation||null,formula:(v&&typeof v==='object'&&v.formula!==undefined)?v.formula:null})}const need=DATA_ROW+previewRecords.length-1;for(let r=DATA_ROW;r<=Math.max(need,ws.rowCount);r++){const out=ws.getRow(r),rec=previewRecords[r-DATA_ROW];for(let c=1;c<=ws.columnCount;c++){const p=proto[c-1],cell=out.getCell(c);cell.style=p.style;if(p.dv)cell.dataValidation=p.dv;cell.value=p.formula?{formula:formulaForRow(p.formula,r)}:null}if(rec){STD.forEach(col=>{if(col.locked)return;const f=rec.fields[col.en];if(f&&f.status!=='missing'&&f.value!==null&&f.value!=='')out.getCell(col.index).value=f.value})}}const buffer=await wb.xlsx.writeBuffer();downloadBlob(new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),(sourceFileName.replace(/\.(xlsx|xlsm|xls)$/i,'')||'기록물관리대장')+'_'+TEMPLATE_DEF[targetType].title+'_표준변환.xlsx');$('exportState').innerHTML=`<b>완료</b> · ${previewRecords.length}행을 표준서식으로 만들었습니다. 역사값은 보존하고 표준기준 보정값은 근거와 함께 추적정보에 기록했습니다.`}catch(e){$('exportState').innerHTML=`<b>오류</b> · ${esc(e.message)}`}finally{btn.disabled=false}}
+
+function migEscXml(v){return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+async function patchMigrationWorkbookXml(buffer,endRow){
+ if(!window.JSZip)return buffer;
+ const zip=await JSZip.loadAsync(buffer),path='xl/worksheets/sheet1.xml',file=zip.file(path);if(!file)return buffer;
+ let xml=await file.async('text');
+ xml=xml.replace(/<dataValidations\b[^>]*>[\s\S]*?<\/dataValidations>/gi,'').replace(/<dataValidations\b[^>]*\/>/gi,'');
+ const last=Math.max(5,Number(endRow)||5);
+ const defs=[
+  ['L5:L'+last,'보존기간'],
+  ['M5:M'+last,'철기록유형'],
+  ['N5:N'+last,'INDIRECT("철세부유형_"&$M5)'],
+  ['O5:O'+last,'INDIRECT("철매체유형_"&$M5&"_"&$N5)'],
+  ['Q5:Q'+last,'공개구분'],
+  ['S5:S'+last,'보존장소'],
+  ['T5:T'+last,'기록물철열람구분'],
+  ['W5:W'+last,'"문서고,행정실,교무실,기타"'],
+  ['AD5:AD'+last,'기록물상태'],
+  ['AE5:AE'+last,'DB등록여부']
+ ];
+ const body=defs.map(d=>'<dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorMessage="1" sqref="'+d[0]+'"><formula1>'+migEscXml(d[1])+'</formula1></dataValidation>').join('');
+ const block='<dataValidations count="'+defs.length+'">'+body+'</dataValidations>';
+ const anchors=['<hyperlinks','<printOptions','<pageMargins','<pageSetup','<headerFooter','<rowBreaks','<colBreaks','<customProperties','<cellWatches','<ignoredErrors','<drawing','<legacyDrawing','<tableParts','<extLst'];
+ let inserted=false;
+ for(const a of anchors){const idx=xml.indexOf(a);if(idx>=0){xml=xml.slice(0,idx)+block+xml.slice(idx);inserted=true;break}}
+ if(!inserted)xml=xml.replace(/<\/worksheet>/i,block+'</worksheet>');
+ zip.file(path,xml);
+ return zip.generateAsync({type:'arraybuffer',compression:'DEFLATE',compressionOptions:{level:6}});
+}
+async function downloadStandardWorkbook(){if(!TPL_BUFFER){alert('표준서식 템플릿이 없습니다.');return}if(!previewRecords.length)rebuildPreview();const blocking=allIssues().filter(x=>x.level==='error');if(blocking.length){alert(`표준기준 검토필요 ${blocking.length}건이 남아 있습니다. 보존기간·단위과제 후보 충돌·다중시트 충돌을 먼저 확인해주세요.`);return}const btn=$('downloadStdBtn');btn.disabled=true;$('exportState').innerHTML='<b>생성 중</b> · 원본 표준양식에 변환값을 넣고 있습니다.';try{const wb=new ExcelJS.Workbook();await wb.xlsx.load(TPL_BUFFER);if(wb.definedNames&&Array.isArray(wb.definedNames.model))wb.definedNames.model=wb.definedNames.model.filter(d=>!(d.ranges||[]).some(r=>/\[|#REF!/.test(r)));const ws=wb.getWorksheet(LEDGER_SHEET)||wb.worksheets[0],proto=[];const base=ws.getRow(DATA_ROW);for(let c=1;c<=ws.columnCount;c++){const cell=base.getCell(c),v=cell.value;proto.push({style:cell.style,dv:cell.dataValidation||null,formula:(v&&typeof v==='object'&&v.formula!==undefined)?v.formula:null})}const need=DATA_ROW+previewRecords.length-1;for(let r=DATA_ROW;r<=Math.max(need,ws.rowCount);r++){const out=ws.getRow(r),rec=previewRecords[r-DATA_ROW];for(let c=1;c<=ws.columnCount;c++){const p=proto[c-1],cell=out.getCell(c);cell.style=p.style;if(p.dv)cell.dataValidation=p.dv;cell.value=p.formula?{formula:formulaForRow(p.formula,r)}:null}if(rec){STD.forEach(col=>{if(col.locked)return;const f=rec.fields[col.en];if(f&&f.status!=='missing'&&f.value!==null&&f.value!=='')out.getCell(col.index).value=f.value})}}const rawBuffer=await wb.xlsx.writeBuffer(),buffer=await patchMigrationWorkbookXml(rawBuffer,DATA_ROW+previewRecords.length-1);downloadBlob(new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),(sourceFileName.replace(/\.(xlsx|xlsm|xls)$/i,'')||'기록물관리대장')+'_'+TEMPLATE_DEF[targetType].title+'_표준변환.xlsx');$('exportState').innerHTML=`<b>완료</b> · ${previewRecords.length}행을 표준서식으로 만들었습니다. 역사값은 보존하고 표준기준 보정값은 근거와 함께 추적정보에 기록했습니다.`}catch(e){$('exportState').innerHTML=`<b>오류</b> · ${esc(e.message)}`}finally{btn.disabled=false}}
 initTypes();
 </script></body></html>
