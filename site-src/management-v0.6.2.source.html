@@ -124,7 +124,7 @@ select,input[type=text],input[type=number]{border:1px solid var(--line);border-r
 </div></div></div>
 
 <script>
-const APP_VERSION='v0.7.2 Beta';
+const APP_VERSION='v0.7.3 Beta';
 document.title='딸깍 기록물관리 '+APP_VERSION;
 const appVersionBadge=document.getElementById('appVersionBadge');if(appVersionBadge)appVersionBadge.textContent='통합 '+APP_VERSION;
 
@@ -525,40 +525,41 @@ function sanitizeWorkbookDoc(wbDoc){
  const dns=direct(root,'definedNames');if(dns){for(const dn of [...directs(dns,'definedName')]){const v=dn.textContent||'';if(v.includes('#REF!')||/\[[0-9]+\]/.test(v))dns.removeChild(dn)}if(!directs(dns,'definedName').length)root.removeChild(dns)}
 }
 function sanitizeWorkbookText(s){
- // workbook.xml은 DOMParser로 재직렬화하지 않고 원문 문자열을 최소 패치한다.
+ // 외부참조 및 깨진 정의이름 제거.
  s=s.replace(/<externalReferences\b[^>]*>[\s\S]*?<\/externalReferences>/gi,'');
  s=s.replace(/<externalReferences\b[^>]*\/>/gi,'');
- s=s.replace(/<definedName\b([^>]*)>(?:#REF!|[^<]*\[[0-9]+\][^<]*)<\/definedName>/gi,'');
- // definedNames가 비었으면 컨테이너도 제거한다.
+ s=s.replace(/<definedName\b[^>]*>[^<]*(?:#REF!|\[[0-9]+\])[^<]*<\/definedName>/gi,'');
  s=s.replace(/<definedNames\b[^>]*>\s*<\/definedNames>/gi,'');
  return s;
 }
 async function sanitizePackage(zip){
- // 원본 템플릿의 외부연결과 계산체인은 데이터 주입 후 무효가 될 수 있으므로 제거한다.
+ // 원본 템플릿의 외부연결과 calcChain은 데이터 주입 뒤 무효가 될 수 있으므로 제거한다.
  Object.keys(zip.files).filter(n=>n.startsWith('xl/externalLinks/')||n==='xl/calcChain.xml').forEach(n=>zip.remove(n));
+
  const ct=zip.file('[Content_Types].xml');if(ct){
   let x=await ct.async('text');
   x=x.replace(/<Override\b[^>]*PartName="\/xl\/externalLinks\/[^"]+"[^>]*\/>/gi,'');
   x=x.replace(/<Override\b[^>]*PartName="\/xl\/calcChain\.xml"[^>]*\/>/gi,'');
-  zip.file('[Content_Types].xml',x)
+  zip.file('[Content_Types].xml',x);
  }
+
  const rel=zip.file('xl/_rels/workbook.xml.rels');if(rel){
   let x=await rel.async('text');
   x=x.replace(/<Relationship\b(?=[^>]*(?:Type="[^"]*\/externalLink"|Target="externalLinks\/[^"]+"))[^>]*\/>/gi,'');
   x=x.replace(/<Relationship\b(?=[^>]*(?:Type="[^"]*\/calcChain"|Target="calcChain\.xml"))[^>]*\/>/gi,'');
-  zip.file('xl/_rels/workbook.xml.rels',x)
+  zip.file('xl/_rels/workbook.xml.rels',x);
  }
+
  const wf=zip.file('xl/workbook.xml');if(wf){
-  let x=await wf.async('text');x=sanitizeWorkbookText(x);
-  if(/<calcPr\b/i.test(x)){
-   x=x.replace(/<calcPr\b([^>]*)\/?>(?:<\/calcPr>)?/i,(m,a)=>{
-    let attrs=String(a||'').replace(/\s+(?:calcMode|fullCalcOnLoad|forceFullCalc)="[^"]*"/gi,'');
-    return '<calcPr'+attrs+' calcMode="auto" fullCalcOnLoad="1" forceFullCalc="1"/>';
-   });
-  }else{
-   x=x.replace(/<\/workbook>/i,'<calcPr calcMode="auto" fullCalcOnLoad="1" forceFullCalc="1"/></workbook>');
-  }
-  zip.file('xl/workbook.xml',x)
+  let x=await wf.async('text');
+  x=sanitizeWorkbookText(x);
+
+  // 기존 calcPr은 형태와 상관없이 완전히 제거한 뒤 정상 self-closing 태그 하나만 다시 넣는다.
+  x=x.replace(/<calcPr\b[^>]*\/>/gi,'');
+  x=x.replace(/<calcPr\b[^>]*>[\s\S]*?<\/calcPr>/gi,'');
+  x=x.replace(/<\/workbook>/i,'<calcPr calcMode="auto" fullCalcOnLoad="1" forceFullCalc="1"/></workbook>');
+
+  zip.file('xl/workbook.xml',x);
  }
 }
 async function fetchTemplateZip(kind){
