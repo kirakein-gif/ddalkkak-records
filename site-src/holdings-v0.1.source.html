@@ -130,7 +130,71 @@ function renderDisposal(){const rows=disposalRows(),cand=H.records.filter(isDueC
 function toggleDisp(key,on){on?H.dispSelection.add(key):H.dispSelection.delete(key);renderDisposal()}
 function toggleDispAll(on){disposalRows().forEach(r=>on?H.dispSelection.add(r._key):H.dispSelection.delete(r._key));renderDisposal()}
 function markDisposal(status){if(!H.dispSelection.size){alert('대상을 선택해주세요.');return}const date=$('dispDate').value.trim()||today(),reason=$('dispReason').value.trim(),items=[];H.dispSelection.forEach(k=>{const r=H.records.find(x=>x._key===k);if(!r)return;const old=activeState(r);if(status==='active')delete H.meta.disposals[k];else H.meta.disposals[k]={status,date,reason,at:new Date().toISOString(),title:r.title,mngNo:r.mngNo};items.push({key:k,old,new:status})});pushHistory(status==='done'?'폐기완료':status==='review'?'폐기검토':'보유복원','disposal',items,(reason?reason+' · ':'')+date);H.dispSelection.clear();setDirty();renderDisposal();renderDashboard();renderSearch()}
-/*__EXPORT__*/
+
+const NS_MAIN='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+const NS_OFFREL='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+const NS_PKGREL='http://schemas.openxmlformats.org/package/2006/relationships';
+const NS_CT='http://schemas.openxmlformats.org/package/2006/content-types';
+function xmlParse(s){const d=new DOMParser().parseFromString(s,'application/xml');if(d.getElementsByTagName('parsererror').length)throw new Error('Excel XML 파싱 실패');return d}
+function xmlText(d){let s=new XMLSerializer().serializeToString(d);s=s.replace(/<\?xml[^?]*\?>/gi,'').replace(/^\s+/,'');return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+s}
+function direct(p,n){return [...p.childNodes].find(x=>x.nodeType===1&&x.localName===n)||null}
+function directs(p,n){return [...p.childNodes].filter(x=>x.nodeType===1&&x.localName===n)}
+function el(d,n){return d.createElementNS(NS_MAIN,n)}
+function sheetRid(sheet){return sheet.getAttribute('r:id')||[...sheet.attributes].find(a=>a.localName==='id')?.value||''}
+async function sheetInfo(zip,name){
+ const wf=zip.file('xl/workbook.xml'),rf=zip.file('xl/_rels/workbook.xml.rels');if(!wf||!rf)throw new Error('통합문서 관계정보를 찾지 못했습니다.');
+ const wd=xmlParse(await wf.async('text')),rd=xmlParse(await rf.async('text')),sheet=[...wd.getElementsByTagName('*')].find(x=>x.localName==='sheet'&&x.getAttribute('name')===name);if(!sheet)return null;
+ const rid=sheetRid(sheet),rel=[...rd.getElementsByTagName('*')].find(x=>x.localName==='Relationship'&&x.getAttribute('Id')===rid);if(!rel)return null;
+ let target=rel.getAttribute('Target')||'';target=target.replace(/^\.\//,'');let p=target.startsWith('/')?target.slice(1):'xl/'+target;p=p.replace(/\/+/g,'/');
+ return {wd,rd,sheet,rid,rel,path:p}
+}
+function setCell(doc,sd,rowNo,col,value){
+ let row=directs(sd,'row').find(x=>Number(x.getAttribute('r'))===rowNo);if(!row){row=el(doc,'row');row.setAttribute('r',String(rowNo));sd.appendChild(row)}
+ const ref=col+rowNo;let cell=directs(row,'c').find(x=>x.getAttribute('r')===ref);if(!cell){cell=el(doc,'c');cell.setAttribute('r',ref);row.appendChild(cell)}
+ for(const ch of [...cell.childNodes])if(ch.nodeType===1&&['f','v','is'].includes(ch.localName))cell.removeChild(ch);cell.removeAttribute('t');
+ const s=String(value??'');if(!s)return;cell.setAttribute('t','inlineStr');const is=el(doc,'is'),t=el(doc,'t');t.textContent=s;is.appendChild(t);cell.appendChild(is)
+}
+function normalizeValidations(doc,last){
+ const root=doc.documentElement,old=direct(root,'dataValidations');if(old)root.removeChild(old);const ds=el(doc,'dataValidations');
+ const defs=[['L5:L'+last,'보존기간'],['M5:M'+last,'철기록유형'],['N5:N'+last,'INDIRECT("철세부유형_"&$M5)'],['O5:O'+last,'INDIRECT("철매체유형_"&$M5&"_"&$N5)'],['Q5:Q'+last,'공개구분'],['S5:S'+last,'보존장소'],['T5:T'+last,'기록물철열람구분'],['AD5:AD'+last,'기록물상태'],['AE5:AE'+last,'DB등록여부']];
+ defs.forEach(x=>{const d=el(doc,'dataValidation');d.setAttribute('type','list');d.setAttribute('allowBlank','1');d.setAttribute('showInputMessage','1');d.setAttribute('showErrorMessage','1');d.setAttribute('sqref',x[0]);const f=el(doc,'formula1');f.textContent=x[1];d.appendChild(f);ds.appendChild(d)});ds.setAttribute('count',String(defs.length));
+ const before=['hyperlinks','printOptions','pageMargins','pageSetup','headerFooter','rowBreaks','colBreaks','customProperties','cellWatches','ignoredErrors','drawing','legacyDrawing','tableParts','extLst'].map(n=>direct(root,n)).find(Boolean);before?root.insertBefore(ds,before):root.appendChild(ds)
+}
+function escXml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function metaXml(){
+ const raw=JSON.stringify({version:1,history:(H.meta.history||[]).slice(-500),disposals:H.meta.disposals||{}}),chunks=[];for(let i=0;i<raw.length;i+=28000)chunks.push(raw.slice(i,i+28000));const vals=['DDALKKAK_META_V1',...chunks];let rows='';
+ vals.forEach((v,i)=>{const n=i+1;rows+='<row r="'+n+'"><c r="A'+n+'" t="inlineStr"><is><t>'+escXml(v)+'</t></is></c></row>'});
+ return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="'+NS_MAIN+'"><sheetData>'+rows+'</sheetData></worksheet>'
+}
+async function upsertMeta(zip){
+ let info=await sheetInfo(zip,META_SHEET);if(info){zip.file(info.path,metaXml());info.sheet.setAttribute('state','hidden');zip.file('xl/workbook.xml',xmlText(info.wd));return}
+ const wf=zip.file('xl/workbook.xml'),rf=zip.file('xl/_rels/workbook.xml.rels'),cf=zip.file('[Content_Types].xml');if(!wf||!rf||!cf)throw new Error('통합문서 구조를 확인할 수 없습니다.');
+ const wd=xmlParse(await wf.async('text')),rd=xmlParse(await rf.async('text')),ct=xmlParse(await cf.async('text')),sheets=[...wd.getElementsByTagName('*')].find(x=>x.localName==='sheets');
+ const sheetIds=[...wd.getElementsByTagName('*')].filter(x=>x.localName==='sheet').map(x=>Number(x.getAttribute('sheetId')||0)),sid=(sheetIds.length?Math.max(...sheetIds):0)+1;
+ const ridNums=[...rd.getElementsByTagName('*')].filter(x=>x.localName==='Relationship').map(x=>Number((x.getAttribute('Id')||'').replace(/^rId/,'')||0)).filter(Boolean),rid='rId'+((ridNums.length?Math.max(...ridNums):0)+1);
+ const nums=Object.keys(zip.files).map(n=>Number((n.match(/^xl\/worksheets\/sheet(\d+)\.xml$/)||[])[1]||0)).filter(Boolean),sheetNo=(nums.length?Math.max(...nums):0)+1,p='xl/worksheets/sheet'+sheetNo+'.xml';
+ const sh=wd.createElementNS(NS_MAIN,'sheet');sh.setAttribute('name',META_SHEET);sh.setAttribute('sheetId',String(sid));sh.setAttribute('state','hidden');sh.setAttributeNS(NS_OFFREL,'r:id',rid);sheets.appendChild(sh);
+ const rel=rd.createElementNS(NS_PKGREL,'Relationship');rel.setAttribute('Id',rid);rel.setAttribute('Type',NS_OFFREL+'/worksheet');rel.setAttribute('Target','worksheets/sheet'+sheetNo+'.xml');rd.documentElement.appendChild(rel);
+ const ov=ct.createElementNS(NS_CT,'Override');ov.setAttribute('PartName','/'+p);ov.setAttribute('ContentType','application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml');ct.documentElement.appendChild(ov);
+ zip.file('xl/workbook.xml',xmlText(wd));zip.file('xl/_rels/workbook.xml.rels',xmlText(rd));zip.file('[Content_Types].xml',xmlText(ct));zip.file(p,metaXml())
+}
+async function stripMeta(zip){
+ const info=await sheetInfo(zip,META_SHEET);if(!info)return;const cf=zip.file('[Content_Types].xml'),ct=cf?xmlParse(await cf.async('text')):null;
+ info.sheet.parentNode.removeChild(info.sheet);info.rel.parentNode.removeChild(info.rel);zip.remove(info.path);
+ if(ct){const part='/'+info.path,ov=[...ct.getElementsByTagName('*')].find(x=>x.localName==='Override'&&x.getAttribute('PartName')===part);if(ov)ov.parentNode.removeChild(ov);zip.file('[Content_Types].xml',xmlText(ct))}
+ zip.file('xl/workbook.xml',xmlText(info.wd));zip.file('xl/_rels/workbook.xml.rels',xmlText(info.rd))
+}
+async function buildWorkbook(withMeta){
+ if(!H.buffer)throw new Error('대장을 먼저 불러오세요.');const zip=await JSZip.loadAsync(H.buffer.slice(0)),info=await sheetInfo(zip,H.sheetName);if(!info)throw new Error('대장 시트 XML을 찾지 못했습니다.');const file=zip.file(info.path),doc=xmlParse(await file.async('text')),sd=direct(doc.documentElement,'sheetData'),last=Math.max(5,...H.records.map(r=>r._row));
+ H.records.forEach(r=>EDIT_FIELDS.forEach(f=>{const m=H.cols[f];if(m)setCell(doc,sd,r._row,m.letter,r[f])}));normalizeValidations(doc,last);zip.file(info.path,xmlText(doc));if(withMeta)await upsertMeta(zip);else await stripMeta(zip);return zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}})
+}
+async function downloadWorkbook(withMeta){
+ try{setFoot('Excel 파일을 생성하고 있습니다...');const blob=await buildWorkbook(withMeta),a=document.createElement('a'),base=H.fileName.replace(/\.xlsx$/i,'');a.href=URL.createObjectURL(blob);a.download=base+(withMeta?'_관리용':'_표준')+'.xlsx';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);setFoot('Excel 생성 완료');if(withMeta)setDirty(false)}catch(e){console.error(e);alert('Excel 생성 오류: '+(e.message||e));setFoot('Excel 생성 오류')}
+}
+function downloadText(text,name,type){const blob=new Blob([text],{type:(type||'text/plain')+';charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},400)}
+function downloadHistory(){downloadText(JSON.stringify({generatedAt:new Date().toISOString(),source:H.fileName,history:H.meta.history||[],disposals:H.meta.disposals||{}},null,2),(H.fileName.replace(/\.xlsx$/i,'')||'기록물대장')+'_변경이력.json','application/json')}
+function downloadSearchHtml(publicOnly){alert('검색 HTML 생성기는 다음 배포에 연결합니다.')}
+
 
 </script>
 </body></html>
