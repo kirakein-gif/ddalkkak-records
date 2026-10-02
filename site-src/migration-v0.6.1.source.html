@@ -162,23 +162,29 @@
   <div class="steps"><div class="step on" onclick="go(1)">1. 기준 선택</div><div class="step" onclick="go(2)">2. 대장 읽기</div><div class="step" onclick="go(3)">3. 열 매핑</div><div class="step" onclick="go(4)">4. 보정·검토</div><div class="step" onclick="go(5)">5. 변환</div></div>
  </div>
  <div class="records-side-card">
-  <div class="records-side-title">자료 불러오기</div>
+  <div class="records-side-title">표준 작업방식</div>
+  <input id="profileFile" type="file" accept=".json,application/json" style="display:none">
+  <button class="btn primary records-file-btn" type="button" onclick="document.getElementById('profileFile').click()">표준 작업방식 JSON 불러오기</button>
+  <div id="profileImportMeta" class="profile-import-status">배포받은 JSON이 있으면 먼저 불러오세요. 표준유형·열 매핑·변환규칙·검증설정이 함께 적용됩니다.</div>
+ </div>
+ <div id="migrationSourceCard" class="records-side-card records-source-locked">
+  <div class="records-side-title">기존 대장</div>
   <div class="records-file-stack">
    <div class="records-file-row" id="migrationDropZone">
-    <input id="srcFile" type="file" accept=".xlsx,.xlsm,.xls" style="display:none">
-    <button class="btn primary records-file-btn" onclick="document.getElementById('srcFile').click()">기존 대장 선택</button>
+    <input id="srcFile" type="file" accept=".xlsx,.xlsm,.xls" style="display:none" disabled>
+    <button id="migrationSourceBtn" class="btn primary records-file-btn" type="button" onclick="document.getElementById('srcFile').click()" disabled>기존 대장 선택</button>
     <div id="migrationFileMeta" class="records-file-meta">Excel · XLS 1개</div>
    </div>
   </div>
-  <input id="profileFile" type="file" accept=".json" style="display:none">
-  <div class="records-file-mini"><button class="btn" onclick="loadSample()">샘플자료</button></div>
+  <div class="records-file-mini"><button class="btn" type="button" onclick="loadSample()">샘플자료</button></div>
+  <div id="migrationSourceLockNote" class="records-source-lock-note">1. 기준 선택을 마친 뒤 2. 대장 읽기 단계에서 활성화됩니다.</div>
  </div>
 </aside>
 <div class="records-main">
 <section id="p1" class="panel on">
-<div class="card"><div class="head"><h2>어떤 표준 구조로 맞출까요?</h2><span class="badge info">GitHub 표준양식</span></div><div class="body"><div id="typePick" class="typepick"></div><div id="tplState" class="notice" style="margin-top:10px">표준서식 종류를 선택하세요.</div><input id="manualTpl" type="file" accept=".xlsx" style="display:none"></div></div>
+<div class="card"><div class="head"><h2>어떤 표준 구조로 맞출까요?</h2><span class="badge info">GitHub 표준양식</span></div><div class="body"><div class="notice" style="margin-bottom:12px"><b>배포받은 표준 작업방식 JSON이 있나요?</b> 왼쪽에서 먼저 불러오면 기록연구사가 확정한 표준유형·열 매핑·값 변환·검증 설정을 그대로 적용합니다. JSON이 없을 때만 아래에서 표준 구조를 직접 선택하세요.</div><div id="typePick" class="typepick"></div><div id="tplState" class="notice" style="margin-top:10px">표준서식 종류를 선택하세요.</div><input id="manualTpl" type="file" accept=".xlsx" style="display:none"></div></div>
 
-<div class="notice"><b>마이그레이션 원칙</b> · 신규 기록물을 받는 기능이 아니라, 기존에 각 지역·기관에서 사용하던 대장을 표준 구조로 맞추는 기능입니다.</div>
+<div class="notice"><b>마이그레이션 원칙</b> · 신규 기록물을 받는 기능이 아니라, 기존에 각 지역·기관에서 사용하던 대장을 표준 구조로 맞추는 기능입니다. 기록연구사는 확정한 작업방식을 JSON으로 배포하고, 학교는 그 JSON을 불러온 뒤 기존 대장만 넣어 같은 기준으로 변환할 수 있습니다.</div>
 <div class="policybox">
   <div class="policy"><b>역사값은 보존</b><span>기존 관리번호·상자번호·위치정보·기록물철 제목은 임의로 다시 만들지 않습니다.</span></div>
   <div class="policy"><b>분류값은 표준화</b><span>단위과제·보존기간·기록유형은 표준양식의 단위과제표와 유효성검사를 기준으로 검증·보정합니다.</span></div>
@@ -280,7 +286,7 @@
 <div class="muted" style="margin-top:10px;line-height:1.6">
   현재 구현범위: .xls/.xlsx 입력 · 숨김/다중시트 분석 · 후보 시트 통합 및 보충 · 빈 양식행 제외 · 자동/편집 매핑 · 표준 단위과제표 기반 과제/보존기간 검증 · 기록유형 계층 정규화 · 만료연도 오류 검증 · 원본/보정근거 추적 · 표준서식 변환.
 </div>
-<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button id="downloadStdBtn" class="btn primary" onclick="downloadStandardWorkbook()">표준서식 Excel 생성</button><button class="btn" onclick="downloadTrace()">변환 추적정보 JSON</button><button class="btn" onclick="exportCurrentProfile()">마이그레이션 프로필 JSON</button></div><div id="exportState" class="notice" style="margin-top:10px">아직 파일을 생성하지 않았습니다.</div></div></div>
+<div class="notice" style="margin-top:12px"><b>표준 작업방식 배포</b> · 기록연구사는 검토가 끝난 현재 설정을 ‘표준 작업방식 JSON’으로 내려받아 학교에 배포할 수 있습니다. 학교는 첫 단계에서 이 JSON을 불러오면 같은 매핑·변환·검증 기준을 재사용합니다.</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button id="downloadStdBtn" class="btn primary" onclick="downloadStandardWorkbook()">표준서식 Excel 생성</button><button class="btn" onclick="downloadTrace()">변환 추적정보 JSON</button><button class="btn" onclick="exportCurrentProfile()">표준 작업방식 JSON</button></div><div id="exportState" class="notice" style="margin-top:10px">아직 파일을 생성하지 않았습니다.</div></div></div>
 <div class="card"><div class="head"><h2>향후 관리프로그램 연결</h2></div><div class="body"><div class="muted">이 변환본의 기존 관리번호·상자번호·위치정보는 보존한 채 딸깍 기록물대장관리의 기준 데이터로 사용할 수 있습니다. 신규 이관기록만 이후 번호부터 추가하는 구조입니다.</div></div></div>
 </section>
 
@@ -349,12 +355,26 @@ const SYN={
  sno:['순번','일련번호','연번'],folderId:['기록물철ID','폴더ID'],keepOrgNm:['처리부서명','처리과','관리부서','현부서(팀)명','현부서팀명','처리부서','학교(기관)명','기관(학교)명','기관명'],creatOrgNm:['생산부서명','생산부서','생산부서(팀)명','생산부서팀명','생산과','생산팀','생산학교','생산기관','원생산부서','학교(기관)명','기관(학교)명'],creatYyyyFrom:['생산연도(시작)','시작연도','시작년도','생산연도','생산년도'],creatYyyyTo:['생산연도(끝)','종료연도','종료년도'],mngNo:['관리번호','등록번호','(신)관리번호','신관리번호'],title:['기록물명','기록물철제목','기록물철 제목','철제목','제목','문서철'],clssNm:['단위과제','단위과제명','표준화단위과제','단위업무카드','과제카드명','단위과제카드명'],presvTermNm:['보존기간','보존기한'],typeDivNm:['기록유형','기록물유형'],detailTypeNm:['세부유형','기록물종류','기록물형태','기록물 형태','형태'],mediaTypeNm:['매체유형'],hoCnt:['수량(권)','수량'],openDivNm:['공개구분','공개여부'],openGrade:['비공개호수','비공개근거'],presvLocNm:['보존장소','보관장소'],operReadRangeNm:['열람구분'],descInfo:['비고','비고1'],regUser:['등록자','이관담당자명'],orgPresvLoc:['위치번호','위치정보','위치','위치표시','상세위치정보','상세위치정보-기록관위치','모빌랙위치번호'],orgBoxNum:['상자번호','박스번호','보존상자번호','상세위치정보-박스번호'],excelBoxNo:['위치번호','위치정보','위치','위치표시','상세위치정보'],excelPresvBoxNm:['상자번호','박스번호','보존상자번호'],stackNm:['서고','서고이름','문서고','보관장소'],rackNm:['서가','서가이름','서가번호','서가번호(캐비닛번호)','서가번호캐비닛번호'],rowNo:['열'],rowNm:['열'],colNo:['층'],colNm:['층'],presvBoxNm:['보존상자명'],takeYyyy:['이관연도','이관일자','이관년도'],docuConditionNm:['기록물상태','정수점검(상태점검)','정수점검','상태점검'],rmsRegFlagNm:['DB등록여부','DB구축여부','업무관리시스템등록여부']
 };
 const IMPORTANT=['mngNo','title','creatYyyyFrom','creatYyyyTo','presvTermNm','clssNm'];
-let currentStep=1,targetType='',STD=[],TPL_BUFFER=null,STANDARD_TASKS=[],STANDARD_ORGS=[],STANDARD_EXAMPLE_INDEX=new Map(),STANDARD_RETENTIONS=['미지정','1년','3년','5년','10년','30년','준영구','영구'],STANDARD_TYPES=['문서류','시청각류'],STANDARD_DETAILS=['일반문서','대장','카드','도면','사진','영상','음성'],STANDARD_MEDIA=['종이','사진','필름','자기매체','광매체','기타','인화사진','슬라이드필름','사진CD','사진DVD','영화필름','비디오디스크','비디오테이프','비디오릴','녹음테이프','녹음테이프릴','DVD','오디오CD','DAT','마이크로카세트'],sourceFileName='',sourceRows=[],sourceSheet='',headerIndex=-1,headerSpan2=false,headers=[],dataRows=[],rowMeta=[],sourceCandidates=[],mergeStats={merged:0,conflicts:0,templateRows:0},mapping=[],bindings={},autoBindings={},headerSignature='',profiles=loadProfiles(),metaInfo={},previewRecords=[],traceRecords=[],editingTarget='',editingTransform=null;
+let currentStep=1,targetType='',STD=[],TPL_BUFFER=null,STANDARD_TASKS=[],STANDARD_ORGS=[],STANDARD_EXAMPLE_INDEX=new Map(),STANDARD_RETENTIONS=['미지정','1년','3년','5년','10년','30년','준영구','영구'],STANDARD_TYPES=['문서류','시청각류'],STANDARD_DETAILS=['일반문서','대장','카드','도면','사진','영상','음성'],STANDARD_MEDIA=['종이','사진','필름','자기매체','광매체','기타','인화사진','슬라이드필름','사진CD','사진DVD','영화필름','비디오디스크','비디오테이프','비디오릴','녹음테이프','녹음테이프릴','DVD','오디오CD','DAT','마이크로카세트'],sourceFileName='',sourceRows=[],sourceSheet='',headerIndex=-1,headerSpan2=false,headers=[],dataRows=[],rowMeta=[],sourceCandidates=[],mergeStats={merged:0,conflicts:0,templateRows:0},mapping=[],bindings={},autoBindings={},headerSignature='',profiles=loadProfiles(),metaInfo={},previewRecords=[],traceRecords=[],editingTarget='',editingTransform=null,importedProfileSignature='',importedProfileName='';
 const $=id=>document.getElementById(id), norm=s=>String(s??'').replace(/[\r\n]+/g,'').replace(/\s+/g,'').trim();
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function loadProfiles(){try{return JSON.parse(localStorage.getItem(PROFILE_KEY)||'{}')}catch(e){return {}}} function persistProfiles(){try{localStorage.setItem(PROFILE_KEY,JSON.stringify(profiles))}catch(e){}}
 function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(16)}
 function setFoot(s){$('foot').textContent=s}
+function syncMigrationSourceAvailability(){
+ const card=$('migrationSourceCard'),input=$('srcFile'),btn=$('migrationSourceBtn'),note=$('migrationSourceLockNote');
+ const ready=currentStep>=2&&!!targetType&&STD.length>0&&!migrationBusy;
+ if(card)card.classList.toggle('records-source-locked',!ready);
+ if(input)input.disabled=!ready;
+ if(btn)btn.disabled=!ready;
+ if(note){
+   if(ready)note.textContent='표준기준 확인 완료 · 기존 대장을 선택하면 헤더와 후보 시트를 분석합니다.';
+   else if(!targetType)note.textContent='1. 기준 선택을 먼저 완료하세요. 기존 대장은 2. 대장 읽기 단계에서 불러옵니다.';
+   else if(!STD.length)note.textContent='표준서식 확인이 끝나면 기존 대장 선택이 활성화됩니다.';
+   else if(currentStep<2)note.textContent='다음 단계인 2. 대장 읽기로 이동하면 기존 대장 선택이 활성화됩니다.';
+   else note.textContent='처리 중입니다. 잠시 기다려주세요.';
+ }
+}
 let migrationBusy=false;
 function migrationYield(){return new Promise(resolve=>requestAnimationFrame(()=>setTimeout(resolve,0)))}
 function showMigrationProgress(title,detail='준비 중...',pct=0,count=''){
@@ -391,12 +411,13 @@ async function go(n){
  document.querySelectorAll('.panel').forEach((x,i)=>x.classList.toggle('on',i===n-1));
  document.querySelectorAll('.step').forEach((x,i)=>{x.classList.toggle('on',i===n-1);x.classList.toggle('done',i<n-1)});
  $('prevBtn').style.display=n>1?'inline-block':'none';$('nextBtn').style.display=n<5?'inline-block':'none';
+ syncMigrationSourceAvailability();
  window.scrollTo({top:0,behavior:'smooth'})
 }
 function nextStep(){go(currentStep+1)}
 function initTypes(){const el=$('typePick');Object.entries(TEMPLATE_DEF).forEach(([id,t])=>{const d=document.createElement('div');d.className='type';d.dataset.id=id;d.innerHTML=`<b>${t.title}</b><p>${t.desc}</p>`;d.onclick=()=>selectType(id);el.appendChild(d)})}
-async function selectType(id){targetType=id;document.querySelectorAll('.type').forEach(x=>x.classList.toggle('on',x.dataset.id===id));$('tplState').innerHTML=`<b>${TEMPLATE_DEF[id].title}</b> 표준서식을 GitHub에서 확인하는 중...`;try{const r=await fetch(`${REPO_RAW}/${encodeURIComponent(TEMPLATE_DEF[id].file)}`,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);TPL_BUFFER=await r.arrayBuffer();await readTemplate();$('tplState').innerHTML=`<b>${TEMPLATE_DEF[id].title}</b> 표준서식 확인 완료 · ${STD.length}개 시스템 필드`;setFoot('다음 단계에서 기존 대장을 불러오세요.')}catch(e){TPL_BUFFER=null;$('tplState').innerHTML=`자동 불러오기 실패(${esc(e.message)}). <button class="btn" onclick="$('manualTpl').click()">표준서식 직접 선택</button>`}}
-$('manualTpl').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;TPL_BUFFER=await f.arrayBuffer();await readTemplate();$('tplState').textContent=`직접 선택한 표준서식 확인 완료 · ${STD.length}개 시스템 필드`});
+async function selectType(id){if(!TEMPLATE_DEF[id])return;targetType=id;syncMigrationSourceAvailability();document.querySelectorAll('.type').forEach(x=>x.classList.toggle('on',x.dataset.id===id));$('tplState').innerHTML=`<b>${TEMPLATE_DEF[id].title}</b> 표준서식을 GitHub에서 확인하는 중...`;try{const r=await fetch(`${REPO_RAW}/${encodeURIComponent(TEMPLATE_DEF[id].file)}`,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);TPL_BUFFER=await r.arrayBuffer();await readTemplate();$('tplState').innerHTML=`<b>${TEMPLATE_DEF[id].title}</b> 표준서식 확인 완료 · ${STD.length}개 시스템 필드`;setFoot(importedProfileSignature?'표준 작업방식 JSON을 확인했습니다. 다음 단계에서 기존 대장을 불러오세요.':'다음 단계에서 기존 대장을 불러오세요.');syncMigrationSourceAvailability()}catch(e){TPL_BUFFER=null;STD=[];$('tplState').innerHTML=`자동 불러오기 실패(${esc(e.message)}). <button class="btn" onclick="$('manualTpl').click()">표준서식 직접 선택</button>`;syncMigrationSourceAvailability()}}
+$('manualTpl').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;TPL_BUFFER=await f.arrayBuffer();await readTemplate();$('tplState').textContent=`직접 선택한 표준서식 확인 완료 · ${STD.length}개 시스템 필드`;syncMigrationSourceAvailability()});
 async function readTemplate(){
   const wb=new ExcelJS.Workbook();await wb.xlsx.load(TPL_BUFFER);const ws=wb.getWorksheet(LEDGER_SHEET)||wb.worksheets[0];
   STD=[];for(let c=1;c<=ws.columnCount;c++){const ko=ws.getRow(KO_ROW).getCell(c).value,en=ws.getRow(EN_ROW).getCell(c).value;if(en===null||en===undefined||String(en).trim()==='')continue;const v=ws.getRow(DATA_ROW).getCell(c).value;const formula=!!(v&&typeof v==='object'&&v.formula!==undefined);STD.push({index:c,ko:String(ko??'').replace(/[\r\n]+/g,' ').trim(),en:String(en).trim(),locked:formula,formula:formula?v.formula:null})}
@@ -502,7 +523,7 @@ function headerInfo(rows,det){const n=Math.max(rows[det.index]?.length||0,rows[d
 function headerIndexFor(hs,names){let best=-1,bs=0;for(let i=0;i<hs.length;i++){const h=norm(hs[i]);for(const n of names){const x=norm(n);let sc=h===x?1:(h&&x&&(h.includes(x)||x.includes(h))?Math.min(h.length,x.length)/Math.max(h.length,x.length):0);if(sc>bs){bs=sc;best=i}}}return bs>=.5?best:-1}
 function rowIsTemplateOnly(row,hs){const title=headerIndexFor(hs,SYN.title),mng=headerIndexFor(hs,SYN.mngNo),box=headerIndexFor(hs,[...(SYN.excelPresvBoxNm||[]),...(SYN.orgBoxNum||[])]),loc=headerIndexFor(hs,[...(SYN.orgPresvLoc||[]),...(SYN.stackNm||[]),...(SYN.rackNm||[])]);const has=i=>i>=0&&row[i]!==null&&row[i]!==undefined&&String(row[i]).trim()!=='';if(has(title)||has(mng)||has(box)||has(loc))return false;const cnt=row.filter(v=>v!==null&&v!==undefined&&String(v).trim()!=='').length;return cnt>0&&cnt<=6}
 function extractCandidateRows(c){const hs=headerInfo(c.rows,c),nonempty=hs.map((h,i)=>norm(h)?i:-1).filter(i=>i>=0),out=[],meta=[];let blank=0,templates=0;for(let r=c.index+(c.span2?2:1);r<c.rows.length;r++){const row=c.rows[r]||[],any=nonempty.some(i=>row[i]!==null&&row[i]!==undefined&&String(row[i]).trim()!=='');if(!any){blank++;if(blank>=3)break;continue}blank=0;if(rowIsTemplateOnly(row,hs)){templates++;continue}out.push(row);meta.push({sourceSheet:c.name,sourceRow:r+1,sourceSheets:[c.name],sourceRows:[r+1]})}return {headers:hs,rows:out,meta,templates}}
-function processUnified(hs,rows,name,info={}){sourceRows=rows;sourceSheet=name;headers=hs;dataRows=rows;rowMeta=info.rowMeta||rows.map((_,i)=>({sourceSheet:name,sourceRow:i+1,sourceSheets:[name],sourceRows:[i+1]}));headerIndex=info.headerIndex??0;headerSpan2=!!info.headerSpan2;metaInfo=info.metaInfo||{};mergeStats=info.mergeStats||{merged:0,conflicts:0,templateRows:0};headerSignature=buildSignature();autoMap();$('sourceState').style.display='block';const extra=mergeStats.merged||mergeStats.conflicts||mergeStats.templateRows?` · 통합보충 ${mergeStats.merged}건 · 충돌 ${mergeStats.conflicts}건 · 빈 양식행 제외 ${mergeStats.templateRows}건`:'';$('sourceState').innerHTML=`<b>분석 완료</b> · ${esc(name)} · 데이터 ${dataRows.length}행${extra} · 형식 ID <span class="mono">${headerSignature}</span>${profiles[headerSignature]?' · 저장 프로필 자동적용':''}`;renderMapping();setFoot('자동 매핑과 표준기준 보정 결과를 확인하세요.')}
+function processUnified(hs,rows,name,info={}){sourceRows=rows;sourceSheet=name;headers=hs;dataRows=rows;rowMeta=info.rowMeta||rows.map((_,i)=>({sourceSheet:name,sourceRow:i+1,sourceSheets:[name],sourceRows:[i+1]}));headerIndex=info.headerIndex??0;headerSpan2=!!info.headerSpan2;metaInfo=info.metaInfo||{};mergeStats=info.mergeStats||{merged:0,conflicts:0,templateRows:0};headerSignature=buildSignature();autoMap();$('sourceState').style.display='block';const extra=mergeStats.merged||mergeStats.conflicts||mergeStats.templateRows?` · 통합보충 ${mergeStats.merged}건 · 충돌 ${mergeStats.conflicts}건 · 빈 양식행 제외 ${mergeStats.templateRows}건`:'';const importedNote=importedProfileSignature?(importedProfileSignature===headerSignature?` · <b>배포 JSON 적용</b>`:` · <b style="color:#b42318">배포 JSON 형식 불일치</b>`):(profiles[headerSignature]?' · 저장 프로필 자동적용':'');$('sourceState').innerHTML=`<b>분석 완료</b> · ${esc(name)} · 데이터 ${dataRows.length}행${extra} · 형식 ID <span class="mono">${headerSignature}</span>${importedNote}`;if($('profileImportMeta')&&importedProfileSignature){$('profileImportMeta').innerHTML=importedProfileSignature===headerSignature?`<span class="badge ok">적용</span> ${esc(importedProfileName||'표준 작업방식')} · 현재 대장 형식과 일치`:`<span class="badge bad">불일치</span> 불러온 JSON은 현재 대장 형식과 다릅니다. 자동매핑 결과를 검토하세요.`;}renderMapping();setFoot(importedProfileSignature===headerSignature?'배포받은 표준 작업방식이 적용되었습니다. 매핑 결과를 확인하세요.':'자동 매핑과 표준기준 보정 결과를 확인하세요.')}
 function processRows(rows,name,det){const e=extractCandidateRows({rows,name,...det});processUnified(e.headers,e.rows,name,{rowMeta:e.meta,headerIndex:det.index,headerSpan2:det.span2,metaInfo:extractMeta(rows,det.index),mergeStats:{merged:0,conflicts:0,templateRows:e.templates}})}
 function mergeCandidateSheets(cs){const extracted=cs.map(c=>({...c,...extractCandidateRows(c)})),union=[],idx=new Map();for(const c of extracted){c.headers.forEach(h=>{const k=norm(h);if(k&&!idx.has(k)){idx.set(k,union.length);union.push(h)}})}const recs=[];let templateRows=0;for(const c of extracted){templateRows+=c.templates;for(let i=0;i<c.rows.length;i++){const out=Array(union.length).fill(null);c.headers.forEach((h,j)=>{const k=norm(h);if(k&&idx.has(k))out[idx.get(k)]=c.rows[i][j]});recs.push({row:out,meta:c.meta[i]})}}
   const ti=headerIndexFor(union,SYN.title),mi=headerIndexFor(union,SYN.mngNo),yi=headerIndexFor(union,['생산연도','생산년도','시작연도','시작년도']),ye=headerIndexFor(union,['종료연도','종료년도']),ri=headerIndexFor(union,SYN.presvTermNm);const keyOf=r=>{const v=i=>i>=0?norm(r[i]):'';if(v(mi))return 'M|'+v(mi);if(v(ti)&&v(yi))return 'T|'+v(ti)+'|'+v(yi)+'|'+v(ye)+'|'+v(ri);return ''};const bySheet=new Map();for(const x of recs){const k=keyOf(x.row);if(!k)continue;const sk=x.meta.sourceSheet+'|'+k;bySheet.set(sk,(bySheet.get(sk)||0)+1)}
@@ -511,7 +532,8 @@ function mergeCandidateSheets(cs){const extracted=cs.map(c=>({...c,...extractCan
 function applySheetMode(){if(!sourceCandidates.length)return;const mode=$('sheetMode').value;if(mode==='merge'&&sourceCandidates.length>1){const m=mergeCandidateSheets(sourceCandidates);processUnified(m.headers,m.rows,`통합 ${sourceCandidates.length}개 시트`,{rowMeta:m.rowMeta,metaInfo:m.metaInfo,mergeStats:m.stats});return}const c=sourceCandidates[Number($('sheetSelect').value)||0];processRows(c.rows,c.name,c)}
 async function processMigrationSourceFile(f){
  if(!f||migrationBusy)return;
- migrationBusy=true;sourceFileName=f.name;if($('migrationFileMeta'))$('migrationFileMeta').textContent=f.name;
+ if(currentStep<2||!targetType||!STD.length){alert('먼저 1. 기준 선택을 완료한 뒤 2. 대장 읽기 단계에서 기존 대장을 불러오세요.');return}
+ migrationBusy=true;syncMigrationSourceAvailability();sourceFileName=f.name;if($('migrationFileMeta'))$('migrationFileMeta').textContent=f.name;
  showMigrationProgress('기존 대장 읽기','파일을 메모리로 불러오고 있습니다.',3,f.name);
  await migrationYield();
  try{
@@ -526,7 +548,7 @@ async function processMigrationSourceFile(f){
    await migrationYield();
   }
   cs.sort((a,b)=>(a.hidden-b.hidden)||(b.score-a.score));sourceCandidates=cs;
-  if(!cs.length){$('sourceState').style.display='block';$('sourceState').innerHTML='<b>대장 헤더를 찾지 못했습니다.</b> 표준서식 종류가 맞는지 확인해주세요.';return}
+  if(!cs.length){$('sourceState').style.display='block';$('sourceState').innerHTML='<b>대장 헤더를 찾지 못했습니다.</b> 선택한 표준유형과 대장 형식을 확인해주세요. 표준 작업방식 JSON을 불러온 경우 해당 JSON이 이 대장 형식용인지도 확인해주세요.';return}
   updateMigrationProgress(82,'자동 매핑을 준비하고 있습니다.',`후보 시트 ${cs.length}개`);await migrationYield();
   $('sheetSelect').innerHTML=cs.map((cc,i)=>`<option value="${i}">${esc(cc.name)}${cc.hidden?' [숨김]':''} · 인식 ${cc.score.toFixed(1)}</option>`).join('');
   $('sheetChooser').style.display=cs.length>1?'block':'none';$('sheetMode').value=cs.length>1?'merge':'single';$('sheetHint').textContent=cs.length>1?`대장 후보 ${cs.length}개 · 통합 모드는 중복 자료의 빈 위치·상자값을 보충합니다.`:'';
@@ -535,7 +557,7 @@ async function processMigrationSourceFile(f){
   updateMigrationProgress(100,'대장 읽기가 완료되었습니다.',`후보 시트 ${cs.length}개`);if($('migrationFileMeta'))$('migrationFileMeta').innerHTML='<span class="badge ok">완료</span> '+esc(f.name)+' · 후보 '+cs.length+'개';
   await new Promise(resolve=>setTimeout(resolve,150));
  }catch(err){console.error(err);alert('대장 읽기 오류: '+(err.message||err))}
- finally{hideMigrationProgress();migrationBusy=false}
+ finally{hideMigrationProgress();migrationBusy=false;syncMigrationSourceAvailability()}
 }
 $('srcFile').addEventListener('change',e=>{const f=e.target.files[0];if(f)processMigrationSourceFile(f)});
 function bindMigrationDropZone(){
@@ -1001,7 +1023,10 @@ function renderPreviewTable(){const q=($('previewSearch').value||'').toLowerCase
 function renderCoverage(){const el=$('fieldCoverage');el.innerHTML=STD.filter(c=>!c.locked).map(c=>{const filled=previewRecords.filter(r=>{const f=r.fields[c.en];return f&&f.status!=='missing'&&f.value!==null&&f.value!==''}).length;const pct=previewRecords.length?Math.round(filled/previewRecords.length*100):0;const hot=IMPORTANT.includes(c.en)&&pct<100;return `<span class="${hot?'hot':''}">${esc(c.ko)} ${filled}/${previewRecords.length} (${pct}%)</span>`}).join('')}
 function profilePayload(){
   return {
+    kind:'ddalkkak-records-migration-profile',
+    schemaVersion:1,
     version:6,
+    exportedAt:new Date().toISOString(),
     uiMode:'horizontal-mapping-standard-validation',
     name:$('profileName').value.trim()||sourceSheet||'마이그레이션 프로필',
     signature:headerSignature,
@@ -1019,8 +1044,40 @@ function profilePayload(){
     normalization:{standardTask:$('normTaskStandard').checked,retention:$('normRetention').checked,disclosure:$('normDisclosure').checked,type:$('normType').checked}
   }
 }
+async function importMigrationProfileFile(file){
+ if(!file)return;
+ try{
+  const raw=JSON.parse(await file.text());
+  const p=(raw&&raw.profile&&typeof raw.profile==='object')?raw.profile:raw;
+  if(!p||typeof p!=='object')throw new Error('JSON 형식을 읽을 수 없습니다.');
+  if(!p.signature||!p.targetType)throw new Error('형식 ID 또는 표준유형 정보가 없는 파일입니다.');
+  if(!TEMPLATE_DEF[p.targetType])throw new Error('지원하지 않는 표준유형입니다: '+p.targetType);
+  if(!Array.isArray(p.bindings)&&!Array.isArray(p.mapping))throw new Error('열 매핑 정보가 없는 파일입니다.');
+  importedProfileSignature=String(p.signature);
+  importedProfileName=String(p.name||file.name.replace(/\.json$/i,'')||'표준 작업방식');
+  profiles[importedProfileSignature]=p;
+  persistProfiles();
+  if($('profileImportMeta'))$('profileImportMeta').innerHTML='<span class="badge info">불러옴</span> '+esc(importedProfileName)+' · '+esc(TEMPLATE_DEF[p.targetType].title)+' · 형식 ID <span class="mono">'+esc(importedProfileSignature)+'</span>';
+  await selectType(p.targetType);
+  if(headerSignature){
+    if(headerSignature===importedProfileSignature){autoMap();renderMapping();if($('profileImportMeta'))$('profileImportMeta').innerHTML='<span class="badge ok">적용</span> '+esc(importedProfileName)+' · 현재 대장 형식과 일치';setFoot('표준 작업방식 JSON을 현재 대장에 적용했습니다.');}
+    else if($('profileImportMeta'))$('profileImportMeta').innerHTML='<span class="badge warn">대기</span> '+esc(importedProfileName)+' · 이 JSON에 맞는 기존 대장을 2. 대장 읽기에서 불러오세요.';
+  }else{
+    if($('profileImportMeta'))$('profileImportMeta').innerHTML='<span class="badge ok">준비됨</span> '+esc(importedProfileName)+' · '+esc(TEMPLATE_DEF[p.targetType].title)+' · 다음 단계에서 기존 대장을 불러오세요.';
+  }
+ }catch(err){
+  console.error(err);
+  if($('profileImportMeta'))$('profileImportMeta').innerHTML='<span class="badge bad">오류</span> '+esc(err.message||err);
+  alert('표준 작업방식 JSON을 불러오지 못했습니다: '+(err.message||err));
+ }finally{
+  if($('profileFile'))$('profileFile').value='';
+  syncMigrationSourceAvailability();
+ }
+}
+$('profileFile').addEventListener('change',e=>{const f=e.target.files[0];if(f)importMigrationProfileFile(f)});
+
 function saveProfileLocal(){if(!headerSignature)return;const p=profilePayload();profiles[headerSignature]=p;persistProfiles();alert('현재 열 매핑·변환규칙·표준검증 설정을 프로필로 저장했습니다. 다음부터 같은 헤더 구성이면 자동 적용합니다.')}
-function exportCurrentProfile(){if(!headerSignature){alert('먼저 대장을 불러오세요.');return}downloadBlob(new Blob([JSON.stringify(profilePayload(),null,2)],{type:'application/json;charset=utf-8'}),($('profileName').value.trim()||'기록물대장_마이그레이션프로필')+'.json')}
+function exportCurrentProfile(){if(!headerSignature){alert('먼저 대장을 불러오세요.');return}downloadBlob(new Blob([JSON.stringify(profilePayload(),null,2)],{type:'application/json;charset=utf-8'}),($('profileName').value.trim()||'기록물대장_표준작업방식')+'.json')}
 function downloadTrace(){const p={schemaVersion:2,generatedAt:new Date().toISOString(),sourceFile:sourceFileName,sourceSheet,targetType,headerRow:headerIndex+1,headerSpan2,headerSignature,profileName:$('profileName').value.trim(),mergeStats,standardRetentionValues:STANDARD_RETENTIONS,summary:countStatuses(),records:traceRecords.map(r=>({sourceRow:r.sourceRow,sourceSheet:r.sourceSheet,sourceSheets:r.sourceSheets,sourceRows:r.sourceRows,raw:r.raw,expectedExpiry:r.expectedExpiry,originalExpiry:r.originalExpiry,normalizedExpiry:r.normalizedExpiry,issues:r.issues,fields:Object.fromEntries(Object.entries(r.fields).map(([k,f])=>[k,{sourceHeader:f.sourceHeader,originalValue:f.originalValue,outputValue:f.value,status:f.status,transform:f.transform||'',reason:f.reason||''}]))}))};downloadBlob(new Blob([JSON.stringify(p,null,2)],{type:'application/json;charset=utf-8'}),(sourceFileName.replace(/\.xlsx?$|\.xlsm?$|\.xls$/i,'')||'기록물대장')+'_마이그레이션추적.json')}
 function downloadBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},300)}
 function renderFinal(){if(!previewRecords.length){setFoot('먼저 보정·검토 단계를 계산해주세요.');return}const c=countStatuses(),err=allIssues().filter(x=>x.level==='error').length;$('finalSummary').innerHTML=summary([['변환 행',previewRecords.length,'행'],['표준기준보정',c.standard,'칸'],['검토필요',err,'건'],['시트보충',mergeStats.merged||0,'건'],['빈 양식행 제외',mergeStats.templateRows||0,'건'],['정보없음',c.missing,'칸']]);setFoot(err?'검토필요 오류를 해결한 뒤 표준서식 Excel을 생성하세요.':'표준검증을 통과했습니다. Excel 또는 추적정보를 내려받을 수 있습니다.')}
@@ -1056,6 +1113,7 @@ async function patchMigrationWorkbookXml(buffer,endRow){
 }
 async function downloadStandardWorkbook(){if(!TPL_BUFFER){alert('표준서식 템플릿이 없습니다.');return}if(!previewRecords.length)rebuildPreview();const blocking=allIssues().filter(x=>x.level==='error');if(blocking.length){alert(`표준기준 검토필요 ${blocking.length}건이 남아 있습니다. 보존기간·단위과제 후보 충돌·다중시트 충돌을 먼저 확인해주세요.`);return}const btn=$('downloadStdBtn');btn.disabled=true;$('exportState').innerHTML='<b>생성 중</b> · 원본 표준양식에 변환값을 넣고 있습니다.';try{const wb=new ExcelJS.Workbook();await wb.xlsx.load(TPL_BUFFER);if(wb.definedNames&&Array.isArray(wb.definedNames.model))wb.definedNames.model=wb.definedNames.model.filter(d=>!(d.ranges||[]).some(r=>/\[|#REF!/.test(r)));const ws=wb.getWorksheet(LEDGER_SHEET)||wb.worksheets[0],proto=[];const base=ws.getRow(DATA_ROW),baseRowHeight=base.height||40.15;for(let c=1;c<=ws.columnCount;c++){const cell=base.getCell(c),v=cell.value;proto.push({style:cell.style,dv:cell.dataValidation||null,formula:(v&&typeof v==='object'&&v.formula!==undefined)?v.formula:null})}const need=DATA_ROW+previewRecords.length-1;for(let r=DATA_ROW;r<=Math.max(need,ws.rowCount);r++){const out=ws.getRow(r),rec=previewRecords[r-DATA_ROW];out.height=baseRowHeight;for(let c=1;c<=ws.columnCount;c++){const p=proto[c-1],cell=out.getCell(c);cell.style=p.style;if(p.dv)cell.dataValidation=p.dv;cell.value=p.formula?{formula:formulaForRow(p.formula,r)}:null}if(rec){STD.forEach(col=>{if(col.locked)return;const f=rec.fields[col.en];if(f&&f.status!=='missing'&&f.value!==null&&f.value!=='')out.getCell(col.index).value=f.value})}}const rawBuffer=await wb.xlsx.writeBuffer(),buffer=await patchMigrationWorkbookXml(rawBuffer,DATA_ROW+previewRecords.length-1);downloadBlob(new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),(sourceFileName.replace(/\.(xlsx|xlsm|xls)$/i,'')||'기록물관리대장')+'_'+TEMPLATE_DEF[targetType].title+'_표준변환.xlsx');$('exportState').innerHTML=`<b>완료</b> · ${previewRecords.length}행을 표준서식으로 만들었습니다. 역사값은 보존하고 표준기준 보정값은 근거와 함께 추적정보에 기록했습니다.`}catch(e){$('exportState').innerHTML=`<b>오류</b> · ${esc(e.message)}`}finally{btn.disabled=false}}
 initTypes();
+syncMigrationSourceAvailability();
 </script><div id="migrationProgress" class="mig-progress-back" aria-live="polite" aria-busy="true">
   <div class="mig-progress-card">
     <div class="mig-progress-top">
