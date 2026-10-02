@@ -152,7 +152,7 @@ select,input[type=text],input[type=number]{border:1px solid var(--line);border-r
 </div></div></div>
 
 <script>
-const APP_VERSION='v0.7.4 Beta';
+const APP_VERSION='v0.7.5 Beta';
 document.title='딸깍 기록물관리 '+APP_VERSION;
 const appVersionBadge=document.getElementById('appVersionBadge');if(appVersionBadge)appVersionBadge.textContent='통합 '+APP_VERSION;
 
@@ -561,7 +561,6 @@ function sanitizeWorkbookText(s){
  return s;
 }
 async function sanitizePackage(zip){
- // 원본 템플릿의 외부연결과 calcChain은 데이터 주입 뒤 무효가 될 수 있으므로 제거한다.
  Object.keys(zip.files).filter(n=>n.startsWith('xl/externalLinks/')||n==='xl/calcChain.xml').forEach(n=>zip.remove(n));
 
  const ct=zip.file('[Content_Types].xml');if(ct){
@@ -581,12 +580,11 @@ async function sanitizePackage(zip){
  const wf=zip.file('xl/workbook.xml');if(wf){
   let x=await wf.async('text');
   x=sanitizeWorkbookText(x);
-
-  // 기존 calcPr은 형태와 상관없이 완전히 제거한 뒤 정상 self-closing 태그 하나만 다시 넣는다.
   x=x.replace(/<calcPr\b[^>]*\/>/gi,'');
   x=x.replace(/<calcPr\b[^>]*>[\s\S]*?<\/calcPr>/gi,'');
-  x=x.replace(/<\/workbook>/i,'<calcPr calcMode="auto" fullCalcOnLoad="1" forceFullCalc="1"/></workbook>');
-
+  const calc='<calcPr calcMode="auto" fullCalcOnLoad="1" forceFullCalc="1"/>';
+  if(/<extLst\b/i.test(x))x=x.replace(/<extLst\b/i,calc+'<extLst');
+  else x=x.replace(/<\/workbook>/i,calc+'</workbook>');
   zip.file('xl/workbook.xml',x);
  }
 }
@@ -611,10 +609,11 @@ async function setPrintArea(zip,range){
   const dn=`<definedName name="_xlnm.Print_Area" localSheetId="0">${formula}</definedName>`;
   if(/<definedNames\b[^>]*>/i.test(s)){
    s=s.replace(/<\/definedNames>/i,`${dn}</definedNames>`);
-  }else if(/<calcPr\b/i.test(s)){
-   s=s.replace(/<calcPr\b/i,`<definedNames>${dn}</definedNames><calcPr`);
   }else{
-   s=s.replace(/<\/workbook>/i,`<definedNames>${dn}</definedNames></workbook>`);
+   const block=`<definedNames>${dn}</definedNames>`;
+   if(/<calcPr\b/i.test(s))s=s.replace(/<calcPr\b/i,block+'<calcPr');
+   else if(/<extLst\b/i.test(s))s=s.replace(/<extLst\b/i,block+'<extLst');
+   else s=s.replace(/<\/workbook>/i,block+'</workbook>');
   }
  }
  zip.file('xl/workbook.xml',s);

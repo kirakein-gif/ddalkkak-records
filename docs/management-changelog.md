@@ -11,6 +11,15 @@
 - 배포하지 않은 내부 수정은 버전을 올리지 않는다.
 - 사용자가 테스트할 수 있는 GitHub Pages 배포본이 바뀔 때 버전을 올린다.
 
+## v0.7.5 Beta — 2026-10-02
+
+Excel 출력 전체 손상 핫픽스:
+- 표지·관리번호스티커·보존상자라벨·표준대장 모두 동일한 workbook.xml 요소 순서 문제를 갖고 있던 원인 확인
+- `calcPr`이 `extLst` 뒤에 생성되던 오류 수정
+- 새 `definedNames`(인쇄영역)가 `extLst` 뒤에 추가되던 오류 수정
+- workbook.xml 요소 순서를 `sheets → definedNames → calcPr → extLst` 구조로 유지
+- 사용자가 업로드한 실제 4개 출력파일을 ZIP/XML 단위로 검사해 공통 원인을 확인
+
 ## v0.7.4 Beta — 2026-10-02
 
 UI 정렬 보정:
