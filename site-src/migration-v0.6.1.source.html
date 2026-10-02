@@ -273,7 +273,7 @@
 @media(max-width:1050px){.migration-start-grid{grid-template-columns:1fr}.migration-start-action{align-items:stretch;flex-direction:column}.migration-start-action .btn{width:100%;min-width:0}}
 </style>
 </head><body class="migration-page">
-<div class="top"><div class="topin"><div class="brand"><div class="logo icon-logo"><img src="../templates/기록물대장마이그레이션%20아이콘.png" alt="기록물대장마이그레이션 아이콘"></div><div><div class="brand-kicker">DDALKKAK RECORDS MIGRATION</div><h1>딸깍 기록물대장마이그레이션</h1><div class="sub">지역별·기관별로 다른 기존 기록물관리대장을 표준 구조로 맞춥니다.</div></div></div><div class="top-actions"><a class="home-btn" href="../">⌂ 홈</a><span class="badge info">v0.6.12 Beta · 딸깍 UI</span></div></div></div>
+<div class="top"><div class="topin"><div class="brand"><div class="logo icon-logo"><img src="../templates/기록물대장마이그레이션%20아이콘.png" alt="기록물대장마이그레이션 아이콘"></div><div><div class="brand-kicker">DDALKKAK RECORDS MIGRATION</div><h1>딸깍 기록물대장마이그레이션</h1><div class="sub">지역별·기관별로 다른 기존 기록물관리대장을 표준 구조로 맞춥니다.</div></div></div><div class="top-actions"><a class="home-btn" href="../">⌂ 홈</a><span class="badge info">v0.6.13 Beta · 딸깍 UI</span></div></div></div>
 <main class="wrap">
 <div class="records-workbench">
 <aside class="records-sidebar">
@@ -408,7 +408,7 @@
 <section id="p4" class="panel">
 <div id="finalSummary" class="summary"></div>
 <div class="card"><div class="head"><h2>변환 결과</h2><span class="badge warn">표준 오류가 남으면 출력 차단</span></div><div class="body">
-<div class="notice"><b>v0.6.12 변환 규칙</b> · 관리번호·상자번호·위치정보·기존 철제목은 역사값으로 보존합니다. 단위과제·보존기간·기록유형은 표준양식의 기준정보로 검증하며, 확실한 근거가 있는 경우 표준값으로 보정합니다. 근거를 찾지 못한 비표준값은 출력 전에 검토가 필요합니다.</div>
+<div class="notice"><b>v0.6.13 변환 규칙</b> · 관리번호·상자번호·위치정보·기존 철제목은 역사값으로 보존합니다. 단위과제·보존기간·기록유형은 표준양식의 기준정보로 검증하며, 확실한 근거가 있는 경우 표준값으로 보정합니다. 근거를 찾지 못한 비표준값은 출력 전에 검토가 필요합니다.</div>
 
 <div class="muted" style="margin-top:10px;line-height:1.6">
   현재 구현범위: .xls/.xlsx 입력 · 숨김/다중시트 분석 · 후보 시트 통합 및 보충 · 빈 양식행 제외 · 자동/편집 매핑 · 표준 단위과제표 기반 과제/보존기간 검증 · 기록유형 계층 정규화 · 만료연도 오류 검증 · 원본/보정근거 추적 · 표준서식 변환.
@@ -441,6 +441,7 @@
             <select id="transformType" onchange="renderTransformOptions();updateTransformPreview()">
               <option value="direct">그대로 사용</option>
               <option value="split">구분자로 나누기</option>
+              <option value="between">두 구분자 사이 가져오기</option>
               <option value="slice">앞/뒤 글자 자르기</option>
               <option value="replace">문자 찾기·치환</option>
               <option value="digits">숫자만 추출</option>
@@ -591,7 +592,7 @@ function sampleVals(ci,n=3){const a=[];for(const r of dataRows){const v=r[ci];if
 function cloneObj(v){return JSON.parse(JSON.stringify(v))}
 function sourceByCol(ci){return mapping.find(m=>m.colIndex===Number(ci))||null}
 function bindingFor(en){return bindings[en]||null}
-function defaultTransform(type='direct'){return {type,delimiter:'~',part:'first',partIndex:1,side:'first',count:4,find:'',replace:'',separator:' '}}
+function defaultTransform(type='direct'){return {type,delimiter:'~',part:'first',partIndex:1,startDelimiter:'',endDelimiter:'',side:'first',count:4,find:'',replace:'',separator:' '}}
 function normalizeSavedTransform(t){return {...defaultTransform(t?.type||'direct'),...(t||{})}}
 function makeBinding(targetEn,sourceCols,manual=false,score=0,transform=null){return {targetEn,sourceCols:[...new Set((sourceCols||[]).map(Number))],manual:!!manual,score:Number(score)||0,transform:normalizeSavedTransform(transform)}}
 
@@ -801,6 +802,14 @@ function applyTransform(values,t){
     if(tr.part==='index'){const idx=Math.max(1,Number(tr.partIndex)||1)-1;return parts[idx]??''}
     return parts[0]??'';
   }
+  if(type==='between'){
+    if(!s)return '';
+    const start=String(tr.startDelimiter??''),end=String(tr.endDelimiter??'');
+    let from=0,to=s.length;
+    if(start){const si=s.indexOf(start);if(si<0)return '';from=si+start.length}
+    if(end){const ei=s.indexOf(end,from);if(ei<0)return '';to=ei}
+    return s.slice(from,to).trim();
+  }
   if(type==='slice'){
     const count=Math.max(0,Number(tr.count)||0);
     return tr.side==='last'?(count?s.slice(-count):s):(count?s.slice(0,count):s);
@@ -838,6 +847,7 @@ function transformSummary(t,sourceCount=1){
     const part=tr.part==='last'?'마지막':tr.part==='index'?`${tr.partIndex||1}번째`:'첫번째';
     return `나누기 · “${tr.delimiter??''}” · ${part}`;
   }
+  if(tr.type==='between')return `사이 추출 · “${tr.startDelimiter??''}” ~ “${tr.endDelimiter??''}”`;
   if(tr.type==='slice')return `${tr.side==='last'?'뒤':'앞'} ${tr.count||0}글자`;
   if(tr.type==='replace')return `치환 · “${tr.find??''}”→“${tr.replace??''}”`;
   if(tr.type==='digits')return '숫자만 추출';
@@ -1017,7 +1027,10 @@ function readTransformForm(){
     t.delimiter=$('trDelimiter')?.value??'~';
     t.part=$('trPart')?.value||'first';
     t.partIndex=Math.max(1,Number($('trPartIndex')?.value)||1);
-  }else if(type==='slice'){
+  }else if(type==='between'){
+    t.startDelimiter=$('trStartDelimiter')?.value??'';
+    t.endDelimiter=$('trEndDelimiter')?.value??'';
+else if(type==='slice'){
     t.side=$('trSide')?.value||'first';t.count=Math.max(0,Number($('trCount')?.value)||0);
   }else if(type==='replace'){
     t.find=$('trFind')?.value??'';t.replace=$('trReplace')?.value??'';
@@ -1036,7 +1049,13 @@ function renderTransformOptions(){
         <option value="index" ${t.part==='index'?'selected':''}>몇 번째인지 지정</option>
       </select></div>
       ${t.part==='index'?`<div class="editor-row"><label>부분 번호</label><input id="trPartIndex" type="number" min="1" value="${Number(t.partIndex)||1}" oninput="updateTransformPreview()"></div>`:''}`;
-  }else if(type==='slice'){
+  }else if(type==='between'){
+    el.innerHTML=`<div class="editor-row"><label>시작 구분자</label><input id="trStartDelimiter" value="${esc(t.startDelimiter??'')}" placeholder="예: ." oninput="updateTransformPreview()"></div>
+      <div class="editor-row"><label>끝 구분자</label><input id="trEndDelimiter" value="${esc(t.endDelimiter??'')}" placeholder="예: (" oninput="updateTransformPreview()"></div>
+      <div class="editor-help">시작 구분자 뒤부터 끝 구분자 앞까지만 가져옵니다. 한쪽을 비우면 문자열의 처음 또는 끝까지 사용합니다.</div>
+      <div class="editor-help" style="margin-top:7px"><b>예시</b> · <code>49. 졸업대장관리(영구)</code><br>단위과제: 시작 <b>.</b> / 끝 <b>(</b> → <b>졸업대장관리</b><br>보존기간: 시작 <b>(</b> / 끝 <b>)</b> → <b>영구</b></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="btn" type="button" onclick="setBetweenPreset('.', '(')">번호 뒤 ~ 괄호 앞</button><button class="btn" type="button" onclick="setBetweenPreset('(', ')')">괄호 안</button></div>`;
+else if(type==='slice'){
     el.innerHTML=`<div class="editor-row"><label>방향</label><select id="trSide" onchange="updateTransformPreview()"><option value="first" ${t.side!=='last'?'selected':''}>앞에서</option><option value="last" ${t.side==='last'?'selected':''}>뒤에서</option></select></div>
       <div class="editor-row"><label>글자 수</label><input id="trCount" type="number" min="0" value="${Number(t.count)||4}" oninput="updateTransformPreview()"></div>`;
   }else if(type==='replace'){
@@ -1058,6 +1077,7 @@ function transformPartChanged(){
   renderTransformOptions();
   updateTransformPreview();
 }
+function setBetweenPreset(start,end){const a=$('trStartDelimiter'),b=$('trEndDelimiter');if(a)a.value=start;if(b)b.value=end;updateTransformPreview()}
 function updateTransformPreview(){
   if(!editingTarget)return;
   editingTransform=readTransformForm();
