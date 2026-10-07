@@ -76,6 +76,42 @@ select,input[type=text],input[type=number]{border:1px solid var(--line);border-r
 <style id="management-mode-tabs">
 .mode-tabs{display:flex;gap:8px;margin-bottom:14px}.mode-tab{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--muted);font-weight:900;text-decoration:none}.mode-tab.active{background:var(--blue);border-color:var(--blue);color:#fff}@media(max-width:650px){.mode-tabs{flex-direction:column}}
 </style>
+<style id="management-profile-editor-ui">
+#profileModal .modal{width:min(900px,96vw)!important}
+#profileModal .modalhead{padding:17px 19px!important}
+#profileModal .modalhead b{font-size:20px!important;color:#000!important}
+#profileModal .sub{font-size:14px!important;color:#000!important}
+#profileModal .modalbody{padding:19px!important;color:#000!important}
+#profileModal .formrow{grid-template-columns:165px minmax(0,1fr)!important;gap:12px!important;font-size:14.5px!important;margin:10px 0!important}
+#profileModal .formrow label{font-size:14px!important;color:#000!important}
+#profileModal input,#profileModal select{font-size:14.5px!important;min-height:44px!important;color:#000!important}
+#profileModal .pf-section-title{font-size:15px!important;font-weight:900!important;color:#000!important;margin-top:17px!important}
+#profileModal .rules{gap:8px!important}
+#profileModal #pfFormRules .chip{font-size:13.5px!important;padding:7px 11px!important;min-height:34px!important;color:#000!important}
+#profileModal #pfFormRules .chip.on{color:var(--dd-primary-strong)!important}
+#profileModal .pf-rule-token{
+ display:inline-flex!important;align-items:stretch!important;border:1px solid #c9d6e5!important;border-radius:10px!important;
+ background:#fff!important;overflow:hidden!important;min-height:36px!important;
+}
+#profileModal .pf-rule-token.on{border-color:#8fcfc1!important;background:var(--dd-primary-soft)!important}
+#profileModal .pf-rule-main{
+ border:0!important;background:transparent!important;color:#000!important;padding:7px 10px!important;
+ font-size:13.5px!important;font-weight:850!important;cursor:pointer!important;
+}
+#profileModal .pf-rule-token.on .pf-rule-main{color:var(--dd-primary-strong)!important}
+#profileModal .pf-rule-delete{
+ width:34px!important;border:0!important;border-left:1px solid #d8e1eb!important;background:#fff!important;
+ color:#b42318!important;font-size:17px!important;font-weight:900!important;cursor:pointer!important;
+}
+#profileModal .pf-rule-delete:hover{background:#fff0ee!important}
+#profileModal .pf-rule-help{font-size:12.5px!important;line-height:1.55!important;color:#000!important;margin-top:7px!important}
+#profileModal .notice{font-size:13.5px!important;color:#000!important}
+#profileModal .modalbody>.profile-actions .btn{font-size:14px!important}
+@media(max-width:650px){
+ #profileModal .formrow{grid-template-columns:1fr!important}
+ #profileModal .pf-rule-main{font-size:13px!important}
+}
+</style>
 <link rel="stylesheet" href="../site-src/ddalkkak-records-theme.css">
 </head>
 <body>
@@ -168,15 +204,15 @@ select,input[type=text],input[type=number]{border:1px solid var(--line);border-r
 <div id="profileModal" class="modalback" onclick="if(event.target===this)closeProfile()"><div class="modal"><div class="modalhead"><div><b id="profileTitle">기관 설정</b><div class="sub">기관별로 한 번 저장해두면 다음 작업부터 자동 적용</div></div><button class="btn" onclick="closeProfile()">닫기</button></div><div class="modalbody">
  <div class="formrow"><label>관리번호 접두어</label><input id="pfPrefix" type="text"></div>
  <div class="formrow"><label>표준대장 유형</label><select id="pfTemplate"><option value="school">학교</option><option value="direct">직속</option><option value="archive">기록관</option></select></div>
- <div style="font-size:10.5px;font-weight:900;margin-top:13px">상자 자동제외 · 기록유형</div><div id="pfFormRules" class="rules" style="margin-top:7px"></div>
- <div style="font-size:10.5px;font-weight:900;margin-top:13px">상자 자동제외 · 철제목 키워드</div><div id="pfTitleRules" class="rules" style="margin-top:7px"></div>
- <div style="display:flex;gap:7px;margin-top:8px"><input id="pfNewRule" type="text" style="flex:1" placeholder="새 키워드는 처음 한 번만 입력"><button class="btn" onclick="addProfileRule()">추가</button></div>
+ <div class="pf-section-title">상자 자동제외 · 기록유형</div><div id="pfFormRules" class="rules" style="margin-top:8px"></div>
+ <div class="pf-section-title">상자 자동제외 · 철제목 키워드</div><div id="pfTitleRules" class="rules" style="margin-top:8px"></div><div class="pf-rule-help">키워드를 누르면 적용/해제됩니다. 오른쪽 ×를 누르면 목록에서 삭제됩니다.</div>
+ <div style="display:flex;gap:8px;margin-top:12px"><input id="pfNewRule" type="text" style="flex:1" placeholder="새 자동제외 키워드 입력"><button class="btn" onclick="addProfileRule()">키워드 추가</button></div>
  <div class="notice" style="margin-top:12px">저장하지 않고 닫으면 이번 작업 데이터에는 영향을 주지 않습니다. <b>이번 작업에만 적용</b>과 <b>기관 기본값으로 저장</b>을 구분할 수 있습니다.</div>
- <div style="display:flex;justify-content:flex-end;gap:7px;margin-top:13px"><button class="btn" onclick="applyProfile(false)">이번 작업에만 적용</button><button class="btn green" onclick="applyProfile(true)">기관 기본값으로 저장</button></div>
+ <div class="profile-actions" style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px"><button class="btn" onclick="applyProfile(false)">이번 작업에만 적용</button><button class="btn green" onclick="applyProfile(true)">기관 기본값으로 저장</button></div>
 </div></div></div>
 
 <script>
-const APP_VERSION='v0.9.4 Beta';
+const APP_VERSION='v0.9.5 Beta';
 document.title='딸깍 기록물대장관리 '+APP_VERSION;
 const appVersionBadge=document.getElementById('appVersionBadge');if(appVersionBadge)appVersionBadge.textContent='통합 '+APP_VERSION;
 
@@ -190,7 +226,19 @@ function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 function loadProfiles(){try{return JSON.parse(localStorage.getItem(PROFILE_KEY)||'{}')}catch(e){return {}}}
 function saveProfiles(){try{localStorage.setItem(PROFILE_KEY,JSON.stringify(profiles))}catch(e){}}
 function insts(){return [...new Set(records.map(r=>r.institution).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko'))}
-function profile(inst){return sessionProfiles[inst]||profiles[inst]||{prefix:shortPrefix(inst),template:'school',formRules:[...DEFAULT_RULES.form],titleRules:[...DEFAULT_RULES.title]}}
+function normalizeProfileData(raw,inst){
+ const p=raw&&typeof raw==='object'?raw:{};
+ const titleRules=Array.isArray(p.titleRules)?[...new Set(p.titleRules.filter(Boolean))]:[...DEFAULT_RULES.title];
+ const titleRuleOptions=Array.isArray(p.titleRuleOptions)?[...new Set(p.titleRuleOptions.filter(Boolean))]:[...new Set([...DEFAULT_RULES.title,...titleRules])];
+ return {
+  prefix:String(p.prefix||shortPrefix(inst)),
+  template:['school','direct','archive'].includes(p.template)?p.template:'school',
+  formRules:Array.isArray(p.formRules)?[...new Set(p.formRules.filter(Boolean))]:[...DEFAULT_RULES.form],
+  titleRules:titleRules.filter(k=>titleRuleOptions.includes(k)),
+  titleRuleOptions
+ };
+}
+function profile(inst){return normalizeProfileData(sessionProfiles[inst]||profiles[inst],inst)}
 function shortPrefix(inst){return String(inst||'기관').replace(/유치원$|초등학교$|중학교$|고등학교$|학교$|교육지원청$|교육청$/,'').slice(0,12)||'기관'}
 function setFoot(t){document.getElementById('foot').textContent=t}
 function go(n){if(n<1||n>5)return;if(n>1&&!records.length){alert('먼저 이관신청서를 불러오세요.');return}currentStep=n;document.querySelectorAll('.panel').forEach((x,i)=>x.classList.toggle('on',i===n-1));document.querySelectorAll('.step').forEach((x,i)=>{x.classList.toggle('on',i===n-1);x.classList.toggle('done',i<n-1)});document.getElementById('prevBtn').style.display=n>1?'inline-block':'none';document.getElementById('nextBtn').style.display=n<5?'inline-block':'none';if(n===2)renderBoxesAll();if(n===3){recalcFinal();renderFinal()}if(n===4)renderReview();if(n===5)renderOutput();window.scrollTo({top:0,behavior:'smooth'})}
@@ -870,10 +918,30 @@ function renderOutput(){
 let editingInst='',editingProfile=null;
 function openProfile(){editingInst=selectedInst||insts()[0];editingProfile=JSON.parse(JSON.stringify(profile(editingInst)));document.getElementById('profileTitle').textContent=editingInst+' · 기관 설정';document.getElementById('pfPrefix').value=editingProfile.prefix||'';document.getElementById('pfTemplate').value=editingProfile.template||'school';renderProfileRules();document.getElementById('profileModal').classList.add('on')}
 function closeProfile(){document.getElementById('profileModal').classList.remove('on')}
-function renderProfileRules(){document.getElementById('pfFormRules').innerHTML=FORM_CHOICES.map(k=>`<span class="chip ${(editingProfile.formRules||[]).includes(k)?'on':''}" onclick="togglePf('form',${JSON.stringify(k)})">${esc(k)}</span>`).join('');const all=[...new Set([...DEFAULT_RULES.title,...(editingProfile.titleRules||[])])];document.getElementById('pfTitleRules').innerHTML=all.map(k=>`<span class="chip ${(editingProfile.titleRules||[]).includes(k)?'on':''}" onclick="togglePf('title',${JSON.stringify(k)})">${esc(k)}</span>`).join('')}
-function togglePf(kind,k){const key=kind==='form'?'formRules':'titleRules',a=editingProfile[key]||[];editingProfile[key]=a.includes(k)?a.filter(x=>x!==k):[...a,k];renderProfileRules()}
-function addProfileRule(){const el=document.getElementById('pfNewRule'),k=el.value.trim();if(!k)return;if(!(editingProfile.titleRules||[]).includes(k))editingProfile.titleRules=[...(editingProfile.titleRules||[]),k];el.value='';renderProfileRules()}
-function applyProfile(save){editingProfile.prefix=document.getElementById('pfPrefix').value.trim()||shortPrefix(editingInst);editingProfile.template=document.getElementById('pfTemplate').value;sessionProfiles[editingInst]=JSON.parse(JSON.stringify(editingProfile));if(save){profiles[editingInst]=JSON.parse(JSON.stringify(editingProfile));saveProfiles()}records.filter(r=>r.institution===editingInst).forEach(r=>{if(r.boxExcludeOrigin!=='manual'&&r.boxExcludeOrigin!=='override')r.boxExcludeOrigin=''});applyAllAutoExclusions();assignBoxes();closeProfile();renderBoxesAll();alert(save?'기관 기본값으로 저장했습니다.':'이번 작업에만 적용했습니다.')}
+function renderProfileRules(){
+ document.getElementById('pfFormRules').innerHTML=FORM_CHOICES.map(k=>`<span class="chip ${(editingProfile.formRules||[]).includes(k)?'on':''}" onclick="togglePf('form',${JSON.stringify(k)})">${esc(k)}</span>`).join('');
+ const all=Array.isArray(editingProfile.titleRuleOptions)?editingProfile.titleRuleOptions:[...new Set([...DEFAULT_RULES.title,...(editingProfile.titleRules||[])])];
+ editingProfile.titleRuleOptions=[...all];
+ document.getElementById('pfTitleRules').innerHTML=all.length?all.map(k=>`<span class="pf-rule-token ${(editingProfile.titleRules||[]).includes(k)?'on':''}"><button type="button" class="pf-rule-main" onclick="togglePf('title',${JSON.stringify(k)})">${esc(k)}</button><button type="button" class="pf-rule-delete" title="키워드 삭제" onclick="deleteProfileRule(${JSON.stringify(k)})">×</button></span>`).join(''):'<span class="pf-rule-help">등록된 철제목 키워드가 없습니다.</span>'
+}
+function togglePf(kind,k){
+ const key=kind==='form'?'formRules':'titleRules',a=editingProfile[key]||[];
+ editingProfile[key]=a.includes(k)?a.filter(x=>x!==k):[...a,k];
+ if(kind==='title'&&!(editingProfile.titleRuleOptions||[]).includes(k))editingProfile.titleRuleOptions=[...(editingProfile.titleRuleOptions||[]),k];
+ renderProfileRules()
+}
+function addProfileRule(){
+ const el=document.getElementById('pfNewRule'),k=el.value.trim();if(!k)return;
+ editingProfile.titleRuleOptions=[...new Set([...(editingProfile.titleRuleOptions||[]),k])];
+ editingProfile.titleRules=[...new Set([...(editingProfile.titleRules||[]),k])];
+ el.value='';renderProfileRules()
+}
+function deleteProfileRule(k){
+ editingProfile.titleRuleOptions=(editingProfile.titleRuleOptions||[]).filter(x=>x!==k);
+ editingProfile.titleRules=(editingProfile.titleRules||[]).filter(x=>x!==k);
+ renderProfileRules()
+}
+function applyProfile(save){editingProfile.prefix=document.getElementById('pfPrefix').value.trim()||shortPrefix(editingInst);editingProfile.template=document.getElementById('pfTemplate').value;editingProfile=normalizeProfileData(editingProfile,editingInst);sessionProfiles[editingInst]=JSON.parse(JSON.stringify(editingProfile));if(save){profiles[editingInst]=JSON.parse(JSON.stringify(editingProfile));saveProfiles()}records.filter(r=>r.institution===editingInst).forEach(r=>{if(r.boxExcludeOrigin!=='manual'&&r.boxExcludeOrigin!=='override')r.boxExcludeOrigin=''});applyAllAutoExclusions();assignBoxes();closeProfile();renderBoxesAll();alert(save?'기관 기본값으로 저장했습니다.':'이번 작업에만 적용했습니다.')}
 function exportProfiles(){const blob=new Blob([JSON.stringify({version:1,profiles},null,2)],{type:'application/json;charset=utf-8'});downloadBlob(blob,'기록물관리_기관프로필.json')}
 function downloadBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},300)}
 function downloadFinalData(){
