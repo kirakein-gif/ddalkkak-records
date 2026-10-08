@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS migration_profiles (
   signature TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft','published')),
   profile_json TEXT NOT NULL,
+  pin_hash TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
