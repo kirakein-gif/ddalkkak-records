@@ -13,7 +13,8 @@
     "site-src/management-v0.6.2.source.html",
     "site-src/migration-v0.6.1.source.html",
     "site-src/transfer-v0.2.source.html",
-    "site-src/transfer-v0.3.source.html"
+    "site-src/transfer-v0.3.source.html",
+    "migration/master/index.html"
   ],
   "templates": true,
   "publicUrl": "https://ddalkkak-records.pages.dev/"
