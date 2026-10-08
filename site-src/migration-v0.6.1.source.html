@@ -317,6 +317,10 @@
 .result-action .btn{width:100%}
 .result-note{margin-top:10px;font-size:13px;color:#000;line-height:1.5}
 #exportState{font-size:13.5px!important;color:#000!important}
+#masterTapZone{user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.published-profile-select{width:100%!important;min-height:44px!important;font-size:14px!important;font-weight:800!important;color:#000!important}
+.published-profile-meta{margin-top:7px!important;font-size:12.5px!important;line-height:1.55!important;color:#000!important}
+.published-profile-meta .badge{margin-right:4px!important}
 
 @media(max-width:1150px){
  #mapSummary{grid-template-columns:repeat(3,minmax(0,1fr))!important}
@@ -332,7 +336,7 @@
 }
 </style>
 </head><body class="migration-page">
-<div class="top"><div class="topin"><div class="brand"><div class="logo icon-logo"><img src="../templates/기록물대장마이그레이션%20아이콘.png" alt="기록물대장마이그레이션 아이콘"></div><div><div class="brand-kicker">DDALKKAK RECORDS MIGRATION</div><h1>딸깍 기록물대장마이그레이션</h1><div class="sub">지역별·기관별로 다른 기존 기록물관리대장을 표준 구조로 맞춥니다.</div></div></div><div class="top-actions"><a class="home-btn" href="../">⌂ 홈</a><span class="badge info">v0.6.14 Beta · 딸깍 UI</span></div></div></div>
+<div class="top"><div class="topin"><div class="brand"><div class="logo icon-logo"><img src="../templates/기록물대장마이그레이션%20아이콘.png" alt="기록물대장마이그레이션 아이콘"></div><div><div class="brand-kicker">DDALKKAK RECORDS MIGRATION</div><h1>딸깍 기록물대장마이그레이션</h1><div class="sub"><span id="masterTapZone">지역별</span>·기관별로 다른 기존 기록물관리대장을 표준 구조로 맞춥니다.</div></div></div><div class="top-actions"><a class="home-btn" href="../">⌂ 홈</a><span class="badge info">v0.6.14 Beta · 딸깍 UI</span></div></div></div>
 <main class="wrap">
 <div class="records-workbench">
 <aside class="records-sidebar">
@@ -341,10 +345,12 @@
   <div class="steps"><div class="step on" onclick="go(1)">1. 시작 준비</div><div class="step" onclick="go(2)">2. 열 매핑</div><div class="step" onclick="go(3)">3. 보정·검토</div><div class="step" onclick="go(4)">4. 변환</div></div>
  </div>
  <div class="records-side-card">
-  <div class="records-side-title">표준 작업방식</div>
+  <div class="records-side-title">배포 작업방식</div>
+  <select id="publishedProfileSelect" class="published-profile-select" onchange="publishedProfileChanged()"><option value="">불러오는 중...</option></select>
+  <div id="publishedProfileMeta" class="published-profile-meta">기록물관리자가 게시한 지역별 기준을 불러옵니다.</div>
   <input id="profileFile" type="file" accept=".json,application/json" style="display:none">
-  <button class="btn primary records-file-btn" type="button" onclick="document.getElementById('profileFile').click()">표준 작업방식 JSON 불러오기</button>
-  <div id="profileImportMeta" class="profile-import-status">배포받은 JSON이 있으면 먼저 불러오세요. 표준유형·열 매핑·변환규칙·검증설정이 함께 적용됩니다.</div>
+  <div class="records-file-mini"><button class="btn" type="button" onclick="document.getElementById('profileFile').click()">직접 JSON 불러오기</button></div>
+  <div id="profileImportMeta" class="profile-import-status"></div>
  </div>
 </aside>
 <div class="records-main">
@@ -352,7 +358,7 @@
 <div class="card">
  <div class="head"><div><h2>기존 대장과 표준 구조를 준비하세요.</h2><div class="sub">대장을 먼저 넣고 학교용·직속기관용·기록관용 중 맞출 구조를 선택한 뒤 한 번에 분석을 시작합니다.</div></div><span class="badge info">시작 준비</span></div>
  <div class="body">
-  <div class="notice" style="margin-bottom:14px"><b>배포받은 표준 작업방식 JSON이 있나요?</b> 왼쪽에서 불러오면 기록연구사가 확정한 표준유형·열 매핑·값 변환·검증 설정이 자동 준비됩니다. JSON이 없다면 아래에서 표준 구조만 직접 선택하면 됩니다.</div>
+  <div class="notice" style="margin-bottom:14px"><b>지역별 배포 기준이 있으면 왼쪽에서 선택하세요.</b> 기록물관리자가 게시한 표준유형·열 매핑·값 변환·검증 설정이 자동 적용됩니다. 해당 기준이 없을 때만 아래에서 표준 구조를 직접 선택하세요.</div>
   <div class="migration-start-grid">
    <div class="migration-start-block">
     <div class="migration-start-head"><div class="migration-start-no">1</div><div><div class="migration-start-title">기존 기록물관리대장</div><div class="migration-start-desc">먼저 변환할 Excel 대장을 선택합니다. 파일은 선택만 하고, 표준 구조가 정해진 뒤 분석합니다.</div></div></div>
@@ -364,7 +370,7 @@
     <div class="migration-start-mini"><button class="btn" type="button" onclick="loadSample()">샘플자료로 시험</button></div>
    </div>
    <div class="migration-start-block">
-    <div class="migration-start-head"><div class="migration-start-no">2</div><div><div class="migration-start-title">맞출 표준 구조</div><div class="migration-start-desc">JSON을 불러오면 자동 선택됩니다. 직접 작업할 때만 아래에서 구조를 고릅니다.</div></div></div>
+    <div class="migration-start-head"><div class="migration-start-no">2</div><div><div class="migration-start-title">맞출 표준 구조</div><div class="migration-start-desc">배포 작업방식을 선택하면 자동 지정됩니다. 직접 작업할 때만 아래에서 구조를 고릅니다.</div></div></div>
     <div id="typePick" class="typepick"></div>
     <div id="tplState" class="notice" style="margin-top:10px">표준서식 종류를 선택하세요.</div>
     <input id="manualTpl" type="file" accept=".xlsx" style="display:none">
@@ -384,7 +390,7 @@
  </div>
 </div>
 
-<div class="notice"><b>마이그레이션 원칙</b> · 신규 기록물을 받는 기능이 아니라, 기존에 각 지역·기관에서 사용하던 대장을 표준 구조로 맞추는 기능입니다. 기록연구사는 확정한 작업방식을 JSON으로 배포하고, 학교는 그 JSON을 불러온 뒤 기존 대장만 넣어 같은 기준으로 변환할 수 있습니다.</div>
+<div class="notice"><b>마이그레이션 원칙</b> · 기존 지역·기관별 대장을 표준 구조로 맞추는 기능입니다. 기록물관리자가 게시한 작업방식을 사용하면 학교는 기준을 다시 만들지 않고 기존 대장만 넣어 같은 방식으로 변환할 수 있습니다.</div>
 <div class="policybox">
   <div class="policy"><b>역사값은 보존</b><span>기존 관리번호·상자번호·위치정보·기록물철 제목은 임의로 다시 만들지 않습니다.</span></div>
   <div class="policy"><b>분류값은 표준화</b><span>단위과제·보존기간·기록유형은 표준양식의 단위과제표와 유효성검사를 기준으로 검증·보정합니다.</span></div>
@@ -1305,39 +1311,73 @@ function profilePayload(){
     normalization:{standardTask:$('normTaskStandard').checked,retention:$('normRetention').checked,disclosure:$('normDisclosure').checked,type:$('normType').checked}
   }
 }
+async function applyMigrationProfileObject(p,displayName='표준 작업방식',source='배포'){
+ if(!p||typeof p!=='object')throw new Error('작업방식 형식을 읽을 수 없습니다.');
+ if(!p.signature||!p.targetType)throw new Error('형식 ID 또는 표준유형 정보가 없습니다.');
+ if(!TEMPLATE_DEF[p.targetType])throw new Error('지원하지 않는 표준유형입니다: '+p.targetType);
+ if(!Array.isArray(p.bindings)&&!Array.isArray(p.mapping))throw new Error('열 매핑 정보가 없습니다.');
+ importedProfileSignature=String(p.signature);
+ importedProfileName=String(displayName||p.name||'표준 작업방식');
+ profiles[importedProfileSignature]=p;
+ persistProfiles();
+ if($('profileImportMeta'))$('profileImportMeta').innerHTML='<span class="badge info">'+esc(source)+'</span> '+esc(importedProfileName);
+ await selectType(p.targetType);
+ if(headers.length)headerSignature=buildSignature();
+ if(headerSignature){
+  if(headerSignature===importedProfileSignature){autoMap();renderMapping();if($('profileImportMeta'))$('profileImportMeta').innerHTML='<span class="badge ok">적용</span> '+esc(importedProfileName)+' · 현재 대장 형식과 일치';setFoot('배포 작업방식을 현재 대장에 적용했습니다.');}
+  else if($('profileImportMeta'))$('profileImportMeta').innerHTML='<span class="badge warn">대기</span> '+esc(importedProfileName)+' · 이 작업방식과 맞는 기존 대장을 불러오세요.';
+ }else if($('profileImportMeta')){
+  $('profileImportMeta').innerHTML='<span class="badge ok">준비됨</span> '+esc(importedProfileName)+' · '+esc(TEMPLATE_DEF[p.targetType].title);
+ }
+ syncMigrationStartState();
+}
 async function importMigrationProfileFile(file){
  if(!file)return;
  try{
   const raw=JSON.parse(await file.text());
   const p=(raw&&raw.profile&&typeof raw.profile==='object')?raw.profile:raw;
-  if(!p||typeof p!=='object')throw new Error('JSON 형식을 읽을 수 없습니다.');
-  if(!p.signature||!p.targetType)throw new Error('형식 ID 또는 표준유형 정보가 없는 파일입니다.');
-  if(!TEMPLATE_DEF[p.targetType])throw new Error('지원하지 않는 표준유형입니다: '+p.targetType);
-  if(!Array.isArray(p.bindings)&&!Array.isArray(p.mapping))throw new Error('열 매핑 정보가 없는 파일입니다.');
-  importedProfileSignature=String(p.signature);
-  importedProfileName=String(p.name||file.name.replace(/\.json$/i,'')||'표준 작업방식');
-  profiles[importedProfileSignature]=p;
-  persistProfiles();
-  if($('profileImportMeta'))$('profileImportMeta').innerHTML='<span class="badge info">불러옴</span> '+esc(importedProfileName)+' · '+esc(TEMPLATE_DEF[p.targetType].title)+' · 형식 ID <span class="mono">'+esc(importedProfileSignature)+'</span>';
-  await selectType(p.targetType);
-  if(headers.length)headerSignature=buildSignature();
-  if(headerSignature){
-    if(headerSignature===importedProfileSignature){autoMap();renderMapping();if($('profileImportMeta'))$('profileImportMeta').innerHTML='<span class="badge ok">적용</span> '+esc(importedProfileName)+' · 현재 대장 형식과 일치';setFoot('표준 작업방식 JSON을 현재 대장에 적용했습니다.');}
-    else if($('profileImportMeta'))$('profileImportMeta').innerHTML='<span class="badge warn">대기</span> '+esc(importedProfileName)+' · 이 JSON에 맞는 기존 대장을 2. 대장 읽기에서 불러오세요.';
-  }else{
-    if($('profileImportMeta'))$('profileImportMeta').innerHTML='<span class="badge ok">준비됨</span> '+esc(importedProfileName)+' · '+esc(TEMPLATE_DEF[p.targetType].title)+' · 다음 단계에서 기존 대장을 불러오세요.';
-  }
+  await applyMigrationProfileObject(p,p?.name||file.name.replace(/\.json$/i,''),'직접 JSON');
  }catch(err){
   console.error(err);
   if($('profileImportMeta'))$('profileImportMeta').innerHTML='<span class="badge bad">오류</span> '+esc(err.message||err);
   alert('표준 작업방식 JSON을 불러오지 못했습니다: '+(err.message||err));
  }finally{
   if($('profileFile'))$('profileFile').value='';
-  syncMigrationStartState();
  }
 }
 $('profileFile').addEventListener('change',e=>{const f=e.target.files[0];if(f)importMigrationProfileFile(f)});
 
+let publishedProfiles=[];
+async function loadPublishedProfiles(){
+ const sel=$('publishedProfileSelect'),meta=$('publishedProfileMeta');if(!sel)return;
+ try{
+  const r=await fetch('/api/migration-profiles',{cache:'no-store'});
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  const j=await r.json();publishedProfiles=Array.isArray(j.profiles)?j.profiles:[];
+  sel.innerHTML='<option value="">배포 작업방식 선택</option>'+publishedProfiles.map(x=>'<option value="'+esc(x.id)+'">'+esc((x.region?x.region+' · ':'')+x.name+(x.version?' · '+x.version:''))+'</option>').join('');
+  meta.innerHTML=publishedProfiles.length?'<span class="badge ok">게시중 '+publishedProfiles.length+'개</span> 지역별 기준을 선택할 수 있습니다.':'게시된 작업방식이 없습니다. 아래 표준 구조를 직접 선택하세요.';
+ }catch(err){
+  publishedProfiles=[];
+  sel.innerHTML='<option value="">배포 기준 연결 안 됨</option>';
+  meta.innerHTML='<span class="badge warn">중앙저장소 준비중</span> 현재는 직접 표준 구조 또는 JSON을 사용할 수 있습니다.';
+ }
+}
+async function publishedProfileChanged(){
+ const id=$('publishedProfileSelect')?.value;if(!id)return;
+ const item=publishedProfiles.find(x=>x.id===id);if(!item?.profile)return;
+ try{
+  await applyMigrationProfileObject(item.profile,item.name+(item.version?' '+item.version:''),'게시 기준');
+  if($('publishedProfileMeta'))$('publishedProfileMeta').innerHTML='<span class="badge ok">선택됨</span> '+esc(item.region||'')+(item.region?' · ':'')+esc(item.name)+(item.version?' · '+esc(item.version):'')+(item.audience?' · '+esc(item.audience):'');
+ }catch(err){alert('배포 작업방식을 적용하지 못했습니다: '+err.message)}
+}
+let masterTapCount=0,masterTapLast=0;
+function bindMasterEntrance(){
+ const zone=$('masterTapZone');if(!zone)return;
+ zone.addEventListener('click',()=>{
+  const now=Date.now();if(now-masterTapLast>4000)masterTapCount=0;masterTapLast=now;masterTapCount++;
+  if(masterTapCount>=7){masterTapCount=0;location.href='master/'}
+ });
+}
 function saveProfileLocal(){if(!headerSignature)return;const p=profilePayload();profiles[headerSignature]=p;persistProfiles();alert('현재 열 매핑·변환규칙·표준검증 설정을 브라우저에 저장했습니다. 다음부터 같은 헤더 구성이면 자동 적용합니다.')}
 function exportCurrentProfile(){if(!headerSignature){alert('먼저 대장을 불러오세요.');return}downloadBlob(new Blob([JSON.stringify(profilePayload(),null,2)],{type:'application/json;charset=utf-8'}),($('profileName').value.trim()||'기록물대장_표준작업방식')+'.json')}
 function downloadTrace(){const p={schemaVersion:2,generatedAt:new Date().toISOString(),sourceFile:sourceFileName,sourceSheet,targetType,headerRow:headerIndex+1,headerSpan2,headerSignature,profileName:$('profileName').value.trim(),mergeStats,standardRetentionValues:STANDARD_RETENTIONS,summary:countStatuses(),records:traceRecords.map(r=>({sourceRow:r.sourceRow,sourceSheet:r.sourceSheet,sourceSheets:r.sourceSheets,sourceRows:r.sourceRows,raw:r.raw,expectedExpiry:r.expectedExpiry,originalExpiry:r.originalExpiry,normalizedExpiry:r.normalizedExpiry,issues:r.issues,fields:Object.fromEntries(Object.entries(r.fields).map(([k,f])=>[k,{sourceHeader:f.sourceHeader,originalValue:f.originalValue,outputValue:f.value,status:f.status,transform:f.transform||'',reason:f.reason||''}]))}))};downloadBlob(new Blob([JSON.stringify(p,null,2)],{type:'application/json;charset=utf-8'}),(sourceFileName.replace(/\.xlsx?$|\.xlsm?$|\.xls$/i,'')||'기록물대장')+'_마이그레이션추적.json')}
@@ -1376,6 +1416,8 @@ async function patchMigrationWorkbookXml(buffer,endRow){
 async function downloadStandardWorkbook(){if(!TPL_BUFFER){alert('표준서식 템플릿이 없습니다.');return}if(!previewRecords.length)rebuildPreview();const blocking=allIssues().filter(x=>x.level==='error');if(blocking.length){alert(`표준기준 검토필요 ${blocking.length}건이 남아 있습니다. 보존기간·단위과제 후보 충돌·다중시트 충돌을 먼저 확인해주세요.`);return}const btn=$('downloadStdBtn');btn.disabled=true;$('exportState').innerHTML='<b>생성 중</b> · 원본 표준양식에 변환값을 넣고 있습니다.';try{const wb=new ExcelJS.Workbook();await wb.xlsx.load(TPL_BUFFER);if(wb.definedNames&&Array.isArray(wb.definedNames.model))wb.definedNames.model=wb.definedNames.model.filter(d=>!(d.ranges||[]).some(r=>/\[|#REF!/.test(r)));const ws=wb.getWorksheet(LEDGER_SHEET)||wb.worksheets[0],proto=[];const base=ws.getRow(DATA_ROW),baseRowHeight=base.height||40.15;for(let c=1;c<=ws.columnCount;c++){const cell=base.getCell(c),v=cell.value;proto.push({style:cell.style,dv:cell.dataValidation||null,formula:(v&&typeof v==='object'&&v.formula!==undefined)?v.formula:null})}const need=DATA_ROW+previewRecords.length-1;for(let r=DATA_ROW;r<=Math.max(need,ws.rowCount);r++){const out=ws.getRow(r),rec=previewRecords[r-DATA_ROW];out.height=baseRowHeight;for(let c=1;c<=ws.columnCount;c++){const p=proto[c-1],cell=out.getCell(c);cell.style=p.style;if(p.dv)cell.dataValidation=p.dv;cell.value=p.formula?{formula:formulaForRow(p.formula,r)}:null}if(rec){STD.forEach(col=>{if(col.locked)return;const f=rec.fields[col.en];if(f&&f.status!=='missing'&&f.value!==null&&f.value!=='')out.getCell(col.index).value=f.value})}}const rawBuffer=await wb.xlsx.writeBuffer(),buffer=await patchMigrationWorkbookXml(rawBuffer,DATA_ROW+previewRecords.length-1);downloadBlob(new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),(sourceFileName.replace(/\.(xlsx|xlsm|xls)$/i,'')||'기록물관리대장')+'_'+TEMPLATE_DEF[targetType].title+'_표준변환.xlsx');$('exportState').innerHTML=`<b>완료</b> · ${previewRecords.length}행을 표준서식으로 만들었습니다. 역사값은 보존하고 표준기준 보정값은 근거와 함께 추적정보에 기록했습니다.`}catch(e){$('exportState').innerHTML=`<b>오류</b> · ${esc(e.message)}`}finally{btn.disabled=false}}
 initTypes();
 syncMigrationStartState();
+loadPublishedProfiles();
+bindMasterEntrance();
 </script><div id="migrationProgress" class="mig-progress-back" aria-live="polite" aria-busy="true">
   <div class="mig-progress-card">
     <div class="mig-progress-top">
