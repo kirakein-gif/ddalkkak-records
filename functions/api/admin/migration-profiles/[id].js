@@ -1,0 +1,34 @@
+function json(data,status=200){
+  return new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
+}
+function normalized(body){
+  const profile=body?.profile&&typeof body.profile==='object'?body.profile:null;
+  if(!profile)throw new Error('표준 작업방식 데이터가 없습니다.');
+  const name=String(body.name||profile.name||'').trim();if(!name)throw new Error('작업방식 이름이 필요합니다.');
+  const targetType=String(body.target_type||profile.targetType||'').trim();if(!['school','direct','archive'].includes(targetType))throw new Error('표준대장 유형이 올바르지 않습니다.');
+  const signature=String(body.signature||profile.signature||'').trim();if(!signature)throw new Error('형식 ID가 없습니다.');
+  return {
+    name,region:String(body.region||'').trim(),audience:String(body.audience||'').trim(),
+    description:String(body.description||'').trim(),version:String(body.version||'v1.0').trim()||'v1.0',
+    targetType,signature,status:body.status==='published'?'published':'draft',profile
+  };
+}
+export async function onRequestPut({request,env,params}){
+  if(!env.DB)return json({ok:false,error:'D1_NOT_CONFIGURED'},503);
+  try{
+    const v=normalized(await request.json()),now=new Date().toISOString();
+    const result=await env.DB.prepare(
+      "UPDATE migration_profiles SET name=?,region=?,audience=?,description=?,version=?,target_type=?,signature=?,status=?,profile_json=?,updated_at=? WHERE id=?"
+    ).bind(v.name,v.region,v.audience,v.description,v.version,v.targetType,v.signature,v.status,JSON.stringify(v.profile),now,String(params.id)).run();
+    if(!result.meta?.changes)return json({ok:false,error:'NOT_FOUND'},404);
+    return json({ok:true,id:String(params.id)});
+  }catch(err){return json({ok:false,error:'PROFILE_UPDATE_FAILED',message:String(err?.message||err)},400)}
+}
+export async function onRequestDelete({env,params}){
+  if(!env.DB)return json({ok:false,error:'D1_NOT_CONFIGURED'},503);
+  try{
+    const result=await env.DB.prepare("DELETE FROM migration_profiles WHERE id=?").bind(String(params.id)).run();
+    if(!result.meta?.changes)return json({ok:false,error:'NOT_FOUND'},404);
+    return json({ok:true});
+  }catch(err){return json({ok:false,error:'PROFILE_DELETE_FAILED',message:String(err?.message||err)},500)}
+}
