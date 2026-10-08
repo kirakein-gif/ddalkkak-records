@@ -336,6 +336,9 @@
  width:100%;border:1px solid #cfd6df;border-radius:8px;padding:9px 10px;font-size:14px;color:#000;background:#fff
 }
 .master-publish-grid textarea{min-height:74px;resize:vertical}
+.master-publish-pin{display:grid;grid-template-columns:130px 1fr;gap:9px 11px;align-items:center;margin-top:11px;padding-top:11px;border-top:1px solid #d8e4ee}
+.master-publish-pin label{font-size:13.5px;font-weight:900;color:#000}
+.master-publish-pin input{width:100%;border:1px solid #cfd6df;border-radius:8px;padding:9px 10px;font-size:15px;letter-spacing:.28em;font-weight:900;color:#000;background:#fff}
 .master-publish-help{margin-top:10px;padding:10px 12px;border-radius:9px;background:#edf9f6;border:1px solid #c5e6dc;font-size:12.5px;color:#000;line-height:1.5}
 @media(max-width:850px){.master-mode-bar{align-items:flex-start;flex-direction:column}.master-mode-actions{width:100%;justify-content:flex-start}.master-publish-grid{grid-template-columns:1fr}}
 
@@ -542,7 +545,11 @@
     <label>상태</label><select id="masterProfileStatus"><option value="draft">작성중</option><option value="published">게시중</option></select>
     <label>설명</label><textarea id="masterProfileDescription" placeholder="사용자가 기준을 구분할 수 있는 간단한 설명"></textarea>
    </div>
-   <div id="masterPublishState" class="master-publish-help">저장하면 마스터 목록에서 계속 편집할 수 있습니다. ‘게시중’은 일반 사용자 선택 목록에 바로 표시됩니다.</div>
+   <div id="masterPinFields" class="master-publish-pin">
+    <label>4자리 PIN</label><input id="masterProfilePin" type="password" inputmode="numeric" maxlength="4" placeholder="숫자 4자리">
+    <label>PIN 확인</label><input id="masterProfilePinConfirm" type="password" inputmode="numeric" maxlength="4" placeholder="한 번 더 입력">
+   </div>
+   <div id="masterPublishState" class="master-publish-help">새 규칙은 4자리 PIN을 정합니다. 이후 편집·삭제할 때 같은 PIN이 필요합니다.</div>
   </div>
   <div class="modalfoot"><button class="btn" type="button" onclick="closeMasterPublish()">취소</button><button id="masterSaveBtn" class="btn primary" type="button" onclick="saveMasterProfile()">저장</button></div>
  </div>
@@ -614,6 +621,21 @@ const IMPORTANT=['mngNo','title','creatYyyyFrom','creatYyyyTo','presvTermNm','cl
 let currentStep=1,targetType='',STD=[],TPL_BUFFER=null,STANDARD_TASKS=[],STANDARD_ORGS=[],STANDARD_EXAMPLE_INDEX=new Map(),STANDARD_RETENTIONS=['미지정','1년','3년','5년','10년','30년','준영구','영구'],STANDARD_TYPES=['문서류','시청각류'],STANDARD_DETAILS=['일반문서','대장','카드','도면','사진','영상','음성'],STANDARD_MEDIA=['종이','사진','필름','자기매체','광매체','기타','인화사진','슬라이드필름','사진CD','사진DVD','영화필름','비디오디스크','비디오테이프','비디오릴','녹음테이프','녹음테이프릴','DVD','오디오CD','DAT','마이크로카세트'],sourceFileName='',sourceRows=[],sourceSheet='',headerIndex=-1,headerSpan2=false,headers=[],dataRows=[],rowMeta=[],sourceCandidates=[],mergeStats={merged:0,conflicts:0,templateRows:0},mapping=[],bindings={},autoBindings={},headerSignature='',profiles=loadProfiles(),metaInfo={},previewRecords=[],traceRecords=[],editingTarget='',editingTransform=null,importedProfileSignature='',importedProfileName='',pendingSourceFile=null;
 const MASTER_PARAMS=new URLSearchParams(location.search),MASTER_MODE=MASTER_PARAMS.get('master')==='1',MASTER_EDIT_ID=MASTER_PARAMS.get('id')||'';
 let masterRecordId=MASTER_EDIT_ID,masterRecordMeta=null;
+const masterPinKey=id=>'ddalkkak.records.master.pin.'+id;
+function cleanMasterPin(v){return String(v||'').replace(/\D/g,'').slice(0,4)}
+async function verifyMasterPin(id,pin){
+ const r=await fetch('/api/admin/migration-profiles/'+encodeURIComponent(id)+'/verify',{method:'POST',cache:'no-store',headers:{'content-type':'application/json'},body:JSON.stringify({pin})});
+ let j={};try{j=await r.json()}catch{}
+ if(!r.ok)throw Object.assign(new Error(j.message||j.error||('HTTP '+r.status)),{status:r.status});
+ sessionStorage.setItem(masterPinKey(id),pin);return pin
+}
+async function ensureMasterPin(id){
+ let pin=sessionStorage.getItem(masterPinKey(id))||'';
+ if(pin){try{return await verifyMasterPin(id,pin)}catch{sessionStorage.removeItem(masterPinKey(id))}}
+ pin=cleanMasterPin(prompt('이 작업방식의 4자리 PIN을 입력하세요.')||'');
+ if(!pin)throw new Error('PIN 입력을 취소했습니다.');
+ return verifyMasterPin(id,pin)
+}
 const $=id=>document.getElementById(id), norm=s=>String(s??'').replace(/[\r\n]+/g,'').replace(/\s+/g,'').trim();
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function loadProfiles(){try{return JSON.parse(localStorage.getItem(PROFILE_KEY)||'{}')}catch(e){return {}}} function persistProfiles(){try{localStorage.setItem(PROFILE_KEY,JSON.stringify(profiles))}catch(e){}}
@@ -1431,10 +1453,11 @@ async function masterApi(url,opt={}){
 async function initMasterMode(){
  if(!MASTER_MODE)return;
  document.body.classList.add('master-mode');
- const badge=document.querySelector('.top-actions .badge');if(badge)badge.textContent='v0.6.16 Beta · MASTER';
+ const badge=document.querySelector('.top-actions .badge');if(badge)badge.textContent='v0.6.17 Beta · MASTER';
  try{
   const j=await masterApi('/api/admin/migration-profiles');
   if(masterRecordId){
+   await ensureMasterPin(masterRecordId);
    const rec=(j.profiles||[]).find(x=>x.id===masterRecordId);
    if(!rec)throw new Error('저장된 작업방식을 찾지 못했습니다.');
    masterRecordMeta=rec;
@@ -1459,6 +1482,9 @@ function openMasterPublish(){
  if(!MASTER_MODE){location.href='?master=1';return}
  if(!headerSignature||!targetType||!Object.keys(bindings).length){alert('대표 대장을 분석하고 열 매핑을 만든 뒤 저장해주세요.');return}
  if(!$('masterProfileName').value.trim())$('masterProfileName').value=$('profileName').value.trim()||sourceSheet||'새 작업방식';
+ const pinFields=$('masterPinFields');
+ if(masterRecordId){pinFields.classList.add('hidden');$('masterPublishState').textContent='편집 진입 시 확인한 PIN으로 저장합니다.'}
+ else{pinFields.classList.remove('hidden');$('masterProfilePin').value='';$('masterProfilePinConfirm').value='';$('masterPublishState').textContent='새 규칙은 4자리 PIN을 정합니다. 이후 편집·삭제할 때 같은 PIN이 필요합니다.'}
  $('masterPublishModal').classList.add('on')
 }
 function closeMasterPublish(){$('masterPublishModal').classList.remove('on')}
@@ -1466,6 +1492,15 @@ async function saveMasterProfile(){
  if(!MASTER_MODE)return;
  if(!headerSignature||!targetType){alert('먼저 대표 대장을 분석해주세요.');return}
  const name=$('masterProfileName').value.trim();if(!name){alert('작업방식 이름을 입력해주세요.');return}
+ let pin='';
+ if(masterRecordId){
+  try{pin=sessionStorage.getItem(masterPinKey(masterRecordId))||await ensureMasterPin(masterRecordId)}
+  catch(err){alert(err.message);return}
+ }else{
+  pin=cleanMasterPin($('masterProfilePin').value);const confirmPin=cleanMasterPin($('masterProfilePinConfirm').value);
+  if(!/^\d{4}$/.test(pin)){alert('4자리 숫자 PIN을 입력해주세요.');return}
+  if(pin!==confirmPin){alert('PIN과 PIN 확인이 일치하지 않습니다.');return}
+ }
  if($('profileName'))$('profileName').value=name;
  const profile=profilePayload();
  const body={
@@ -1477,15 +1512,16 @@ async function saveMasterProfile(){
   description:$('masterProfileDescription').value.trim(),
   target_type:profile.targetType,
   signature:profile.signature,
-  profile
+  profile,
+  pin
  };
  const btn=$('masterSaveBtn');btn.disabled=true;$('masterPublishState').textContent='저장 중...';
  try{
   const result=masterRecordId
    ? await masterApi('/api/admin/migration-profiles/'+encodeURIComponent(masterRecordId),{method:'PUT',body:JSON.stringify(body)})
    : await masterApi('/api/admin/migration-profiles',{method:'POST',body:JSON.stringify(body)});
-  if(!masterRecordId)masterRecordId=result.id||'';
-  masterRecordMeta={...body,id:masterRecordId};
+  if(!masterRecordId){masterRecordId=result.id||'';if(masterRecordId)sessionStorage.setItem(masterPinKey(masterRecordId),pin)}
+  masterRecordMeta={...body,id:masterRecordId,pin:undefined};
   const url=new URL(location.href);url.searchParams.set('master','1');if(masterRecordId)url.searchParams.set('id',masterRecordId);history.replaceState(null,'',url);
   $('masterPublishState').innerHTML='<span class="badge ok">저장 완료</span> '+esc(name)+' · '+(body.status==='published'?'일반 사용자 목록에 게시됩니다.':'작성중으로 저장했습니다.');
   $('masterModeNote').textContent=name+' '+body.version+' · '+(body.status==='published'?'게시중':'작성중');
@@ -1531,6 +1567,7 @@ async function patchMigrationWorkbookXml(buffer,endRow){
  return zip.generateAsync({type:'arraybuffer',compression:'DEFLATE',compressionOptions:{level:6}});
 }
 async function downloadStandardWorkbook(){if(!TPL_BUFFER){alert('표준서식 템플릿이 없습니다.');return}if(!previewRecords.length)rebuildPreview();const blocking=allIssues().filter(x=>x.level==='error');if(blocking.length){alert(`표준기준 검토필요 ${blocking.length}건이 남아 있습니다. 보존기간·단위과제 후보 충돌·다중시트 충돌을 먼저 확인해주세요.`);return}const btn=$('downloadStdBtn');btn.disabled=true;$('exportState').innerHTML='<b>생성 중</b> · 원본 표준양식에 변환값을 넣고 있습니다.';try{const wb=new ExcelJS.Workbook();await wb.xlsx.load(TPL_BUFFER);if(wb.definedNames&&Array.isArray(wb.definedNames.model))wb.definedNames.model=wb.definedNames.model.filter(d=>!(d.ranges||[]).some(r=>/\[|#REF!/.test(r)));const ws=wb.getWorksheet(LEDGER_SHEET)||wb.worksheets[0],proto=[];const base=ws.getRow(DATA_ROW),baseRowHeight=base.height||40.15;for(let c=1;c<=ws.columnCount;c++){const cell=base.getCell(c),v=cell.value;proto.push({style:cell.style,dv:cell.dataValidation||null,formula:(v&&typeof v==='object'&&v.formula!==undefined)?v.formula:null})}const need=DATA_ROW+previewRecords.length-1;for(let r=DATA_ROW;r<=Math.max(need,ws.rowCount);r++){const out=ws.getRow(r),rec=previewRecords[r-DATA_ROW];out.height=baseRowHeight;for(let c=1;c<=ws.columnCount;c++){const p=proto[c-1],cell=out.getCell(c);cell.style=p.style;if(p.dv)cell.dataValidation=p.dv;cell.value=p.formula?{formula:formulaForRow(p.formula,r)}:null}if(rec){STD.forEach(col=>{if(col.locked)return;const f=rec.fields[col.en];if(f&&f.status!=='missing'&&f.value!==null&&f.value!=='')out.getCell(col.index).value=f.value})}}const rawBuffer=await wb.xlsx.writeBuffer(),buffer=await patchMigrationWorkbookXml(rawBuffer,DATA_ROW+previewRecords.length-1);downloadBlob(new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),(sourceFileName.replace(/\.(xlsx|xlsm|xls)$/i,'')||'기록물관리대장')+'_'+TEMPLATE_DEF[targetType].title+'_표준변환.xlsx');$('exportState').innerHTML=`<b>완료</b> · ${previewRecords.length}행을 표준서식으로 만들었습니다. 역사값은 보존하고 표준기준 보정값은 근거와 함께 추적정보에 기록했습니다.`}catch(e){$('exportState').innerHTML=`<b>오류</b> · ${esc(e.message)}`}finally{btn.disabled=false}}
+['masterProfilePin','masterProfilePinConfirm'].forEach(id=>{const el=$(id);if(el)el.addEventListener('input',()=>{el.value=cleanMasterPin(el.value)})});
 initTypes();
 syncMigrationStartState();
 loadPublishedProfiles();
