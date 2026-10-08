@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>딸깍 기록물대장마이그레이션 · 마스터</title>
+<style>
+:root{--bg:#f2f6fb;--card:#fff;--line:#cfdae8;--ink:#0b0f14;--muted:#52657b;--teal:#0f766e;--teal2:#0b5f59;--soft:#eaf8f4;--green:#0f8f69;--warn:#a46800;--warnbg:#fff6dd;--red:#b42318;--shadow:0 5px 18px rgba(16,35,63,.07)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;font-size:15px;line-height:1.55}.wrap{max-width:1480px;margin:auto;padding:14px 20px 50px}
+.hero{min-height:90px;padding:12px 16px;border:1px solid #cbdceb;border-radius:16px;background:linear-gradient(135deg,#f7fcfa,#eef8f5);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{display:flex;align-items:center;gap:12px}.icon{width:64px;height:64px;object-fit:contain}.kicker{font-size:12.5px;font-weight:900;letter-spacing:.115em;color:var(--teal)}h1{font-size:34px;line-height:1.1;margin:2px 0 3px;letter-spacing:-.035em}.sub{font-size:14px;color:#000}.top-actions{display:flex;gap:8px}.pill,.btn{min-height:40px;padding:9px 14px;border:1px solid #cbd7e4;border-radius:10px;background:#fff;color:#1b3049;font-size:14px;font-weight:900;text-decoration:none;cursor:pointer}.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}.btn.green{background:var(--green);border-color:var(--green);color:#fff}.btn.danger{color:var(--red);border-color:#efb2ad}.grid{display:grid;grid-template-columns:minmax(340px,.78fr) minmax(0,1.7fr);gap:14px;margin-top:14px}.card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}.head{padding:15px 17px;border-bottom:1px solid #e7edf5;display:flex;align-items:center;justify-content:space-between;gap:12px}.head h2{font-size:19px;margin:0}.body{padding:16px 17px}.list{display:flex;flex-direction:column;gap:8px}.item{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff;cursor:pointer}.item:hover,.item.on{border-color:#89c9bd;background:#f1fbf7}.item-top{display:flex;justify-content:space-between;gap:10px}.item b{font-size:15px}.meta{font-size:12.5px;color:#000;margin-top:4px}.status{display:inline-flex;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:900}.published{background:#e9f8f1;color:#087555}.draft{background:#fff6dd;color:#8a5a00}.form{display:grid;grid-template-columns:150px minmax(0,1fr);gap:10px 12px;align-items:center}.form label{font-size:14px;font-weight:900}.form input,.form select,.form textarea{width:100%;min-height:42px;padding:9px 11px;border:1px solid #c9d6e5;border-radius:9px;background:#fff;color:#000;font:inherit;font-size:14px}.form textarea{min-height:80px;resize:vertical}.full{grid-column:1/-1}.browser-box{margin-bottom:14px;padding:13px;border:1px solid #b9ddd5;border-radius:12px;background:#f2fbf8}.browser-box b{font-size:15px}.browser-row{display:flex;gap:8px;margin-top:9px}.browser-row select{flex:1}.notice{padding:12px 14px;border:1px solid #d7e5f0;border-radius:11px;background:#edf9f6;color:#000;font-size:13.5px}.notice.warn{background:#fff6dd;border-color:#f0d79a}.actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:15px}.empty{padding:24px 10px;text-align:center;color:#000}.hidden{display:none!important}.login{max-width:520px;margin:70px auto 0}.login h2{font-size:22px;margin:0 0 7px}.login input{width:100%;min-height:46px;padding:10px 12px;border:1px solid #bfcddd;border-radius:9px;font-size:16px;margin:10px 0}.login .btn{width:100%}.foot{margin-top:14px;color:#000;font-size:12.5px}.json-file{display:none}
+@media(min-width:1200px){h1{font-size:36px}.sub{font-size:15px}}
+@media(max-width:900px){.grid{grid-template-columns:1fr}.form{grid-template-columns:1fr}.top-actions{display:none}.browser-row{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="wrap">
+ <header class="hero">
+  <div class="brand">
+   <img class="icon" src="../../templates/기록물대장마이그레이션%20아이콘.png" alt="">
+   <div><div class="kicker">DDALKKAK RECORDS MIGRATION MASTER</div><h1>표준 작업방식 관리</h1><div class="sub">지역별 변환 기준을 저장·게시하고 학교 사용자에게 선택항목으로 배포합니다.</div></div>
+  </div>
+  <div class="top-actions"><a class="pill" href="../">← 마이그레이션</a><a class="pill" href="../../">⌂ 홈</a><button id="logoutBtn" class="btn hidden" onclick="logout()">로그아웃</button></div>
+ </header>
+
+ <section id="loginCard" class="card login hidden">
+  <div class="body">
+   <h2>관리자 인증</h2>
+   <div class="notice">이 화면의 숨은 진입은 편의 기능일 뿐입니다. 실제 저장·수정은 서버 암호 인증 후에만 가능합니다.</div>
+   <input id="password" type="password" placeholder="마스터 비밀번호" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
+   <button class="btn primary" onclick="login()">관리자 페이지 열기</button>
+   <div id="loginMsg" class="foot"></div>
+  </div>
+ </section>
+
+ <main id="masterApp" class="grid hidden">
+  <aside class="card">
+   <div class="head"><h2>게시 작업방식</h2><button class="btn" onclick="newProfile()">+ 새 항목</button></div>
+   <div class="body"><div id="profileList" class="list"></div></div>
+  </aside>
+
+  <section class="card">
+   <div class="head"><div><h2 id="editorTitle">작업방식 등록</h2><div class="sub">마이그레이션에서 만든 규칙을 이름으로 저장하면 일반 사용자 화면에 자동 표시됩니다.</div></div><span id="editStatus" class="status draft">작성중</span></div>
+   <div class="body">
+    <div class="browser-box">
+     <b>현재 브라우저에서 만든 작업방식</b>
+     <div class="meta">마이그레이션의 ‘현재 작업방식 브라우저 저장’을 사용했다면 여기에서 바로 가져올 수 있습니다.</div>
+     <div class="browser-row"><select id="localProfiles"></select><button class="btn" onclick="loadLocalProfile()">가져오기</button><button class="btn" onclick="document.getElementById('jsonFile').click()">JSON 가져오기</button></div>
+     <input id="jsonFile" class="json-file" type="file" accept=".json,application/json">
+    </div>
+
+    <div class="form">
+     <label>작업방식 이름</label><input id="name" placeholder="예: 천안 학교">
+     <label>지역</label><input id="region" placeholder="예: 천안">
+     <label>적용 대상</label><input id="audience" placeholder="예: 천안 관내 학교">
+     <label>버전</label><input id="version" value="v1.0" placeholder="v1.0">
+     <label>게시 상태</label><select id="status"><option value="draft">작성중</option><option value="published">게시중</option></select>
+     <label>표준대장 유형</label><input id="targetType" readonly placeholder="작업방식을 가져오면 자동 표시">
+     <label>형식 ID</label><input id="signature" readonly placeholder="작업방식을 가져오면 자동 표시">
+     <label>설명</label><textarea id="description" placeholder="사용자가 구분할 수 있는 간단한 설명"></textarea>
+    </div>
+
+    <div id="profileState" class="notice" style="margin-top:14px">먼저 브라우저 저장 작업방식 또는 JSON을 가져오세요.</div>
+    <div class="actions">
+     <button id="deleteBtn" class="btn danger hidden" onclick="deleteProfile()">삭제</button>
+     <button class="btn" onclick="resetForm()">취소</button>
+     <button class="btn primary" onclick="saveProfile()">저장</button>
+    </div>
+   </div>
+  </section>
+ </main>
+</div>
+<script>
+const LOCAL_KEY='ddalkkak.records.migrationProfiles.v1';
+let rows=[],editingId='',workingProfile=null;
+const $=id=>document.getElementById(id);
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+async function api(url,opt={}){const r=await fetch(url,{cache:'no-store',headers:{'content-type':'application/json',...(opt.headers||{})},...opt});let j={};try{j=await r.json()}catch{};if(!r.ok){const e=new Error(j.message||j.error||('HTTP '+r.status));e.status=r.status;throw e}return j}
+function showLogin(msg=''){ $('loginCard').classList.remove('hidden');$('masterApp').classList.add('hidden');$('logoutBtn').classList.add('hidden');$('loginMsg').textContent=msg }
+function showApp(){ $('loginCard').classList.add('hidden');$('masterApp').classList.remove('hidden');$('logoutBtn').classList.remove('hidden') }
+async function boot(){
+ renderLocalProfiles();
+ try{await loadProfiles();showApp()}catch(e){if(e.status===401)showLogin();else showLogin('서버 준비가 필요합니다: '+e.message)}
+}
+async function login(){
+ const p=$('password').value;if(!p)return;
+ $('loginMsg').textContent='확인 중...';
+ try{await api('/api/admin/login',{method:'POST',body:JSON.stringify({password:p})});$('password').value='';await loadProfiles();showApp()}
+ catch(e){$('loginMsg').textContent=e.status===503?'Cloudflare 환경변수 MASTER_PASSWORD / ADMIN_SESSION_SECRET 설정이 필요합니다.':'비밀번호를 확인해주세요.'}
+}
+async function logout(){try{await api('/api/admin/logout',{method:'POST'})}catch{}showLogin('로그아웃했습니다.')}
+async function loadProfiles(){
+ const j=await api('/api/admin/migration-profiles');rows=j.profiles||[];renderList()
+}
+function renderList(){
+ const el=$('profileList');
+ if(!rows.length){el.innerHTML='<div class="empty">저장된 작업방식이 없습니다.</div>';return}
+ el.innerHTML=rows.map(r=>`<div class="item ${r.id===editingId?'on':''}" onclick="editProfile('${esc(r.id)}')"><div class="item-top"><b>${esc(r.name)}</b><span class="status ${r.status==='published'?'published':'draft'}">${r.status==='published'?'게시중':'작성중'}</span></div><div class="meta">${esc(r.region||'지역 미지정')} · ${esc(r.audience||'대상 미지정')} · ${esc(r.version||'v1.0')}<br>수정 ${esc((r.updated_at||'').replace('T',' ').slice(0,16))}</div></div>`).join('')
+}
+function renderLocalProfiles(){
+ let data={};try{data=JSON.parse(localStorage.getItem(LOCAL_KEY)||'{}')}catch{}
+ const arr=Object.entries(data);
+ $('localProfiles').innerHTML=arr.length?'<option value="">브라우저 저장 작업방식 선택</option>'+arr.map(([k,p])=>`<option value="${esc(k)}">${esc(p.name||k)} · ${esc(p.targetType||'')}</option>`).join(''):'<option value="">브라우저 저장 작업방식 없음</option>'
+}
+function fillProfile(p){
+ workingProfile=p&&typeof p==='object'?JSON.parse(JSON.stringify(p)):null;
+ if(!workingProfile)return;
+ $('targetType').value=workingProfile.targetType||'';
+ $('signature').value=workingProfile.signature||'';
+ if(!$('name').value)$('name').value=workingProfile.name||'';
+ $('profileState').innerHTML='<b>작업방식 준비 완료</b> · '+esc(workingProfile.bindings?.length||0)+'개 매핑 규칙 · '+esc(workingProfile.targetType||'')+' · '+esc(workingProfile.signature||'')
+}
+function loadLocalProfile(){
+ let data={};try{data=JSON.parse(localStorage.getItem(LOCAL_KEY)||'{}')}catch{}
+ const key=$('localProfiles').value;if(!key||!data[key])return;
+ fillProfile(data[key])
+}
+$('jsonFile').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const raw=JSON.parse(await f.text()),p=raw?.profile&&typeof raw.profile==='object'?raw.profile:raw;fillProfile(p)}catch(err){alert('JSON 파일을 읽지 못했습니다: '+err.message)}finally{e.target.value=''}});
+function newProfile(){resetForm();$('name').focus()}
+function resetForm(){
+ editingId='';workingProfile=null;
+ ['name','region','audience','description','targetType','signature'].forEach(id=>$(id).value='');
+ $('version').value='v1.0';$('status').value='draft';$('editorTitle').textContent='작업방식 등록';$('editStatus').className='status draft';$('editStatus').textContent='작성중';$('deleteBtn').classList.add('hidden');$('profileState').textContent='먼저 브라우저 저장 작업방식 또는 JSON을 가져오세요.';renderList()
+}
+function editProfile(id){
+ const r=rows.find(x=>x.id===id);if(!r)return;
+ editingId=id;$('name').value=r.name||'';$('region').value=r.region||'';$('audience').value=r.audience||'';$('description').value=r.description||'';$('version').value=r.version||'v1.0';$('status').value=r.status||'draft';fillProfile(r.profile||{});$('editorTitle').textContent=r.name+' 편집';$('editStatus').className='status '+(r.status==='published'?'published':'draft');$('editStatus').textContent=r.status==='published'?'게시중':'작성중';$('deleteBtn').classList.remove('hidden');renderList()
+}
+async function saveProfile(){
+ if(!workingProfile){alert('먼저 작업방식을 가져오세요.');return}
+ const body={name:$('name').value.trim(),region:$('region').value.trim(),audience:$('audience').value.trim(),description:$('description').value.trim(),version:$('version').value.trim(),status:$('status').value,target_type:workingProfile.targetType,signature:workingProfile.signature,profile:workingProfile};
+ if(!body.name){alert('작업방식 이름을 입력해주세요.');return}
+ try{
+  if(editingId)await api('/api/admin/migration-profiles/'+encodeURIComponent(editingId),{method:'PUT',body:JSON.stringify(body)});
+  else await api('/api/admin/migration-profiles',{method:'POST',body:JSON.stringify(body)});
+  await loadProfiles();resetForm();alert(body.status==='published'?'게시했습니다. 일반 사용자 선택목록에 표시됩니다.':'작성중으로 저장했습니다.')
+ }catch(e){alert('저장하지 못했습니다: '+e.message)}
+}
+async function deleteProfile(){
+ if(!editingId||!confirm('이 작업방식을 삭제할까요?'))return;
+ try{await api('/api/admin/migration-profiles/'+encodeURIComponent(editingId),{method:'DELETE'});await loadProfiles();resetForm()}
+ catch(e){alert('삭제하지 못했습니다: '+e.message)}
+}
+boot();
+</script>
+</body></html>
