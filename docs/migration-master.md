@@ -84,3 +84,7 @@ POST /api/admin/logout
 6. `게시중`으로 저장하면 일반 사용자 마이그레이션 화면의 `배포 작업방식` 목록에 표시된다.
 
 JSON 가져오기는 백업·이전 호환용으로만 마스터 페이지와 사용자 화면에 보조 기능으로 남긴다.
+
+## 운영 배포 메모
+
+Cloudflare Pages 운영환경에서 D1 바인딩 이름은 `DB`, 데이터베이스는 `ddalkkak-records-db`를 사용합니다. 바인딩·Secret 변경 후에는 새 Production 배포가 한 번 필요합니다.
