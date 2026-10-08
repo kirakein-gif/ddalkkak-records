@@ -41,3 +41,22 @@ samples/          # 익명화 테스트 자료
 ## 현재 단계
 
 기존 Excel 자동화와 지역별 양식을 분석하여 **표준 데이터 규격과 전체 아키텍처를 확정하는 초기 설계 단계**입니다.
+
+
+## Cloudflare Pages 배포
+
+- 프로젝트: ddalkkak-records
+- 배포 대상 주소: https://ddalkkak-records.pages.dev/
+- 운영 브랜치: main
+- 프레임워크: None
+- 빌드 명령: node scripts/build-cloudflare.cjs
+- 출력 폴더: dist
+- 빌드 루트: 저장소 루트
+
+cloudflare-public.json에 명시한 실행 파일만 배포합니다. 개발 문서·README·Git 이력은 배포 폴더에서 제외됩니다. Cloudflare GitHub 앱에 이 저장소 접근 권한을 유지하면 비공개 저장소에서도 자동 배포할 수 있습니다. 업무자료는 기존처럼 브라우저에서 처리합니다.
+
+Excel 양식은 같은 Cloudflare 사이트의 /templates/에서 가져옵니다. 공개 raw GitHub 주소에 의존하지 않습니다. 원본 파일의 양식·업무 로직은 그대로 사용하며 빌드 출력에서 호스팅 경로만 조정합니다.
+
+호스팅 어댑터 v1 (2026-10-08): Cloudflare 배포 구성 추가. 프로그램 표시 버전은 v0.9.7 Beta입니다.
+
+저장소 비공개 전환은 새 주소의 실제 기능·파일 다운로드를 확인하고 충교위키 및 기존 북마클릿의 주소 전환을 준비한 뒤 진행합니다. 저장소 비공개와 별개로, 브라우저 실행에 필요한 HTML·JavaScript·표준양식은 서비스 이용자에게 전달됩니다.

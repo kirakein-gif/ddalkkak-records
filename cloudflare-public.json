@@ -1,0 +1,20 @@
+{
+  "repo": "ddalkkak-records",
+  "version": "v0.9.7 Beta",
+  "files": [
+    "index.html",
+    "management/index.html",
+    "management/holdings/index.html",
+    "migration/index.html",
+    "transfer/index.html",
+    "site-src/ddalkkak-records-theme.css",
+    "site-src/org-resolver.js",
+    "site-src/holdings-v0.1.source.html",
+    "site-src/management-v0.6.2.source.html",
+    "site-src/migration-v0.6.1.source.html",
+    "site-src/transfer-v0.2.source.html",
+    "site-src/transfer-v0.3.source.html"
+  ],
+  "templates": true,
+  "publicUrl": "https://ddalkkak-records.pages.dev/"
+}
